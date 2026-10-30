@@ -615,10 +615,11 @@ ctx.fillStyle='#f1cf8d';ctx.font='11px system-ui';ctx.textAlign='right';
 ctx.fillText('MARBLE LIFT',992,350);
 ctx.restore();
 let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
-const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-2.02&&dt<lead+.35});
+const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-1.96&&dt<lead+.35});
 // Single-file collection tray: earlier marbles stay ahead; later ones queue behind.
 let lastTrayMarbleX=Infinity;
 let leadingMusicMarbleX=Infinity;
+const musicSpacingCache=draw.musicSpacingCache||(draw.musicSpacingCache=new WeakMap());
 for(const n of visible){const x=xFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
 let y,ballX=x;
 if(remaining>0){
@@ -664,14 +665,19 @@ if(remaining>0){
 // previous note's marble. Keep the original note/audio schedule intact.
 if(remaining>0){
  const gap=27;
- ballX=Math.max(80,Math.min(ballX,leadingMusicMarbleX-gap));
+ const permitted=Math.max(80,Math.min(ballX,leadingMusicMarbleX-gap));
+ const previous=musicSpacingCache.get(n);
+ // Ease into spacing adjustments instead of snapping to a new position.
+ ballX=previous===undefined?permitted:Math.min(permitted,previous+3.2);
+ ballX=Math.max(80,ballX);
+ musicSpacingCache.set(n,ballX);
  leadingMusicMarbleX=ballX;
  // Match the constrained marble to the rail's actual slope.
  if(remaining>lead*.09) y=141+(ballX-80)*62/960;
 }
 // Enforce a marble-diameter gap on the narrow lower return ramp.
 // This is a visual collision constraint; musical note timing is unchanged.
-if(remaining<=-.27 && remaining> -2.02){
+if(remaining<=-.27 && remaining> -1.96){
  ballX=Math.min(ballX,lastTrayMarbleX-27);
  ballX=Math.max(80,ballX);
  lastTrayMarbleX=ballX;
