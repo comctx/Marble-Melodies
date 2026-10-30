@@ -42,12 +42,39 @@ const barY=456,barWidth=52;
 let audio=null,master=null,playing=false,startedAt=0,secondsPerUnit=.24,frame=0,session=0,scheduled=[],duration=0;
 const lead=1.3;
 function makeAudio(){if(!audio){audio=new (window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=.4;master.connect(audio.destination)}return audio.resume()}
-function noteSound(m,start,dur,mode){const fundamental=hz(m),gain=audio.createGain();gain.connect(master);
-gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(mode==='bell'?.23:.16,start+.012);
-gain.gain.exponentialRampToValueAtTime(.0001,start+Math.min(1.8,Math.max(.22,dur*1.7)));
-const partials=mode==='bell'?[1,2.01,3.93]:[1,2,3],levels=mode==='bell'?[1,.28,.09]:[1,.11,.04];
-partials.forEach((p,i)=>{const osc=audio.createOscillator(),g=audio.createGain();osc.type=mode==='bell'?'sine':'triangle';osc.frequency.value=fundamental*p;g.gain.value=levels[i];osc.connect(g);g.connect(gain);osc.start(start);osc.stop(start+Math.min(1.9,Math.max(.25,dur*1.8)))});
-scheduled.push(gain);
+// A tuned-bar synthesis model: sharp mallet attack, several slightly inharmonic
+// decaying partials, and a soft body resonance. No samples or external assets.
+function noteSound(m,start,dur,mode){
+ const fundamental=hz(m);
+ const envelope=audio.createGain();envelope.connect(master);
+ const isBell=mode==='bell';
+ const strike=.16+Math.min(.11,dur*.07);
+ const release=isBell?Math.min(3.1,Math.max(.9,dur*2.5)):Math.min(1.8,Math.max(.35,dur*1.4));
+ envelope.gain.setValueAtTime(.00001,start);
+ envelope.gain.exponentialRampToValueAtTime(strike,start+.006);
+ envelope.gain.exponentialRampToValueAtTime(strike*.6,start+.055);
+ envelope.gain.exponentialRampToValueAtTime(.00001,start+release);
+ const ratios=isBell?[1,2.01,3.93,5.42]:[1,2,3];
+ const levels=isBell?[1,.28,.12,.045]:[1,.14,.05];
+ ratios.forEach((ratio,i)=>{
+  const osc=audio.createOscillator(),partial=audio.createGain();
+  osc.type=isBell?'sine':'triangle';
+  osc.frequency.setValueAtTime(fundamental*ratio,start);
+  partial.gain.value=levels[i];
+  osc.connect(partial);partial.connect(envelope);
+  osc.start(start);osc.stop(start+release+.04);
+ });
+ // A brief broadband mallet click makes the impact feel physical.
+ const clickLen=.016,buffer=audio.createBuffer(1,Math.ceil(audio.sampleRate*clickLen),audio.sampleRate);
+ const data=buffer.getChannelData(0);
+ for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,3);
+ const noise=audio.createBufferSource(),filter=audio.createBiquadFilter(),clickGain=audio.createGain();
+ noise.buffer=buffer;filter.type='highpass';filter.frequency.value=1400;
+ clickGain.gain.setValueAtTime(isBell?.035:.018,start);
+ clickGain.gain.exponentialRampToValueAtTime(.00001,start+clickLen);
+ noise.connect(filter);filter.connect(clickGain);clickGain.connect(master);
+ noise.start(start);noise.stop(start+clickLen);
+ scheduled.push(envelope);
 }
 function stop(){session++;playing=false;if(master&&audio){const old=master;master=audio.createGain();master.gain.value=.4;master.connect(audio.destination);old.gain.cancelScheduledValues(audio.currentTime);old.gain.setTargetAtTime(0,audio.currentTime,.008);setTimeout(()=>{try{old.disconnect()}catch{}},150)}scheduled=[];playBtn.disabled=false;stopBtn.disabled=true;statusEl.textContent='Ready to perform'}
 async function play(){if(playing)return;try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
