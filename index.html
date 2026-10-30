@@ -225,8 +225,23 @@ ctx.strokeStyle='#d7ae62';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(172,214);ct
 // The rotating weights spread slightly as the spring-driven machine runs.
 ctx.save();
 const govX=914,govY=302;
-ctx.strokeStyle='#d8ad69';ctx.lineWidth=4;
-ctx.beginPath();ctx.moveTo(940,213);ctx.lineTo(govX+20,govY-29);ctx.stroke();
+// Positive-looking mechanical takeoff from the large drive gear: shaft,
+// two bevel-gear collars, and a vertical governor spindle.
+const shaftX=govX+17, shaftTop=242;
+ctx.strokeStyle='#362519';ctx.lineWidth=10;ctx.lineCap='round';
+ctx.beginPath();ctx.moveTo(940,213);ctx.lineTo(shaftX,shaftTop);ctx.lineTo(shaftX,govY-23);ctx.stroke();
+ctx.strokeStyle='#e9bd70';ctx.lineWidth=5;
+ctx.beginPath();ctx.moveTo(940,213);ctx.lineTo(shaftX,shaftTop);ctx.lineTo(shaftX,govY-23);ctx.stroke();
+function bevelCollar(x,y,angle,phase){
+ ctx.save();ctx.translate(x,y);ctx.rotate(angle);
+ ctx.fillStyle='#9b672d';ctx.strokeStyle='#f1d08a';ctx.lineWidth=2;
+ ctx.beginPath();ctx.ellipse(0,0,12,7,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ for(let t=0;t<8;t++){const a=t*Math.PI/4+phase;ctx.beginPath();ctx.moveTo(Math.cos(a)*7,Math.sin(a)*4);ctx.lineTo(Math.cos(a)*12,Math.sin(a)*7);ctx.stroke()}
+ ctx.restore();
+}
+bevelCollar(940,213,-.8,driveTime*.6);
+bevelCollar(shaftX,shaftTop,Math.PI/2,driveTime*3.2);
+ctx.fillStyle='#f3d28e';ctx.beginPath();ctx.arc(shaftX,shaftTop,3.5,0,Math.PI*2);ctx.fill();
 ctx.fillStyle='#352619';ctx.strokeStyle='#e1b66e';ctx.lineWidth=3;
 ctx.beginPath();ctx.ellipse(govX,govY,25,30,0,0,Math.PI*2);ctx.fill();ctx.stroke();
 const spin=playing?driveTime*11:0,spread=playing?12+4*Math.min(1,driveTime):8;
