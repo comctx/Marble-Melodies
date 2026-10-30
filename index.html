@@ -67,6 +67,7 @@ function buildMarbleEvents(){
  let previousRelease=-Infinity,previousNote=-Infinity;
  for(let i=0;i<score.length;i++){
   const note=score[i],x=xFor(note.midi);
+  if(x>950)continue; // Far-end high notes sound via the piano action, not the cup ramp.
   const noteAt=lead+note.beat*secondsPerUnit;
   const dropAt=noteAt-.38;
   const releaseAt=dropAt-(x-80)/MARBLE_RAIL_SPEED-.14;
@@ -601,7 +602,7 @@ let gateOpen=false;
 for(const event of playing?marbleEvents:[]){
  const t=flowNow,x=event.x;
  if(t<event.releaseAt||t>=event.pickupAt+liftSeconds+tipSeconds+returnSeconds+.42)continue;
- let bx,by,r=13;
+ let bx,by,r=11;
  if(t<event.dropAt){
   // All balls use exactly the same rolling velocity and cannot overtake.
   const travel=Math.max(0,t-event.releaseAt-.14);
@@ -627,23 +628,23 @@ for(const event of playing?marbleEvents:[]){
   // A queued ball has a real cup position, not another copy on the tray.
   const order=waiting.indexOf(event);
   const q=Math.max(0,order);
-  bx=982+(q%2)*19;by=536-Math.floor(q/2)*19;r=8;
+  bx=982+(q%2)*24;by=536-Math.floor(q/2)*23;
  }else if(t<event.pickupAt){
   const u=(t-(event.pickupAt-.16))/.16;
-  bx=982+32*u;by=536-25*u;r=8;gateOpen=true;
+  bx=982+32*u;by=536-25*u;gateOpen=true;
  }else if(t<event.pickupAt+liftSeconds){
   const u=t-event.pickupAt;
-  bx=1014;by=510-u*ELEVATOR_SPEED+1;r=8;
+  bx=1014;by=510-u*ELEVATOR_SPEED+1;
   if(u<.10)gateOpen=true;
  }else if(t<event.pickupAt+liftSeconds+tipSeconds){
   const u=(t-event.pickupAt-liftSeconds)/tipSeconds;
-  bx=1014-14*u;by=topY+6*u;r=8;
+  bx=1014-14*u;by=topY+6*u;
  }else if(t<event.pickupAt+liftSeconds+tipSeconds+returnSeconds){
   const distance=(t-event.pickupAt-liftSeconds-tipSeconds)*ELEVATOR_SPEED;
-  bx=1000-distance;by=37+(1000-bx)*27/915-7;r=8;
+  bx=1000-distance;by=37+(1000-bx)*27/915-7;
  }else{
   const u=(t-event.pickupAt-liftSeconds-tipSeconds-returnSeconds)/.42;
-  bx=85;by=57+39*u;r=8;
+  bx=85;by=57+39*u;
  }
  marble(bx,by,r);
  if(Math.abs(t-event.noteAt)<.08){
