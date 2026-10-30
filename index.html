@@ -212,6 +212,40 @@ for(const x of [57,1063])for(const y of [106,540])brassRivet(x,y,7);
 const driveTime=playing&&audio?Math.max(0,audio.currentTime-startedAt):0;
 gear(172,214,43,14,driveTime*.6);gear(255,217,31,12,-driveTime*.84);gear(940,213,42,14,-driveTime*.58);gear(858,215,31,12,driveTime*.81);
 ctx.strokeStyle='#d7ae62';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(172,214);ctx.lineTo(172,281);ctx.moveTo(940,213);ctx.lineTo(940,281);ctx.stroke();
+// Elevated glass-and-brass marble reservoir, with a funnel and feed gate.
+// The stock settles a little as the musical feed mechanism advances.
+ctx.save();
+ctx.strokeStyle='#b48a4d';ctx.lineWidth=7;
+ctx.beginPath();ctx.moveTo(75,113);ctx.lineTo(75,174);ctx.moveTo(213,113);ctx.lineTo(213,174);ctx.stroke();
+const hopperGlass=ctx.createLinearGradient(86,0,205,0);
+hopperGlass.addColorStop(0,'rgba(181,224,230,.43)');
+hopperGlass.addColorStop(.24,'rgba(219,245,245,.16)');
+hopperGlass.addColorStop(.75,'rgba(181,216,222,.13)');
+hopperGlass.addColorStop(1,'rgba(229,248,249,.43)');
+ctx.fillStyle=hopperGlass;ctx.strokeStyle='#e2bd7b';ctx.lineWidth=4;
+ctx.beginPath();ctx.moveTo(90,73);ctx.lineTo(202,73);ctx.lineTo(202,114);
+ctx.lineTo(160,143);ctx.lineTo(151,155);ctx.lineTo(140,155);
+ctx.lineTo(130,143);ctx.lineTo(90,114);ctx.closePath();ctx.fill();ctx.stroke();
+ctx.save();ctx.beginPath();ctx.moveTo(94,77);ctx.lineTo(198,77);ctx.lineTo(198,111);
+ctx.lineTo(157,141);ctx.lineTo(149,150);ctx.lineTo(142,150);ctx.lineTo(133,141);
+ctx.lineTo(94,111);ctx.closePath();ctx.clip();
+const settle=playing?Math.sin(driveTime*4)*.6:0;
+for(let row=0;row<3;row++)for(let col=0;col<5-row%2;col++){
+ const px=104+col*20+(row%2?10:0),py=91+row*16+settle;
+ marble(px,py,8);
+}
+marble(144,139+settle,8);marble(151,126+settle,8);
+ctx.restore();
+ctx.strokeStyle='#f1d69d';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(88,73);ctx.lineTo(204,73);ctx.stroke();
+ctx.strokeStyle='rgba(250,255,255,.65)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(100,81);ctx.lineTo(100,109);ctx.stroke();
+// Metering wheel and the outlet chute toward the shared rail.
+ctx.fillStyle='#9c7039';ctx.fillRect(138,150,15,12);
+ctx.strokeStyle='#e3bb77';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(145,160);ctx.lineTo(96,164);ctx.stroke();
+ctx.save();ctx.translate(145,156);ctx.rotate(playing?driveTime*2.4:0);
+ctx.strokeStyle='#f4d494';ctx.lineWidth=3;
+for(let k=0;k<4;k++){const a=k*Math.PI/2;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*10,Math.sin(a)*10);ctx.stroke()}
+ctx.restore();brassRivet(145,156,4);
+ctx.restore();
 // A single long gravity-feed rail runs across the top of the machine.
 // Marbles enter from the left and fall through a gate above their destination.
 track(80,153,1040,215);
