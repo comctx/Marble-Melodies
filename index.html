@@ -360,11 +360,17 @@ ctx.save();ctx.beginPath();ctx.moveTo(94,77);ctx.lineTo(198,77);ctx.lineTo(198,1
 ctx.lineTo(157,141);ctx.lineTo(149,150);ctx.lineTo(142,150);ctx.lineTo(133,141);
 ctx.lineTo(94,111);ctx.closePath();ctx.clip();
 const settle=playing?Math.sin(driveTime*4)*.6:0;
+// The hopper contains a fixed stock; each launched marble temporarily
+// reduces it until that same marble arrives back through the top conduit.
+const inTransit=playing?marbleEvents.filter(e=>
+ driveTime>=e.releaseAt && driveTime<e.pickupAt+(486+28+915)/ELEVATOR_SPEED+.42).length:0;
+const hopperStock=Math.max(0,16-inTransit);
+const hopperBalls=[];
 for(let row=0;row<3;row++)for(let col=0;col<5-row%2;col++){
- const px=104+col*20+(row%2?10:0),py=91+row*16+settle;
- marble(px,py,8);
+ hopperBalls.push([104+col*20+(row%2?10:0),91+row*16]);
 }
-marble(144,139+settle,8);marble(151,126+settle,8);
+hopperBalls.push([144,139],[151,126]);
+for(const [px,py] of hopperBalls.slice(0,hopperStock))marble(px,py+settle,8);
 ctx.restore();
 ctx.strokeStyle='#f1d69d';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(88,73);ctx.lineTo(204,73);ctx.stroke();
 ctx.strokeStyle='rgba(250,255,255,.65)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(100,81);ctx.lineTo(100,109);ctx.stroke();
@@ -522,7 +528,30 @@ for(const m of pitches){
  ctx.restore();
  brassRivet(x+19,baseY-9,3);
 }
-for(const m of pitches){const x=xFor(m);ctx.strokeStyle='#b28b54';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,295);ctx.lineTo(x,barY-15);ctx.stroke();metal(x-barWidth/2,barY,barWidth,23,m%12===4||m%12===9);ctx.fillStyle='#17140f';ctx.font='13px system-ui';ctx.textAlign='center';const name=Object.keys(NOTES).find(k=>NOTES[k]===m%12)+(Math.floor(m/12)-1);ctx.fillText(name,x,barY+16);brassRivet(x,barY+31,3)}
+for(const m of pitches){
+ const x=xFor(m);
+ ctx.strokeStyle='#b28b54';ctx.lineWidth=4;ctx.beginPath();
+ ctx.moveTo(x,295);ctx.lineTo(x,barY-15);ctx.stroke();
+ metal(x-barWidth/2,barY,barWidth,23,m%12===4||m%12===9);
+ // The clockwork piano action sounds EVERY score note, even during gaps
+ // between the less frequent physical marble releases.
+ if(playing&&audio){
+  const noteClock=audio.currentTime-startedAt;
+  let pulse=0;
+  for(const n of score){
+   if(n.midi!==m)continue;
+   const distance=Math.abs(noteClock-(lead+n.beat*secondsPerUnit));
+   if(distance<.12)pulse=Math.max(pulse,1-distance/.12);
+  }
+  if(pulse>0){
+   ctx.fillStyle='rgba(255,218,131,'+(.26*pulse)+')';
+   ctx.beginPath();ctx.ellipse(x,barY+4,29,16,0,0,Math.PI*2);ctx.fill();
+  }
+ }
+ ctx.fillStyle='#17140f';ctx.font='13px system-ui';ctx.textAlign='center';
+ const name=Object.keys(NOTES).find(k=>NOTES[k]===m%12)+(Math.floor(m/12)-1);
+ ctx.fillText(name,x,barY+16);brassRivet(x,barY+31,3);
+}
 // Sloped return tray collects marbles after they sound a note.
 ctx.strokeStyle='#302216';ctx.lineWidth=13;ctx.lineCap='round';
 ctx.beginPath();ctx.moveTo(76,492);ctx.lineTo(970,520);ctx.stroke();
