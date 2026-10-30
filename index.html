@@ -53,7 +53,39 @@ const pitches=[...new Set(score.map(n=>n.midi))].sort((a,b)=>a-b);
 const xFor=m=>100+(pitches.indexOf(m)/(pitches.length-1))*920;
 const barY=456,barWidth=52;
 let audio=null,master=null,playing=false,startedAt=0,secondsPerUnit=.24,frame=0,session=0,scheduled=[],duration=0;
-const lead=4.0; // Slow, deliberate visual travel before each note; musical tempo unchanged.
+const lead=4.0; // Keep the approved timing and the existing piano recording.
+const MARBLE_RAIL_SPEED=195; // Constant rail speed prevents overtaking or jerky clamps.
+const MARBLE_TRAY_SPEED=245;
+const ELEVATOR_SPEED=38; // Approved elevator speed.
+const BUCKET_SLOT_SECONDS=((510-24)*2+28*2)/16/ELEVATOR_SPEED;
+let marbleEvents=[];
+// The automatic piano action can play many notes between physical marble trips.
+// Only schedule another steel marble when the elevator has enough throughput.
+// Each marble is one tracked object with release, strike, tray, cup and lift times.
+function buildMarbleEvents(){
+ const events=[];
+ let previousRelease=-Infinity,previousNote=-Infinity;
+ for(let i=0;i<score.length;i++){
+  const note=score[i],x=xFor(note.midi);
+  const noteAt=lead+note.beat*secondsPerUnit;
+  const dropAt=noteAt-.38;
+  const releaseAt=dropAt-(x-80)/MARBLE_RAIL_SPEED-.14;
+  if(releaseAt<0||releaseAt-previousRelease<2.25||noteAt-previousNote<2.25)continue;
+  const trayAt=noteAt+.27;
+  const rollEnd=trayAt+(970-(x+9))/MARBLE_TRAY_SPEED;
+  const cupAt=rollEnd+.25;
+  events.push({note,index:i,x,noteAt,dropAt,releaseAt,trayAt,rollEnd,cupAt,pickupAt:0});
+  previousRelease=releaseAt;previousNote=noteAt;
+ }
+ // Reserve successive bucket arrivals in cup-arrival order, not note order.
+ let lastSlot=-1;
+ for(const event of [...events].sort((a,b)=>a.cupAt-b.cupAt)){
+  const slot=Math.max(lastSlot+1,Math.ceil((event.cupAt+.17)/BUCKET_SLOT_SECONDS));
+  event.pickupAt=slot*BUCKET_SLOT_SECONDS;
+  lastSlot=slot;
+ }
+ return events;
+}
 function makeAudio(){if(!audio){audio=new (window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=.4;master.connect(audio.destination)}return audio.resume()}
 // A tuned-bar synthesis model: sharp mallet attack, several slightly inharmonic
 // decaying partials, and a soft body resonance. No samples or external assets.
@@ -167,6 +199,7 @@ function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(
 function stop(){session++;playing=false;if(master&&audio){const old=master;master=audio.createGain();master.gain.value=.4;master.connect(audio.destination);old.gain.cancelScheduledValues(audio.currentTime);old.gain.setTargetAtTime(0,audio.currentTime,.008);setTimeout(()=>{try{old.disconnect()}catch{}},150)}scheduled=[];playBtn.disabled=false;stopBtn.disabled=true;statusEl.textContent='Ready to perform'}
 async function play(){if(playing)return;if(springCharge<1){statusEl.textContent='Wind the mainspring first (turn crank or Wind Fully)';return}try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
 const id=++session;playing=true;playBtn.disabled=true;stopBtn.disabled=false;secondsPerUnit=.24/Number(tempoSel.value);duration=beats*secondsPerUnit;startedAt=audio.currentTime+.16;initialCharge=springCharge;
+marbleEvents=buildMarbleEvents();
 let mode=soundSel.value;
 if(mode==='grand'){
  statusEl.textContent='Loading concert grand recordings…';
@@ -338,9 +371,8 @@ ctx.strokeStyle='rgba(250,255,255,.65)';ctx.lineWidth=3;ctx.beginPath();ctx.move
 // Each scheduled note opens a short metering cycle at its own release time.
 const releasePhase=playing&&audio?audio.currentTime-startedAt: -1000;
 let gateCycle=-1;
-if(playing)for(const n of score){
- const releaseAt=n.beat*secondsPerUnit;
- const elapsed=releasePhase-releaseAt;
+if(playing)for(const event of marbleEvents){
+ const elapsed=releasePhase-event.releaseAt;
  if(elapsed>=0&&elapsed<.22){gateCycle=Math.max(gateCycle,elapsed); }
 }
 const lowerOpen=gateCycle>=.065&&gateCycle<.17;
@@ -375,9 +407,9 @@ for(const m of pitches){
  // sideways into the drop channel, returning to rest afterward.
  const noteTime=playing&&audio?audio.currentTime-startedAt:-100;
  let swing=0;
- if(playing)for(const n of score){
-  if(n.midi!==m)continue;
-  const dt=noteTime-(lead+n.beat*secondsPerUnit-lead*.32);
+ if(playing)for(const event of marbleEvents){
+  if(event.note.midi!==m)continue;
+  const dt=noteTime-event.dropAt;
   // Smooth cam lift, brief dwell and spring-assisted return.
   // A fixed event-time envelope avoids jitter across different frame rates.
   const u=(dt+.10)/.34;
@@ -555,127 +587,83 @@ for(let k=0;k<16;k++){
  ctx.quadraticCurveTo(0,17,12,10);ctx.lineTo(14,-7);
  ctx.stroke();ctx.fill();ctx.restore();
 }
-// A single scheduled marble stream supplies the collection cup and elevator.
-// The gate is mechanically illustrated; a bucket takes only one waiting marble.
+// One physical marble event travels through exactly one machine stage at a time.
+// Non-marble notes are sounded by the mechanically driven piano action.
 ctx.strokeStyle='#392519';ctx.lineWidth=10;ctx.lineCap='round';
 ctx.beginPath();ctx.moveTo(983,538);ctx.lineTo(1005,524);ctx.stroke();
 ctx.strokeStyle='#e5b76c';ctx.lineWidth=5;
 ctx.beginPath();ctx.moveTo(983,538);ctx.lineTo(1005,524);ctx.stroke();
-const liftSeconds=leg/38,tipSeconds=turn/38,returnSeconds=915/38;
-const slotSeconds=bucketPitch/38;
+const liftSeconds=leg/ELEVATOR_SPEED,tipSeconds=turn/ELEVATOR_SPEED,returnSeconds=915/ELEVATOR_SPEED;
 const flowNow=playing&&audio?audio.currentTime-startedAt:-1000;
-const flow=score.map((note,i)=>{
- const noteAt=lead+note.beat*secondsPerUnit;
- const arrival=noteAt+1.96;
- return {note,i,noteAt,arrival,pickup:0};
-});
-let nextPickupSlot=0;
-for(const item of flow){
- const slot=Math.max(nextPickupSlot,Math.ceil(Math.max(0,item.arrival)/slotSeconds));
- item.pickup=slot*slotSeconds;
- nextPickupSlot=slot+1;
-}
+const waiting=playing?marbleEvents.filter(e=>flowNow>=e.cupAt&&flowNow<e.pickupAt-.16)
+ .sort((a,b)=>a.pickupAt-b.pickupAt):[];
 let gateOpen=false;
-if(playing){
- let queueIndex=0;
- for(const item of flow){
-  if(flowNow<item.arrival)continue;
-  const age=flowNow-item.pickup;
-  if(age<-.16){
-   // Show a bounded number of waiting marbles; others remain in the hopper.
-   if(queueIndex<6)marble(978+(queueIndex%3)*19,539-Math.floor(queueIndex/3)*18,8);
-   queueIndex++;
-  }else if(age<0){
-   const u=(age+.16)/.16;
-   marble(985+29*u,536-25*u,8);gateOpen=true;
-  }else if(age<liftSeconds){
-   marble(1014,510-age*38+1,8);
-   if(age<.1)gateOpen=true;
-  }else if(age<liftSeconds+tipSeconds){
-   const u=(age-liftSeconds)/tipSeconds;
-   marble(1014-14*u,topY-5*Math.sin(Math.PI*u)-7*u,8);
-  }else if(age<liftSeconds+tipSeconds+returnSeconds){
-   const distance=(age-liftSeconds-tipSeconds)*38;
-   const rx=1000-distance;
-   marble(rx,37+(1000-rx)*27/915-7,8);
-  }
+for(const event of playing?marbleEvents:[]){
+ const t=flowNow,x=event.x;
+ if(t<event.releaseAt||t>=event.pickupAt+liftSeconds+tipSeconds+returnSeconds+.42)continue;
+ let bx,by,r=13;
+ if(t<event.dropAt){
+  // All balls use exactly the same rolling velocity and cannot overtake.
+  const travel=Math.max(0,t-event.releaseAt-.14);
+  bx=Math.min(x,80+MARBLE_RAIL_SPEED*travel);
+  by=141+(bx-80)*62/960;
+ }else if(t<event.noteAt){
+  const u=Math.min(1,(t-event.dropAt)/.38);
+  const railY=141+(x-80)*62/960;
+  bx=x+7*Math.sin(u*Math.PI);
+  by=railY+(barY-17-railY)*u*u;
+ }else if(t<event.trayAt){
+  const u=(t-event.noteAt)/.27;
+  bx=x+9*u;
+  by=barY-17-16*Math.sin(u*Math.PI)+u*(489+(bx-80)/894*28-12-(barY-17));
+ }else if(t<event.rollEnd){
+  bx=x+9+(t-event.trayAt)*MARBLE_TRAY_SPEED;
+  by=489+(bx-80)/894*28-12;
+ }else if(t<event.cupAt){
+  const u=(t-event.rollEnd)/.25;
+  bx=970+13*u;
+  by=489+(970-80)/894*28-12+31*u*u;
+ }else if(t<event.pickupAt-.16){
+  // A queued ball has a real cup position, not another copy on the tray.
+  const order=waiting.indexOf(event);
+  const q=Math.max(0,order);
+  bx=982+(q%2)*19;by=536-Math.floor(q/2)*19;r=8;
+ }else if(t<event.pickupAt){
+  const u=(t-(event.pickupAt-.16))/.16;
+  bx=982+32*u;by=536-25*u;r=8;gateOpen=true;
+ }else if(t<event.pickupAt+liftSeconds){
+  const u=t-event.pickupAt;
+  bx=1014;by=510-u*ELEVATOR_SPEED+1;r=8;
+  if(u<.10)gateOpen=true;
+ }else if(t<event.pickupAt+liftSeconds+tipSeconds){
+  const u=(t-event.pickupAt-liftSeconds)/tipSeconds;
+  bx=1014-14*u;by=topY+6*u;r=8;
+ }else if(t<event.pickupAt+liftSeconds+tipSeconds+returnSeconds){
+  const distance=(t-event.pickupAt-liftSeconds-tipSeconds)*ELEVATOR_SPEED;
+  bx=1000-distance;by=37+(1000-bx)*27/915-7;r=8;
+ }else{
+  const u=(t-event.pickupAt-liftSeconds-tipSeconds-returnSeconds)/.42;
+  bx=85;by=57+39*u;r=8;
+ }
+ marble(bx,by,r);
+ if(Math.abs(t-event.noteAt)<.08){
+  ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();
+  ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill();
  }
 }
 ctx.save();ctx.translate(1000,515);ctx.rotate(gateOpen?-.7:0);
 ctx.strokeStyle='#f0cc89';ctx.lineWidth=5;ctx.beginPath();
 ctx.moveTo(0,0);ctx.lineTo(-9,-13);ctx.stroke();ctx.restore();
 brassRivet(1000,515,3);
-// Small stationary guide at the discharge point, not a second marble source.
 ctx.strokeStyle='#f0d49d';ctx.lineWidth=3;ctx.beginPath();
 ctx.moveTo(1031,54);ctx.lineTo(1031,36);ctx.lineTo(1011,36);ctx.stroke();
 ctx.fillStyle='#f1cf8d';ctx.font='11px system-ui';ctx.textAlign='right';
 ctx.fillText('MARBLE LIFT',992,350);
 ctx.restore();
-let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
-// Render each note's marble at most once. All positions use the same
-// score clock as the gate and elevator, avoiding duplicate marble sources.
-const visible=flow.filter(item=>flowNow>=item.noteAt-lead&&flowNow<item.arrival);
-const railPositions=[];
-const trayPositions=[];
-for(const item of visible){
- const n=item.note,x=xFor(n.midi),remaining=n.noteAt-flowNow;
- let ballX=x,y;
- if(remaining>0){
-  const elapsed=lead-remaining,feedTime=.3,travelTime=lead*.91;
-  if(elapsed<feedTime){ballX=80;y=137+Math.max(0,elapsed/feedTime)*4}
-  else if(elapsed<travelTime){
-   const u=Math.max(0,Math.min(1,(elapsed-feedTime)/(travelTime-feedTime)));
-   ballX=80+(x-80)*u;y=141+(ballX-80)*62/960;
-  }else{
-   const u=Math.max(0,Math.min(1,(elapsed-travelTime)/(lead-travelTime)));
-   ballX=x+11*Math.sin(Math.PI*Math.min(1,u*2))*(1-u);
-   y=141+(x-80)*62/960+(barY-17-(141+(x-80)*62/960))*u*u;
-  }
-  railPositions.push({item,x:ballX,y,remaining});
- }else{
-  const after=-remaining;
-  if(after<.27){
-   const u=after/.27;
-   ballX=x+u*9;
-   y=barY-17-16*Math.sin(Math.PI*u)+u*(489+(x-80)/894*28-(barY-17));
-  }else{
-   const u=Math.min(1,(after-.27)/1.69);
-   ballX=x+(990-x)*u;
-   y=489+(ballX-80)/894*28-12;
-  }
-  trayPositions.push({item,x:ballX,y,remaining});
- }
-}
-// Each marble is present from its reservoir release through its arrival
-// at the collection cup. Release begins lead seconds before its note.
-// Enforce single-file order by adjusting positions, never note/audio times.
-// If the rail is full, additional marbles wait unseen inside the reservoir.
-let ahead=Infinity;
-for(const p of railPositions){
- const limit=ahead-27;
- if(limit<80)continue;
- p.x=Math.min(p.x,limit);
- if(p.remaining>lead*.09)p.y=141+(p.x-80)*62/960;
- ahead=p.x;
- const x=xFor(p.item.note.midi);
- const impact=Math.abs(p.remaining)<.08;
- if(impact){ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill()}
- marble(p.x,p.y,13);
-}
-// Collection tray is also single file; no frozen pile at its right end.
-ahead=Infinity;
-for(const p of trayPositions){
- const limit=ahead-27;
- if(limit<80)continue;
- p.x=Math.min(p.x,limit);
- if(p.remaining<=-.27)p.y=489+(p.x-80)/894*28-12;
- ahead=p.x;
- marble(p.x,p.y,13);
-}
 if(!playing){marble(80,141,11)}
 // Three small instrument-panel additions: a note-driven marble tally,
 // a spring-charge needle, and a clear inspection pane over the governor.
-const releasedCount=playing&&audio?score.reduce((count,n)=>count+(driveTime>=n.beat*secondsPerUnit?1:0),0):0;
+const releasedCount=playing&&audio?marbleEvents.reduce((count,e)=>count+(driveTime>=e.releaseAt?1:0),0):0;
 // Brass mechanical odometer, bottom left of the workshop.
 ctx.save();ctx.fillStyle='#2a1b12';ctx.strokeStyle='#c89d59';ctx.lineWidth=3;
 ctx.beginPath();ctx.roundRect(82,563,194,47,7);ctx.fill();ctx.stroke();
