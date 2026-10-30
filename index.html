@@ -23,7 +23,7 @@
 const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
 const playBtn=document.getElementById('play'),stopBtn=document.getElementById('stop'),tempoSel=document.getElementById('tempo'),soundSel=document.getElementById('sound'),statusEl=document.getElementById('status');
 const W=canvas.width,H=canvas.height;
-let springCharge=0,crankDragging=false,crankLastAngle=0;
+let springCharge=0,initialCharge=0,crankDragging=false,crankLastAngle=0;
 const windBtn=document.getElementById('wind'),windingMeter=document.getElementById('winding');
 function setSpring(v){springCharge=Math.max(0,Math.min(100,v));windingMeter.value=springCharge;windBtn.textContent=springCharge>=99?'✓ Fully Wound':'↻ Wind Fully'}
 windBtn.addEventListener('click',()=>setSpring(100));
@@ -166,7 +166,7 @@ function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(
 }
 function stop(){session++;playing=false;if(master&&audio){const old=master;master=audio.createGain();master.gain.value=.4;master.connect(audio.destination);old.gain.cancelScheduledValues(audio.currentTime);old.gain.setTargetAtTime(0,audio.currentTime,.008);setTimeout(()=>{try{old.disconnect()}catch{}},150)}scheduled=[];playBtn.disabled=false;stopBtn.disabled=true;statusEl.textContent='Ready to perform'}
 async function play(){if(playing)return;if(springCharge<1){statusEl.textContent='Wind the mainspring first (turn crank or Wind Fully)';return}try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
-const id=++session;playing=true;playBtn.disabled=true;stopBtn.disabled=false;secondsPerUnit=.24/Number(tempoSel.value);duration=beats*secondsPerUnit;startedAt=audio.currentTime+.16;const initialCharge=springCharge;
+const id=++session;playing=true;playBtn.disabled=true;stopBtn.disabled=false;secondsPerUnit=.24/Number(tempoSel.value);duration=beats*secondsPerUnit;startedAt=audio.currentTime+.16;initialCharge=springCharge;
 let mode=soundSel.value;
 if(mode==='grand'){
  statusEl.textContent='Loading concert grand recordings…';
