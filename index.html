@@ -62,16 +62,32 @@ async function loadGrand(){
  })().catch(e=>{grandLoading=null;throw e});
  return grandLoading;
 }
+// Warm the recorded grand without changing the timing of the marble strikes.
+let pianoRoom=null,pianoRoomMaster=null;
+function getPianoRoom(){
+ if(pianoRoom && pianoRoomMaster===master)return pianoRoom;
+ const delay=audio.createDelay(.5),feedback=audio.createGain(),damping=audio.createBiquadFilter(),wet=audio.createGain();
+ delay.delayTime.value=.085;feedback.gain.value=.18;
+ damping.type='lowpass';damping.frequency.value=2600;wet.gain.value=.11;
+ delay.connect(damping);damping.connect(feedback);feedback.connect(delay);
+ delay.connect(wet);wet.connect(master);
+ pianoRoom=delay;pianoRoomMaster=master;return delay;
+}
 function grandSound(m,start,dur){
  const sample=grandSamples.reduce((a,b)=>Math.abs(a.m-m)<=Math.abs(b.m-m)?a:b);
  const src=audio.createBufferSource(),gain=audio.createGain();
+ const warmth=audio.createBiquadFilter(),presence=audio.createBiquadFilter();
  src.buffer=sample.buffer;src.playbackRate.value=Math.pow(2,(m-sample.m)/12);
+ warmth.type='lowshelf';warmth.frequency.value=440;warmth.gain.value=2.5;
+ presence.type='peaking';presence.frequency.value=2400;presence.Q.value=.75;presence.gain.value=-1.7;
+ const end=start+Math.min(3.6,Math.max(.85,dur*2.8));
  gain.gain.setValueAtTime(.00001,start);
- gain.gain.linearRampToValueAtTime(.42,start+.008);
- const end=start+Math.min(2.8,Math.max(.6,dur*2.2));
- gain.gain.setValueAtTime(.42,Math.max(start+.01,end-.22));
+ gain.gain.linearRampToValueAtTime(.39,start+.009);
+ gain.gain.exponentialRampToValueAtTime(.19,start+.24);
  gain.gain.exponentialRampToValueAtTime(.00001,end);
- src.connect(gain);gain.connect(master);src.start(start);src.stop(end+.02);
+ src.connect(warmth);warmth.connect(presence);presence.connect(gain);
+ gain.connect(master);gain.connect(getPianoRoom());
+ src.start(start);src.stop(end+.03);
  scheduled.push(gain);
 }
 function pianoSound(m,start,dur){
