@@ -224,11 +224,11 @@ ctx.strokeStyle='#d7ae62';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(172,214);ct
 // Compact music-box-style centrifugal governor on the right gear train.
 // The rotating weights spread slightly as the spring-driven machine runs.
 ctx.save();
-const govX=783,govY=240;
+const govX=914,govY=302;
 ctx.strokeStyle='#d8ad69';ctx.lineWidth=4;
-ctx.beginPath();ctx.moveTo(858,215);ctx.lineTo(govX+23,govY);ctx.stroke();
+ctx.beginPath();ctx.moveTo(940,213);ctx.lineTo(govX+20,govY-29);ctx.stroke();
 ctx.fillStyle='#352619';ctx.strokeStyle='#e1b66e';ctx.lineWidth=3;
-ctx.beginPath();ctx.ellipse(govX,govY,29,34,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ctx.beginPath();ctx.ellipse(govX,govY,25,30,0,0,Math.PI*2);ctx.fill();ctx.stroke();
 const spin=playing?driveTime*11:0,spread=playing?12+4*Math.min(1,driveTime):8;
 ctx.save();ctx.translate(govX,govY);ctx.rotate(spin);
 ctx.strokeStyle='#e9c17a';ctx.lineWidth=3;
@@ -240,11 +240,11 @@ for(const sign of [-1,1]){
  ctx.fillStyle=g;ctx.beginPath();ctx.arc(sign*spread,0,7,0,Math.PI*2);ctx.fill();
 }
 ctx.restore();
-brassRivet(govX,govY-31,4);brassRivet(govX,govY+31,4);
+brassRivet(govX,govY-27,3);brassRivet(govX,govY+27,3);
 ctx.strokeStyle='#c6a26a';ctx.lineWidth=2;
 ctx.beginPath();ctx.moveTo(govX+24,govY-23);ctx.lineTo(govX+33,govY-23);ctx.stroke();
 ctx.fillStyle='#edc88b';ctx.font='10px system-ui';ctx.textAlign='center';
-ctx.fillText('GOVERNOR',govX,govY+48);
+ctx.fillText('GOVERNOR',govX,govY+42);
 ctx.restore();
 // Visible elevator power train mounted to the right-hand upright.
 // A brass flywheel and its drive belt rotate whenever the bucket lift runs.
