@@ -215,6 +215,8 @@ ctx.strokeStyle='#d7ae62';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(172,214);ct
 // Elevated glass-and-brass marble reservoir, with a funnel and feed gate.
 // The stock settles a little as the musical feed mechanism advances.
 ctx.save();
+// Align the hopper outlet with the left end of the marble feed rail.
+ctx.translate(-65,0);
 ctx.strokeStyle='#b48a4d';ctx.lineWidth=7;
 ctx.beginPath();ctx.moveTo(75,113);ctx.lineTo(75,174);ctx.moveTo(213,113);ctx.lineTo(213,174);ctx.stroke();
 const hopperGlass=ctx.createLinearGradient(86,0,205,0);
@@ -240,7 +242,7 @@ ctx.strokeStyle='#f1d69d';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(88,73);ctx.
 ctx.strokeStyle='rgba(250,255,255,.65)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(100,81);ctx.lineTo(100,109);ctx.stroke();
 // Metering wheel and the outlet chute toward the shared rail.
 ctx.fillStyle='#9c7039';ctx.fillRect(138,150,15,12);
-ctx.strokeStyle='#e3bb77';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(145,160);ctx.lineTo(96,164);ctx.stroke();
+ctx.strokeStyle='#e3bb77';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(145,160);ctx.lineTo(145,153);ctx.stroke();
 ctx.save();ctx.translate(145,156);ctx.rotate(playing?driveTime*2.4:0);
 ctx.strokeStyle='#f4d494';ctx.lineWidth=3;
 for(let k=0;k<4;k++){const a=k*Math.PI/2;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*10,Math.sin(a)*10);ctx.stroke()}
@@ -400,7 +402,7 @@ const impact=Math.abs(remaining)<.08;
 ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+6,barY+28,15,5,0,0,Math.PI*2);ctx.fill();
 if(impact){ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill()}
 marble(ballX,y,13)}
-if(!playing){for(let i=0;i<7;i++){const x=100+i*130;marble(x,141+(x-80)*62/960,11)}}
+if(!playing){for(let i=0;i<7;i++){const x=80+i*130;marble(x,141+(x-80)*62/960,11)}}
 ctx.fillStyle='#c3a875';ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText(playing?'Synchronized marble performance':'Press Play to begin',W/2,582);
 }
 draw();
