@@ -10,7 +10,7 @@
 <header><h1>MARBLE MELODIES</h1><p>Watch the Music Come Alive ✦ Mechanical Music Workshop</p></header>
 <main class="shell">
 <div class="controls">
-<button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
+<button id="wind">↻ Wind Fully</button><label for="winding">Spring <meter id="winding" min="0" max="100" value="0"></meter></label><button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
 <label for="tempo">Tempo</label><select id="tempo"><option value=".8">Gentle · 80%</option><option value="1" selected>Original · 100%</option><option value="1.2">Brisk · 120%</option></select>
 <label for="sound">Sound</label><select id="sound"><option value="grand" selected>Concert grand (recorded)</option><option value="piano">Electronic piano</option><option value="bell">Bell bars</option><option value="soft">Soft keys</option></select>
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
@@ -23,6 +23,14 @@
 const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
 const playBtn=document.getElementById('play'),stopBtn=document.getElementById('stop'),tempoSel=document.getElementById('tempo'),soundSel=document.getElementById('sound'),statusEl=document.getElementById('status');
 const W=canvas.width,H=canvas.height;
+let springCharge=0,crankDragging=false,crankLastAngle=0;
+const windBtn=document.getElementById('wind'),windingMeter=document.getElementById('winding');
+function setSpring(v){springCharge=Math.max(0,Math.min(100,v));windingMeter.value=springCharge;windBtn.textContent=springCharge>=99?'✓ Fully Wound':'↻ Wind Fully'}
+windBtn.addEventListener('click',()=>setSpring(100));
+function crankAngle(e){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;return {x,y,a:Math.atan2(y-374,x-1059)}}
+canvas.addEventListener('pointerdown',e=>{const p=crankAngle(e);if(Math.hypot(p.x-1059,p.y-374)>55)return;crankDragging=true;crankLastAngle=p.a;canvas.setPointerCapture(e.pointerId)});
+canvas.addEventListener('pointermove',e=>{if(!crankDragging)return;const p=crankAngle(e);let d=p.a-crankLastAngle;d=Math.atan2(Math.sin(d),Math.cos(d));if(d>0)setSpring(springCharge+d*15);crankLastAngle=p.a});
+canvas.addEventListener('pointerup',()=>crankDragging=false);canvas.addEventListener('pointercancel',()=>crankDragging=false);
 const NOTES={C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
 function midi(name){const m=/^([A-G]#?)([0-8])$/.exec(name);if(!m)throw Error('Bad note '+name);return 12*(+m[2]+1)+NOTES[m[1]]}
 function hz(m){return 440*Math.pow(2,(m-69)/12)}
@@ -157,8 +165,8 @@ function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(
  scheduled.push(envelope);
 }
 function stop(){session++;playing=false;if(master&&audio){const old=master;master=audio.createGain();master.gain.value=.4;master.connect(audio.destination);old.gain.cancelScheduledValues(audio.currentTime);old.gain.setTargetAtTime(0,audio.currentTime,.008);setTimeout(()=>{try{old.disconnect()}catch{}},150)}scheduled=[];playBtn.disabled=false;stopBtn.disabled=true;statusEl.textContent='Ready to perform'}
-async function play(){if(playing)return;try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
-const id=++session;playing=true;playBtn.disabled=true;stopBtn.disabled=false;secondsPerUnit=.24/Number(tempoSel.value);duration=beats*secondsPerUnit;startedAt=audio.currentTime+.16;
+async function play(){if(playing)return;if(springCharge<1){statusEl.textContent='Wind the mainspring first (turn crank or Wind Fully)';return}try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
+const id=++session;playing=true;playBtn.disabled=true;stopBtn.disabled=false;secondsPerUnit=.24/Number(tempoSel.value);duration=beats*secondsPerUnit;startedAt=audio.currentTime+.16;const initialCharge=springCharge;
 let mode=soundSel.value;
 if(mode==='grand'){
  statusEl.textContent='Loading concert grand recordings…';
@@ -210,6 +218,7 @@ woodBeam(43,95,29,462);woodBeam(1048,95,29,462);woodBeam(62,525,997,28);woodBeam
 for(const x of [57,1063])for(const y of [106,540])brassRivet(x,y,7);
 // An ornamental, music-clock-inspired drive train: rotation follows the audio clock.
 const driveTime=playing&&audio?Math.max(0,audio.currentTime-startedAt):0;
+if(playing&&audio){const fraction=Math.min(1,driveTime/Math.max(1,lead+duration));setSpring(initialCharge*(1-fraction));}
 gear(172,214,43,14,driveTime*.6);gear(255,217,31,12,-driveTime*.84);gear(940,213,42,14,-driveTime*.58);gear(858,215,31,12,driveTime*.81);
 ctx.strokeStyle='#d7ae62';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(172,214);ctx.lineTo(172,281);ctx.moveTo(940,213);ctx.lineTo(940,281);ctx.stroke();
 // Visible elevator power train mounted to the right-hand upright.
@@ -231,6 +240,20 @@ for(let i=0;i<6;i++){
  brassRivet(Math.cos(a)*22,Math.sin(a)*22,2.5);
 }
 ctx.restore();brassRivet(motorX,motorY,7);
+// Wind-up mainspring: a tightening spiral inside a glass-faced brass case.
+ctx.save();ctx.translate(1058,446);
+ctx.fillStyle='#2d2118';ctx.strokeStyle='#e2b774';ctx.lineWidth=5;
+ctx.beginPath();ctx.arc(0,0,34,0,Math.PI*2);ctx.fill();ctx.stroke();
+ctx.strokeStyle='#c5cbd0';ctx.lineWidth=3;ctx.beginPath();
+const turns=2+springCharge/30;
+for(let j=0;j<=100;j++){const u=j/100,a=u*turns*Math.PI*2,r=3+u*26;const px=Math.cos(a)*r,py=Math.sin(a)*r;j?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.stroke();
+ctx.fillStyle='rgba(178,225,233,.12)';ctx.beginPath();ctx.arc(0,0,30,0,Math.PI*2);ctx.fill();
+brassRivet(0,0,5);ctx.restore();
+// Crank handle on the power wheel, rotated manually to wind.
+ctx.save();ctx.translate(motorX,motorY);ctx.rotate(playing?driveTime*2.8:0);
+ctx.strokeStyle='#f0ca82';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(25,0);ctx.stroke();
+ctx.fillStyle='#58371d';ctx.strokeStyle='#e9c58b';ctx.lineWidth=3;
+ctx.beginPath();ctx.arc(25,0,8,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
 // Elevated glass-and-brass marble reservoir, with a funnel and feed gate.
 // The stock settles a little as the musical feed mechanism advances.
 ctx.save();
