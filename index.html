@@ -518,45 +518,56 @@ ctx.beginPath();ctx.moveTo(1010,119);ctx.lineTo(1010,37);ctx.lineTo(85,64);ctx.l
 // Twin guide rails and moving bucket-chain belt.
 for(const ex of [1000,1027]){
  ctx.strokeStyle='#2b2118';ctx.lineWidth=11;
- ctx.beginPath();ctx.moveTo(ex,518);ctx.lineTo(ex,126);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(ex,518);ctx.lineTo(ex,43);ctx.stroke();
  ctx.strokeStyle='#bc9155';ctx.lineWidth=4;
- ctx.beginPath();ctx.moveTo(ex,518);ctx.lineTo(ex,126);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(ex,518);ctx.lineTo(ex,43);ctx.stroke();
 }
 ctx.setLineDash([9,9]);ctx.lineDashOffset=-elevatorPhase;
 ctx.strokeStyle='#e6c18a';ctx.lineWidth=3;
-ctx.beginPath();ctx.moveTo(1014,517);ctx.lineTo(1014,126);ctx.stroke();ctx.setLineDash([]);
-for(const cy of [130,518]){
+ctx.beginPath();ctx.moveTo(1014,517);ctx.lineTo(1014,43);ctx.stroke();ctx.setLineDash([]);
+for(const cy of [45,518]){
  ctx.fillStyle='#594024';ctx.strokeStyle='#d5ac6a';ctx.lineWidth=3;
  ctx.beginPath();ctx.arc(1014,cy,13,0,Math.PI*2);ctx.fill();ctx.stroke();
  brassRivet(1014,cy,5);
 }
-// Bucket and marble use the SAME travel phase, so they never separate.
-// Seven evenly spaced carriers circulate up the visible elevator track.
-const liftLength=390,returnLength=915,returnSpeed=105,liftSpeed=42;
+// Bucket elevator: lift the marble to the height of the overhead return
+// rail, tip the bucket, and roll the SAME marble left into the reservoir.
+// All three stages use a single continuous phase, without teleportation.
+const liftLength=466, tipLength=28, returnLength=925;
+const liftSpeed=42, returnSpeed=105;
 const returnPhaseLength=returnLength*liftSpeed/returnSpeed;
-const cycleLength=liftLength+returnPhaseLength;
+const cycleLength=liftLength+tipLength+returnPhaseLength;
 for(let k=0;k<7;k++){
- const phase=(elevatorPhase+k*57)%390;
- const by=510-phase;
- ctx.fillStyle='#8a6030';ctx.strokeStyle='#f1cd89';ctx.lineWidth=2.5;
- ctx.beginPath();ctx.moveTo(1000,by-7);ctx.lineTo(1002,by+10);
- ctx.quadraticCurveTo(1014,by+17,1026,by+10);ctx.lineTo(1028,by-7);
- ctx.stroke();ctx.fill();
- // One marble seated in the bowl of this bucket.
- marble(1014,by+1,8);
-}
-// A separate return stream begins at the discharge point; the illustrated
-// carrier circulation is not yet a physically conserved marble simulation.
-if(playing){
- const spacing=145;
- for(let k=0;k<7;k++){
-  const distance=driveTime*returnSpeed-k*spacing;
-  if(distance<0||distance>returnLength)continue;
+ const phase=playing?((elevatorPhase+k*67)%cycleLength):(k*67);
+ if(phase<liftLength){
+  const by=510-phase;
+  ctx.fillStyle='#8a6030';ctx.strokeStyle='#f1cd89';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(1000,by-7);ctx.lineTo(1002,by+10);
+  ctx.quadraticCurveTo(1014,by+17,1026,by+10);ctx.lineTo(1028,by-7);
+  ctx.stroke();ctx.fill();
+  marble(1014,by+1,8);
+ }else if(phase<liftLength+tipLength){
+  // At the top the bucket rotates counterclockwise, pouring the ball
+  // gently onto the leftward return channel at the same elevation.
+  const u=(phase-liftLength)/tipLength;
+  const tipAngle=-Math.min(1,u*1.5)*Math.PI/3;
+  ctx.save();ctx.translate(1014,44);ctx.rotate(tipAngle);
+  ctx.fillStyle='#8a6030';ctx.strokeStyle='#f1cd89';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(-14,-7);ctx.lineTo(-12,10);
+  ctx.quadraticCurveTo(0,17,12,10);ctx.lineTo(14,-7);ctx.stroke();ctx.fill();
+  ctx.restore();
+  // The marble crosses the lip and joins the return track.
+  marble(1014-14*u,44-7*u,8);
+ }else if(playing){
+  const distance=(phase-liftLength-tipLength)*returnSpeed/liftSpeed;
   const returnX=1000-distance;
   const returnY=37+(1000-returnX)*27/915;
-  marble(returnX,returnY-7,8);
+  if(returnX>=85)marble(returnX,returnY-7,8);
  }
 }
+// Small stationary guide at the discharge point, not a second marble source.
+ctx.strokeStyle='#f0d49d';ctx.lineWidth=3;ctx.beginPath();
+ctx.moveTo(1031,54);ctx.lineTo(1031,36);ctx.lineTo(1011,36);ctx.stroke();
 ctx.fillStyle='#f1cf8d';ctx.font='11px system-ui';ctx.textAlign='right';
 ctx.fillText('MARBLE LIFT',992,350);
 ctx.restore();
