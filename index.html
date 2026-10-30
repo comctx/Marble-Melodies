@@ -35,16 +35,13 @@ canvas.addEventListener('pointerup',()=>crankDragging=false);canvas.addEventList
 const NOTES={C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
 function midi(name){const m=/^([A-G]#?)([0-8])$/.exec(name);if(!m)throw Error('Bad note '+name);return 12*(+m[2]+1)+NOTES[m[1]]}
 function hz(m){return 440*Math.pow(2,(m-69)/12)}
-// The opening and first continuation of Für Elise. Each token is note:duration in eighth-note units.
-// This is an intentionally limited excerpt, not a claim to perform the complete composition.
+// A compact Für Elise arrangement: opening statement, contrasting episode, reprise.
+// Tokens are note:duration in eighth-note units; not the complete composition.
 const phrases=[
 'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 G#4:1 B4:1 C5:2 E4:1 E5:1 D#5:1',
 'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:3',
-'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 G#4:1 B4:1 C5:2 E4:1 E5:1 D#5:1',
-'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:3',
-// Contrasting middle passage, adapted for the single-marble melody arrangement.
+// Contrasting episode, followed by a final statement of the opening theme.
 'B4:1 C5:1 D5:1 E5:2 G4:1 F5:1 E5:1 D5:2 F4:1 E5:1 D5:1 C5:2 E4:1 D5:1 C5:1 B4:2',
-'E4:1 E5:1 E5:1 E6:1 D#5:1 E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:3',
 'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 G#4:1 B4:1 C5:2 E4:1 E5:1 D#5:1',
 'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:4'
 ];
