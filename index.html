@@ -295,12 +295,36 @@ for(const m of pitches){
   brassRivet(sx,baseY-91,2);
  }
  ctx.fillStyle='#6e4930';ctx.fillRect(x-17,baseY-7,34,7);
- // A small hammer moves into the strings at the instant of impact.
- ctx.save();ctx.translate(x+19,baseY-9);ctx.rotate(-ring*.45);
+ // The falling marble depresses a key lever, which throws the felt hammer
+ // toward the strings. The hammer rebounds immediately while they ring.
+ let strike=0;
+ if(playing)for(const n of score){
+  if(n.midi!==m)continue;
+  const dt=stringClock-(lead+n.beat*secondsPerUnit);
+  if(dt>=-.13&&dt<.23){
+   const v=dt<0?(dt+.13)/.13:Math.exp(-dt*22);
+   strike=Math.max(strike,Math.max(0,v));
+  }
+ }
+ const leverY=baseY+25;
+ ctx.strokeStyle='#6b4b29';ctx.lineWidth=5;
+ ctx.beginPath();ctx.moveTo(x-23,leverY-7*strike);ctx.lineTo(x+22,leverY+4*strike);ctx.stroke();
+ brassRivet(x+7,leverY,4);
+ // Vertical push rod transfers the lever's motion to the hammer pivot.
+ ctx.strokeStyle='#d5a967';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(x+20,leverY+4*strike);ctx.lineTo(x+20,baseY-6);ctx.stroke();
+ // Hammer return spring: a visible coil stretched by the strike.
+ const sx=x+29,sy=baseY-5,ey=leverY-5*strike;
+ ctx.strokeStyle='#c7cecf';ctx.lineWidth=1.8;ctx.beginPath();
+ ctx.moveTo(sx,sy);
+ for(let k=1;k<=12;k++){const u=k/13;ctx.lineTo(sx+(k%2?3:-3),sy+(ey-sy)*u)}
+ ctx.lineTo(sx,ey);ctx.stroke();
+ ctx.save();ctx.translate(x+19,baseY-9);ctx.rotate(-strike*.8);
  ctx.strokeStyle='#bc8b4b';ctx.lineWidth=4;
  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-25);ctx.stroke();
  ctx.fillStyle='#ded0b5';roundedRect(-5,-31,10,12,3);ctx.fill();
  ctx.restore();
+ brassRivet(x+19,baseY-9,3);
 }
 for(const m of pitches){const x=xFor(m);ctx.strokeStyle='#b28b54';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,295);ctx.lineTo(x,barY-15);ctx.stroke();metal(x-barWidth/2,barY,barWidth,23,m%12===4||m%12===9);ctx.fillStyle='#17140f';ctx.font='13px system-ui';ctx.textAlign='center';const name=Object.keys(NOTES).find(k=>NOTES[k]===m%12)+(Math.floor(m/12)-1);ctx.fillText(name,x,barY+16);brassRivet(x,barY+31,3)}
 let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
