@@ -224,7 +224,14 @@ for(const m of pitches){
  if(playing)for(const n of score){
   if(n.midi!==m)continue;
   const dt=noteTime-(lead+n.beat*secondsPerUnit-lead*.32);
-  if(dt>=-.10&&dt<=.24)swing=Math.max(swing,Math.sin((dt+.10)/.34*Math.PI));
+  // Smooth cam lift, brief dwell and spring-assisted return.
+  // A fixed event-time envelope avoids jitter across different frame rates.
+  const u=(dt+.10)/.34;
+  if(u>=0&&u<=1){
+   const rise=u<.42?Math.sin((u/.42)*Math.PI/2):1;
+   const fall=u>.58?Math.pow(Math.cos(((u-.58)/.42)*Math.PI/2),2):1;
+   swing=Math.max(swing,rise*fall);
+  }
  }
  // Mechanical linkage: a cam on the lower drive shaft lifts a follower
  // rod, which rotates the paddle. The same swing value drives both parts.
@@ -232,7 +239,9 @@ for(const m of pitches){
  const lift=swing*13;
  // A shaft-driven eccentric cam turns beneath the follower. Its raised
  // lobe corresponds to the lift that operates the paddle linkage.
- const camAngle=playing?driveTime*2.8+(pitches.indexOf(m)*.72):0;
+ // The cam's raised lobe faces the follower during the note event.
+ // Between events it continues turning with the common shaft.
+ const camAngle=playing?driveTime*2.8+(pitches.indexOf(m)*.72)+swing*1.1:0;
  rotatingCam(x+13,shaftY,camAngle,lift);
  ctx.strokeStyle='#31251a';ctx.lineWidth=8;ctx.lineCap='round';
  ctx.beginPath();ctx.moveTo(x+13,shaftY);ctx.lineTo(x+13,pivotY+10-lift);ctx.stroke();
