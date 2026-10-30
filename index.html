@@ -557,6 +557,8 @@ ctx.fillText('MARBLE LIFT',992,350);
 ctx.restore();
 let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
 const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-2.2&&dt<lead+.35});
+// Single-file collection tray: earlier marbles stay ahead; later ones queue behind.
+let lastTrayMarbleX=Infinity;
 for(const n of visible){const x=xFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
 let y,ballX=x;
 if(remaining>0){
@@ -597,6 +599,14 @@ if(remaining>0){
   y=489+(ballX-80)/894*28-12;
   if(u>=1){ballX=997;y=527;}
  }
+}
+// Enforce a marble-diameter gap on the narrow lower return ramp.
+// This is a visual collision constraint; musical note timing is unchanged.
+if(remaining<=-.27 && remaining> -2.02){
+ ballX=Math.min(ballX,lastTrayMarbleX-27);
+ ballX=Math.max(80,ballX);
+ lastTrayMarbleX=ballX;
+ y=489+(ballX-80)/894*28-12;
 }
 const impact=Math.abs(remaining)<.08;
 ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+6,barY+28,15,5,0,0,Math.PI*2);ctx.fill();
