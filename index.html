@@ -23,13 +23,13 @@
 const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
 const playBtn=document.getElementById('play'),stopBtn=document.getElementById('stop'),tempoSel=document.getElementById('tempo'),soundSel=document.getElementById('sound'),statusEl=document.getElementById('status');
 const W=canvas.width,H=canvas.height;
-let springCharge=0,initialCharge=0,crankDragging=false,crankLastAngle=0;
+let springCharge=0,initialCharge=0,crankDragging=false,crankLastAngle=0,manualCrankAngle=0;
 const windBtn=document.getElementById('wind'),windingMeter=document.getElementById('winding');
 function setSpring(v){springCharge=Math.max(0,Math.min(100,v));windingMeter.value=springCharge;windBtn.textContent=springCharge>=99?'✓ Fully Wound':'↻ Wind Fully'}
 windBtn.addEventListener('click',()=>setSpring(100));
 function crankAngle(e){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;return {x,y,a:Math.atan2(y-374,x-1059)}}
 canvas.addEventListener('pointerdown',e=>{const p=crankAngle(e);if(Math.hypot(p.x-1059,p.y-374)>55)return;crankDragging=true;crankLastAngle=p.a;canvas.setPointerCapture(e.pointerId)});
-canvas.addEventListener('pointermove',e=>{if(!crankDragging)return;const p=crankAngle(e);let d=p.a-crankLastAngle;d=Math.atan2(Math.sin(d),Math.cos(d));if(d>0)setSpring(springCharge+d*15);crankLastAngle=p.a});
+canvas.addEventListener('pointermove',e=>{if(!crankDragging)return;const p=crankAngle(e);let d=p.a-crankLastAngle;d=Math.atan2(Math.sin(d),Math.cos(d));if(d>0){setSpring(springCharge+d*15);manualCrankAngle+=d}crankLastAngle=p.a});
 canvas.addEventListener('pointerup',()=>crankDragging=false);canvas.addEventListener('pointercancel',()=>crankDragging=false);
 const NOTES={C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
 function midi(name){const m=/^([A-G]#?)([0-8])$/.exec(name);if(!m)throw Error('Bad note '+name);return 12*(+m[2]+1)+NOTES[m[1]]}
@@ -249,11 +249,23 @@ const turns=2+springCharge/30;
 for(let j=0;j<=100;j++){const u=j/100,a=u*turns*Math.PI*2,r=3+u*26;const px=Math.cos(a)*r,py=Math.sin(a)*r;j?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.stroke();
 ctx.fillStyle='rgba(178,225,233,.12)';ctx.beginPath();ctx.arc(0,0,30,0,Math.PI*2);ctx.fill();
 brassRivet(0,0,5);ctx.restore();
-// Crank handle on the power wheel, rotated manually to wind.
-ctx.save();ctx.translate(motorX,motorY);ctx.rotate(playing?driveTime*2.8:0);
-ctx.strokeStyle='#f0ca82';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(25,0);ctx.stroke();
-ctx.fillStyle='#58371d';ctx.strokeStyle='#e9c58b';ctx.lineWidth=3;
-ctx.beginPath();ctx.arc(25,0,8,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+// Hand-winding crank: curved brass arm, wooden turning grip and ratchet.
+ctx.save();ctx.translate(motorX,motorY);
+ctx.rotate(playing?driveTime*2.8:manualCrankAngle);
+ctx.strokeStyle='#332318';ctx.lineWidth=12;ctx.lineCap='round';
+ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(17,-8);ctx.lineTo(34,-8);ctx.stroke();
+ctx.strokeStyle='#edc27b';ctx.lineWidth=7;
+ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(17,-8);ctx.lineTo(34,-8);ctx.stroke();
+ctx.fillStyle='#654027';ctx.strokeStyle='#f5d396';ctx.lineWidth=2.5;
+ctx.beginPath();ctx.ellipse(34,-8,9,13,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ctx.strokeStyle='#ac7950';ctx.lineWidth=1.5;
+for(let k=-5;k<=5;k+=5){ctx.beginPath();ctx.moveTo(29,-8+k);ctx.lineTo(39,-8+k);ctx.stroke()}
+ctx.restore();
+// Ratchet teeth and pawl near the crank axle.
+ctx.save();ctx.translate(motorX,motorY);ctx.rotate(playing?driveTime*2.8:manualCrankAngle);
+ctx.strokeStyle='#d8a659';ctx.lineWidth=2;
+for(let k=0;k<12;k++){const a=k*Math.PI/6;ctx.beginPath();ctx.moveTo(Math.cos(a)*12,Math.sin(a)*12);ctx.lineTo(Math.cos(a)*17,Math.sin(a)*17);ctx.stroke()}
+ctx.restore();
 // Elevated glass-and-brass marble reservoir, with a funnel and feed gate.
 // The stock settles a little as the musical feed mechanism advances.
 ctx.save();
