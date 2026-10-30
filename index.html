@@ -334,13 +334,37 @@ marble(144,139+settle,8);marble(151,126+settle,8);
 ctx.restore();
 ctx.strokeStyle='#f1d69d';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(88,73);ctx.lineTo(204,73);ctx.stroke();
 ctx.strokeStyle='rgba(250,255,255,.65)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(100,81);ctx.lineTo(100,109);ctx.stroke();
-// Metering wheel and the outlet chute toward the shared rail.
-ctx.fillStyle='#9c7039';ctx.fillRect(138,150,15,12);
-ctx.strokeStyle='#e3bb77';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(145,160);ctx.lineTo(145,153);ctx.stroke();
-ctx.save();ctx.translate(145,156);ctx.rotate(playing?driveTime*2.4:0);
-ctx.strokeStyle='#f4d494';ctx.lineWidth=3;
-for(let k=0;k<4;k++){const a=k*Math.PI/2;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*10,Math.sin(a)*10);ctx.stroke()}
-ctx.restore();brassRivet(145,156,4);
+// Variable-time, two-finger marble escapement at the hopper throat.
+// Each scheduled note opens a short metering cycle at its own release time.
+const releasePhase=playing&&audio?audio.currentTime-startedAt: -1000;
+let gateCycle=-1;
+if(playing)for(const n of score){
+ const releaseAt=n.beat*secondsPerUnit;
+ const elapsed=releasePhase-releaseAt;
+ if(elapsed>=0&&elapsed<.22){gateCycle=Math.max(gateCycle,elapsed); }
+}
+const lowerOpen=gateCycle>=.065&&gateCycle<.17;
+const upperOpen=gateCycle>=0&&gateCycle<.065;
+ctx.fillStyle='#9c7039';ctx.fillRect(133,149,25,19);
+// Two separate pivoting brass fingers alternate: isolate then discharge.
+for(const [gy,isOpen,side] of [[152,upperOpen,-1],[163,lowerOpen,1]]){
+ const pivotX=145+side*13;
+ ctx.save();ctx.translate(pivotX,gy);
+ ctx.rotate((isOpen?0.65:0)*side);
+ ctx.strokeStyle='#382619';ctx.lineWidth=7;ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-side*13,0);ctx.stroke();
+ ctx.strokeStyle='#f1c778';ctx.lineWidth=4;
+ ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-side*13,0);ctx.stroke();
+ ctx.restore();
+ brassRivet(pivotX,gy,3);
+}
+// A little cam disk and return spring visibly actuate the two stops.
+ctx.save();ctx.translate(166,156);ctx.rotate(gateCycle>=0?gateCycle*23:0);
+ctx.fillStyle='#b7823e';ctx.strokeStyle='#f6d58b';ctx.lineWidth=2;
+ctx.beginPath();ctx.ellipse(0,0,8,6,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ctx.restore();
+ctx.strokeStyle='#f1c778';ctx.lineWidth=2;
+ctx.beginPath();for(let k=0;k<5;k++)ctx.lineTo(159+k*3,171+(k%2?3:0));ctx.stroke();
 ctx.restore();
 // A single long gravity-feed rail runs across the top of the machine.
 // Marbles enter from the left and fall through a gate above their destination.
