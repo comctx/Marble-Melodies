@@ -505,7 +505,7 @@ ctx.fillStyle='#c8a069';ctx.font='11px system-ui';ctx.textAlign='center';
 ctx.fillText('RETURN TRAY',525,505);
 // Recirculating marble elevator: the return cup feeds a vertical bucket chain.
 // At the top, a covered brass return channel carries marbles back to the hopper.
-const elevatorPhase=playing?driveTime*150:0;
+const elevatorPhase=playing?driveTime*115:0;
 ctx.save();
 ctx.lineCap='round';
 // Upper return conduit, routed above the moving machinery.
@@ -533,9 +533,9 @@ for(const cy of [45,518]){
 // Empty carriers circulate continuously; actual steel marbles are drawn
 // from note events below, not invented in every bucket.
 const topY=24,bottomY=510,leg=bottomY-topY,turn=28;
-const loopLength=leg*2+turn*2, bucketPitch=loopLength/24;
+const loopLength=leg*2+turn*2, bucketPitch=loopLength/30;
 const liftOffset=playing?elevatorPhase:0;
-for(let k=0;k<24;k++){
+for(let k=0;k<30;k++){
  const phase=((liftOffset+k*bucketPitch)%loopLength+loopLength)%loopLength;
  let bx,by,angle=0;
  if(phase<leg){bx=1014;by=bottomY-phase}
@@ -561,13 +561,13 @@ ctx.strokeStyle='#392519';ctx.lineWidth=10;ctx.lineCap='round';
 ctx.beginPath();ctx.moveTo(983,538);ctx.lineTo(1005,524);ctx.stroke();
 ctx.strokeStyle='#e5b76c';ctx.lineWidth=5;
 ctx.beginPath();ctx.moveTo(983,538);ctx.lineTo(1005,524);ctx.stroke();
-const liftSeconds=leg/150,tipSeconds=turn/150,returnSeconds=915/150;
-const slotSeconds=bucketPitch/150;
+const liftSeconds=leg/115,tipSeconds=turn/115,returnSeconds=915/115;
+const slotSeconds=bucketPitch/115;
 if(playing&&audio){
  const now=audio.currentTime-startedAt;
  let nextSlot=0,waiting=0,loading=-1;
  for(const note of score){
-  const readyAt=lead+note.beat*secondsPerUnit+1.82;
+  const readyAt=lead+note.beat*secondsPerUnit+2.02;
   // One reserved pickup slot per marble; subsequent notes queue behind it.
   const slot=Math.max(nextSlot,Math.ceil(Math.max(0,readyAt)/slotSeconds));
   const pickupAt=slot*slotSeconds;
@@ -581,13 +581,13 @@ if(playing&&audio){
    marble(985+29*u,536-25*u,8);
    loading=Math.max(loading,u);
   }else if(age<liftSeconds){
-   marble(1014,510-age*150+1,8);
+   marble(1014,510-age*115+1,8);
    if(age<.10)loading=1;
   }else if(age<liftSeconds+tipSeconds){
    const u=(age-liftSeconds)/tipSeconds;
    marble(1014-14*u,topY-5*Math.sin(Math.PI*u)-7*u,8);
   }else if(age<liftSeconds+tipSeconds+returnSeconds){
-   const distance=(age-liftSeconds-tipSeconds)*150;
+   const distance=(age-liftSeconds-tipSeconds)*115;
    const rx=1000-distance;
    marble(rx,37+(1000-rx)*27/915-7,8);
   }
@@ -615,7 +615,7 @@ ctx.fillStyle='#f1cf8d';ctx.font='11px system-ui';ctx.textAlign='right';
 ctx.fillText('MARBLE LIFT',992,350);
 ctx.restore();
 let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
-const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-1.82&&dt<lead+.35});
+const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-2.02&&dt<lead+.35});
 // Single-file collection tray: earlier marbles stay ahead; later ones queue behind.
 let lastTrayMarbleX=Infinity;
 for(const n of visible){const x=xFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
@@ -656,12 +656,12 @@ if(remaining>0){
   const eased=u*u*(3-2*u);
   ballX=x+(990-x)*eased;
   y=489+(ballX-80)/894*28-12;
-  if(u>=1){ballX=970;y=505;}
+  if(u>=1){ballX=990;y=516;}
  }
 }
 // Enforce a marble-diameter gap on the narrow lower return ramp.
 // This is a visual collision constraint; musical note timing is unchanged.
-if(remaining<=-.27 && remaining> -1.82){
+if(remaining<=-.27 && remaining> -2.02){
  ballX=Math.min(ballX,lastTrayMarbleX-27);
  ballX=Math.max(80,ballX);
  lastTrayMarbleX=ballX;
