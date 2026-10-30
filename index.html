@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Marble Melodies — Watch the Music Come Alive</title>
+<style>
+:root{color-scheme:dark;--gold:#d6ad62;--ink:#100f14}*{box-sizing:border-box}body{margin:0;font:16px system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(ellipse at 50% 0%,#34291f,#100f14 65%);color:#f8ecd5}header{text-align:center;padding:24px 12px 8px}h1{font:clamp(30px,5vw,55px) Georgia,serif;margin:0;color:#f5d18a;letter-spacing:.05em}header p{margin:6px;color:#c9bda7}.shell{width:min(1150px,96vw);margin:auto}.controls{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:14px auto;padding:12px;border:1px solid #6c512d;background:#211b1a;border-radius:14px}button,select{background:linear-gradient(#6d4b2a,#372718);color:#fff2d7;border:1px solid #c7a268;border-radius:9px;padding:11px 17px;font-weight:650;cursor:pointer}button:hover{filter:brightness(1.17)}button:focus-visible,select:focus-visible{outline:3px solid #f6ce73}button:disabled{opacity:.5;cursor:default}label{font-size:14px;color:#e4d2b2}select{padding:10px}#status{min-width:170px;text-align:center;color:#f5d18a;font-size:14px}.stage{position:relative;overflow:hidden;border:12px ridge #84562d;border-radius:20px;background:linear-gradient(115deg,#3d281b,#5b3b23 45%,#302016);box-shadow:0 25px 50px #000a,inset 0 0 35px #0009}.stage:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 34px,#ffffff05 35px 36px);z-index:1}canvas{width:100%;height:auto;aspect-ratio:16/9;display:block;position:relative;z-index:2}.plaque{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#25170d;border:2px solid #bc9251;border-radius:6px;padding:5px 15px;color:#e3bf7c;font:12px Georgia,serif;letter-spacing:.13em;white-space:nowrap;z-index:3}.foot{text-align:center;color:#b5a995;font-size:13px;margin:15px auto 25px;max-width:850px;line-height:1.5}@media(max-width:620px){.stage{border-width:6px}.controls{gap:8px}button{padding:10px 13px}.plaque{font-size:9px}}
+</style></head>
+<body>
+<header><h1>MARBLE MELODIES</h1><p>Watch the Music Come Alive ✦ Mechanical Music Workshop</p></header>
+<main class="shell">
+<div class="controls">
+<button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
+<label for="tempo">Tempo</label><select id="tempo"><option value=".8">Gentle · 80%</option><option value="1" selected>Original · 100%</option><option value="1.2">Brisk · 120%</option></select>
+<label for="sound">Sound</label><select id="sound"><option value="bell">Bell bars</option><option value="soft">Soft keys</option></select>
+<span id="status" role="status" aria-live="polite">Ready to perform</span>
+</div>
+<div class="stage"><canvas id="scene" width="1120" height="630" aria-label="Animated marble music machine with brass tracks and tuned bars"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
+<p class="foot">Prototype 1: A musical clock drives both the sound and the marbles, so each impact lands on the beat. The mechanical motion is stylized for now; physically simulated tracks and additional movements are future improvements. Tap Play to enable sound.</p>
+</main>
+<script>
+"use strict";
+const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
+const playBtn=document.getElementById('play'),stopBtn=document.getElementById('stop'),tempoSel=document.getElementById('tempo'),soundSel=document.getElementById('sound'),statusEl=document.getElementById('status');
+const W=canvas.width,H=canvas.height;
+const NOTES={C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
+function midi(name){const m=/^([A-G]#?)([0-8])$/.exec(name);if(!m)throw Error('Bad note '+name);return 12*(+m[2]+1)+NOTES[m[1]]}
+function hz(m){return 440*Math.pow(2,(m-69)/12)}
+// The opening and first continuation of Für Elise. Each token is note:duration in eighth-note units.
+// This is an intentionally limited excerpt, not a claim to perform the complete composition.
+const phrases=[
+'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 G#4:1 B4:1 C5:2 E4:1 E5:1 D#5:1',
+'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:3',
+'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 G#4:1 B4:1 C5:2 E4:1 E5:1 D#5:1',
+'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:3'
+];
+const score=[];let beats=0;
+for(const phrase of phrases){for(const token of phrase.split(/\s+/)){const [name,len]=token.split(':');score.push({name,midi:midi(name),beat:beats,len:+len});beats+=+len}}
+const pitches=[...new Set(score.map(n=>n.midi))].sort((a,b)=>a-b);
+const xFor=m=>100+(pitches.indexOf(m)/(pitches.length-1))*920;
+const barY=456,barWidth=52;
+let audio=null,master=null,playing=false,startedAt=0,secondsPerUnit=.24,frame=0,session=0,scheduled=[],duration=0;
+const lead=1.3;
+function makeAudio(){if(!audio){audio=new (window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=.4;master.connect(audio.destination)}return audio.resume()}
+function noteSound(m,start,dur,mode){const fundamental=hz(m),gain=audio.createGain();gain.connect(master);
+gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(mode==='bell'?.23:.16,start+.012);
+gain.gain.exponentialRampToValueAtTime(.0001,start+Math.min(1.8,Math.max(.22,dur*1.7)));
+const partials=mode==='bell'?[1,2.01,3.93]:[1,2,3],levels=mode==='bell'?[1,.28,.09]:[1,.11,.04];
+partials.forEach((p,i)=>{const osc=audio.createOscillator(),g=audio.createGain();osc.type=mode==='bell'?'sine':'triangle';osc.frequency.value=fundamental*p;g.gain.value=levels[i];osc.connect(g);g.connect(gain);osc.start(start);osc.stop(start+Math.min(1.9,Math.max(.25,dur*1.8)))});
+scheduled.push(gain);
+}
+function stop(){session++;playing=false;if(master&&audio){const old=master;master=audio.createGain();master.gain.value=.4;master.connect(audio.destination);old.gain.cancelScheduledValues(audio.currentTime);old.gain.setTargetAtTime(0,audio.currentTime,.008);setTimeout(()=>{try{old.disconnect()}catch{}},150)}scheduled=[];playBtn.disabled=false;stopBtn.disabled=true;statusEl.textContent='Ready to perform'}
+async function play(){if(playing)return;try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
+const id=++session;playing=true;playBtn.disabled=true;stopBtn.disabled=false;secondsPerUnit=.24/Number(tempoSel.value);duration=beats*secondsPerUnit;startedAt=audio.currentTime+.16;
+const mode=soundSel.value;
+for(const n of score){if(id!==session)return;noteSound(n.midi,startedAt+lead+n.beat*secondsPerUnit,Math.max(.12,n.len*secondsPerUnit*.85),mode)}
+statusEl.textContent='Playing Für Elise…';
+setTimeout(()=>{if(id===session)stop()},(lead+duration+1)*1000);
+}
+playBtn.addEventListener('click',play);stopBtn.addEventListener('click',stop);
+tempoSel.addEventListener('change',()=>{if(playing)stop()});
+function roundedRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
+function metal(x,y,w,h,bright=false){const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,bright?'#fff3c5':'#e5d7b3');g.addColorStop(.22,bright?'#f7cf78':'#a5a6a7');g.addColorStop(.5,bright?'#8c6328':'#555e64');g.addColorStop(1,'#252a30');ctx.fillStyle=g;roundedRect(x,y,w,h,6);ctx.fill();ctx.strokeStyle='#1a1614';ctx.lineWidth=2;ctx.stroke()}
+function track(x1,y1,x2,y2){ctx.lineCap='round';ctx.lineWidth=17;ctx.strokeStyle='#211a16';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.lineWidth=9;ctx.strokeStyle='#bc8d46';ctx.stroke();ctx.lineWidth=2;ctx.strokeStyle='#f5d79a';ctx.beginPath();ctx.moveTo(x1,y1-3);ctx.lineTo(x2,y2-3);ctx.stroke()}
+function marble(x,y,r){const g=ctx.createRadialGradient(x-r*.35,y-r*.45,1,x,y,r);g.addColorStop(0,'#ffffff');g.addColorStop(.22,'#d6e7f3');g.addColorStop(.55,'#6f8ca0');g.addColorStop(1,'#18232e');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#e4cf9e';ctx.lineWidth=1.5;ctx.stroke()}
+function draw(){frame=requestAnimationFrame(draw);ctx.clearRect(0,0,W,H);
+const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#49301e');bg.addColorStop(1,'#24160f');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+for(let i=0;i<16;i++){ctx.strokeStyle='rgba(237,176,97,.045)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,i*42);ctx.bezierCurveTo(250,i*42+20,850,i*42-20,W,i*42);ctx.stroke()}
+ctx.fillStyle='#d6b273';ctx.font='23px Georgia';ctx.textAlign='center';ctx.fillText('THE MARBLE MUSIC WORKSHOP',W/2,54);
+track(72,130,1048,130);track(72,130,72,238);track(1048,130,1048,238);
+track(88,295,1032,295);
+for(let i=0;i<5;i++){const x=155+i*205;ctx.strokeStyle='#9d7542';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(x,130);ctx.lineTo(x,540);ctx.stroke();metal(x-9,535,18,20,true)}
+for(const m of pitches){const x=xFor(m);ctx.strokeStyle='#b28b54';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,295);ctx.lineTo(x,barY-15);ctx.stroke();metal(x-barWidth/2,barY,barWidth,23,m%12===4||m%12===9);ctx.fillStyle='#17140f';ctx.font='13px system-ui';ctx.textAlign='center';const name=Object.keys(NOTES).find(k=>NOTES[k]===m%12)+(Math.floor(m/12)-1);ctx.fillText(name,x,barY+16)}
+let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
+const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-.35&&dt<lead+.35});
+for(const n of visible){const x=xFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
+let y;if(remaining>0){const u=Math.max(0,Math.min(1,1-remaining/lead));y=155+(barY-17-155)*u*u}else{const u=Math.min(1,-remaining/.33);y=barY-17-48*Math.sin(u*Math.PI)}
+const impact=Math.abs(remaining)<.08;
+if(impact){ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill()}
+marble(x,y,13)}
+if(!playing){for(let i=0;i<8;i++)marble(150+i*112,113,12)}
+ctx.fillStyle='#c3a875';ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText(playing?'Synchronized marble performance':'Press Play to begin',W/2,582);
+}
+draw();
+</script>
+</body></html>
