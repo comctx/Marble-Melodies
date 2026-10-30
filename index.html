@@ -16,7 +16,7 @@
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="630" aria-label="Animated marble music machine with brass tracks and tuned bars"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot">Prototype 1: A musical clock drives both the sound and the marbles, so each impact lands on the beat. The mechanical motion is stylized for now; physically simulated tracks and additional movements are future improvements. Tap Play to enable sound.</p>
+<p class="foot">Extended melodic arrangement (not the complete composition). A musical clock drives both the sound and the marbles, so each impact lands on the beat. The mechanical motion is stylized for now; physically simulated tracks and additional movements are future improvements. Tap Play to enable sound.</p>
 <p class="foot">Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
@@ -32,7 +32,12 @@ const phrases=[
 'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 G#4:1 B4:1 C5:2 E4:1 E5:1 D#5:1',
 'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:3',
 'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 G#4:1 B4:1 C5:2 E4:1 E5:1 D#5:1',
-'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:3'
+'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:3',
+// Contrasting middle passage, adapted for the single-marble melody arrangement.
+'B4:1 C5:1 D5:1 E5:2 G4:1 F5:1 E5:1 D5:2 F4:1 E5:1 D5:1 C5:2 E4:1 D5:1 C5:1 B4:2',
+'E4:1 E5:1 E5:1 E6:1 D#5:1 E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:3',
+'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 G#4:1 B4:1 C5:2 E4:1 E5:1 D#5:1',
+'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:4'
 ];
 const score=[];const phraseEnds=[];let beats=0;
 for(const phrase of phrases){for(const token of phrase.split(/\s+/)){const [name,len]=token.split(':');score.push({name,midi:midi(name),beat:beats,len:+len});beats+=+len}phraseEnds.push(score.length)}
