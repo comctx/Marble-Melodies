@@ -80,10 +80,14 @@ function grandSound(m,start,dur){
  src.buffer=sample.buffer;src.playbackRate.value=Math.pow(2,(m-sample.m)/12);
  warmth.type='lowshelf';warmth.frequency.value=440;warmth.gain.value=2.5;
  presence.type='peaking';presence.frequency.value=2400;presence.Q.value=.75;presence.gain.value=-1.7;
- const end=start+Math.min(3.6,Math.max(.85,dur*2.8));
+ // Hold a natural piano sustain before gently releasing the note.
+ // Keep the recording's own decay; avoid an abrupt artificial cutoff.
+ const end=start+Math.min(5.5,Math.max(1.9,dur*4.2));
+ const releaseStart=Math.max(start+.4,end-.95);
  gain.gain.setValueAtTime(.00001,start);
- gain.gain.linearRampToValueAtTime(.39,start+.009);
- gain.gain.exponentialRampToValueAtTime(.19,start+.24);
+ gain.gain.linearRampToValueAtTime(.42,start+.009);
+ gain.gain.exponentialRampToValueAtTime(.30,start+.24);
+ gain.gain.exponentialRampToValueAtTime(.20,releaseStart);
  gain.gain.exponentialRampToValueAtTime(.00001,end);
  src.connect(warmth);warmth.connect(presence);presence.connect(gain);
  gain.connect(master);gain.connect(getPianoRoom());
