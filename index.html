@@ -53,7 +53,7 @@ const pitches=[...new Set(score.map(n=>n.midi))].sort((a,b)=>a-b);
 const xFor=m=>100+(pitches.indexOf(m)/(pitches.length-1))*920;
 const barY=456,barWidth=52;
 let audio=null,master=null,playing=false,startedAt=0,secondsPerUnit=.24,frame=0,session=0,scheduled=[],duration=0;
-const lead=2.35; // Longer marble travel before each note; musical tempo unchanged.
+const lead=4.0; // Slow, deliberate visual travel before each note; musical tempo unchanged.
 function makeAudio(){if(!audio){audio=new (window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=.4;master.connect(audio.destination)}return audio.resume()}
 // A tuned-bar synthesis model: sharp mallet attack, several slightly inharmonic
 // decaying partials, and a soft body resonance. No samples or external assets.
@@ -623,7 +623,7 @@ let y,ballX=x;
 if(remaining>0){
  // Travel left-to-right along the shared upper rail, then release at the
  // correct note's gate. Timing is anchored to the audio clock.
- const feedTime=.22,travelTime=lead*.83,dropTime=lead-travelTime;
+ const feedTime=.3,travelTime=lead*.91,dropTime=lead-travelTime;
  const elapsed=lead-remaining;
  if(elapsed<feedTime){
   // One marble emerges visibly through the hopper's outlet gate.
@@ -633,7 +633,7 @@ if(remaining>0){
  }else if(elapsed<travelTime){
   const u=Math.max(0,Math.min(1,(elapsed-feedTime)/(travelTime-feedTime)));
   // Accelerating progress suggests gravity along the shallow slope.
-  const progress=u*u*(3-2*u);
+  const progress=u; // Steady rolling speed, without sudden acceleration.
   ballX=80+(x-80)*progress;
   y=141+(ballX-80)*62/960;
  }else{
