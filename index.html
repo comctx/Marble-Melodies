@@ -555,34 +555,42 @@ for(let k=0;k<16;k++){
  ctx.quadraticCurveTo(0,17,12,10);ctx.lineTo(14,-7);
  ctx.stroke();ctx.fill();ctx.restore();
 }
-// A short brass loading chute leads from the collection cup to the
-// elevator pickup point. A cam-controlled stop opens for each bucket.
+// A single scheduled marble stream supplies the collection cup and elevator.
+// The gate is mechanically illustrated; a bucket takes only one waiting marble.
 ctx.strokeStyle='#392519';ctx.lineWidth=10;ctx.lineCap='round';
 ctx.beginPath();ctx.moveTo(983,538);ctx.lineTo(1005,524);ctx.stroke();
 ctx.strokeStyle='#e5b76c';ctx.lineWidth=5;
 ctx.beginPath();ctx.moveTo(983,538);ctx.lineTo(1005,524);ctx.stroke();
 const liftSeconds=leg/38,tipSeconds=turn/38,returnSeconds=915/38;
 const slotSeconds=bucketPitch/38;
-if(playing&&audio){
- const now=audio.currentTime-startedAt;
- let nextSlot=0,waiting=0,loading=-1;
- for(const note of score){
-  const readyAt=lead+note.beat*secondsPerUnit+2.02;
-  // One reserved pickup slot per marble; subsequent notes queue behind it.
-  const slot=Math.max(nextSlot,Math.ceil(Math.max(0,readyAt)/slotSeconds));
-  const pickupAt=slot*slotSeconds;
-  nextSlot=slot+1;
-  if(now<readyAt)continue;
-  const age=now-pickupAt;
-  if(age<-.16){waiting++;continue}
-  if(age<0){
-   // The marble crosses the feed chute only as its bucket arrives.
+const flowNow=playing&&audio?audio.currentTime-startedAt:-1000;
+const flow=score.map((note,i)=>{
+ const noteAt=lead+note.beat*secondsPerUnit;
+ const arrival=noteAt+1.96;
+ return {note,i,noteAt,arrival,pickup:0};
+});
+let nextPickupSlot=0;
+for(const item of flow){
+ const slot=Math.max(nextPickupSlot,Math.ceil(Math.max(0,item.arrival)/slotSeconds));
+ item.pickup=slot*slotSeconds;
+ nextPickupSlot=slot+1;
+}
+let gateOpen=false;
+if(playing){
+ let queueIndex=0;
+ for(const item of flow){
+  if(flowNow<item.arrival)continue;
+  const age=flowNow-item.pickup;
+  if(age<-.16){
+   // Show a bounded number of waiting marbles; others remain in the hopper.
+   if(queueIndex<6)marble(978+(queueIndex%3)*19,539-Math.floor(queueIndex/3)*18,8);
+   queueIndex++;
+  }else if(age<0){
    const u=(age+.16)/.16;
-   marble(985+29*u,536-25*u,8);
-   loading=Math.max(loading,u);
+   marble(985+29*u,536-25*u,8);gateOpen=true;
   }else if(age<liftSeconds){
    marble(1014,510-age*38+1,8);
-   if(age<.10)loading=1;
+   if(age<.1)gateOpen=true;
   }else if(age<liftSeconds+tipSeconds){
    const u=(age-liftSeconds)/tipSeconds;
    marble(1014-14*u,topY-5*Math.sin(Math.PI*u)-7*u,8);
@@ -592,22 +600,11 @@ if(playing&&audio){
    marble(rx,37+(1000-rx)*27/915-7,8);
   }
  }
- // Marbles queue behind the stop, with no two occupying the same position.
- const shown=Math.min(waiting,6);
- for(let q=0;q<shown;q++){
-  const col=q%3,row=Math.floor(q/3);
-  marble(977+col*19,542-row*18,8);
- }
- // Brass gate pivots open only during a bucket's pickup.
- ctx.save();ctx.translate(1000,515);ctx.rotate(loading>=0?-.7:0);
- ctx.strokeStyle='#f0cc89';ctx.lineWidth=5;ctx.beginPath();
- ctx.moveTo(0,0);ctx.lineTo(-9,-13);ctx.stroke();ctx.restore();
- brassRivet(1000,515,3);
-}else{
- ctx.strokeStyle='#f0cc89';ctx.lineWidth=5;ctx.beginPath();
- ctx.moveTo(1000,515);ctx.lineTo(991,502);ctx.stroke();
- brassRivet(1000,515,3);
 }
+ctx.save();ctx.translate(1000,515);ctx.rotate(gateOpen?-.7:0);
+ctx.strokeStyle='#f0cc89';ctx.lineWidth=5;ctx.beginPath();
+ctx.moveTo(0,0);ctx.lineTo(-9,-13);ctx.stroke();ctx.restore();
+brassRivet(1000,515,3);
 // Small stationary guide at the discharge point, not a second marble source.
 ctx.strokeStyle='#f0d49d';ctx.lineWidth=3;ctx.beginPath();
 ctx.moveTo(1031,54);ctx.lineTo(1031,36);ctx.lineTo(1011,36);ctx.stroke();
@@ -615,78 +612,64 @@ ctx.fillStyle='#f1cf8d';ctx.font='11px system-ui';ctx.textAlign='right';
 ctx.fillText('MARBLE LIFT',992,350);
 ctx.restore();
 let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
-const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-1.96&&dt<lead+.35});
-// Single-file collection tray: earlier marbles stay ahead; later ones queue behind.
-let lastTrayMarbleX=Infinity;
-let leadingMusicMarbleX=Infinity;
-const musicSpacingCache=draw.musicSpacingCache||(draw.musicSpacingCache=new WeakMap());
-for(const n of visible){const x=xFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
-let y,ballX=x;
-if(remaining>0){
- // Travel left-to-right along the shared upper rail, then release at the
- // correct note's gate. Timing is anchored to the audio clock.
- const feedTime=.3,travelTime=lead*.91,dropTime=lead-travelTime;
- const elapsed=lead-remaining;
- if(elapsed<feedTime){
-  // One marble emerges visibly through the hopper's outlet gate.
-  const u=Math.max(0,Math.min(1,elapsed/feedTime));
-  ballX=80;
-  y=137+u*4;
- }else if(elapsed<travelTime){
-  const u=Math.max(0,Math.min(1,(elapsed-feedTime)/(travelTime-feedTime)));
-  // Accelerating progress suggests gravity along the shallow slope.
-  const progress=u; // Steady rolling speed, without sudden acceleration.
-  ballX=80+(x-80)*progress;
-  y=141+(ballX-80)*62/960;
+// Render each note's marble at most once. All positions use the same
+// score clock as the gate and elevator, avoiding duplicate marble sources.
+const visible=flow.filter(item=>flowNow>=item.noteAt&&flowNow<item.arrival);
+const railPositions=[];
+const trayPositions=[];
+for(const item of visible){
+ const n=item.note,x=xFor(n.midi),remaining=n.noteAt-flowNow;
+ let ballX=x,y;
+ if(remaining>0){
+  const elapsed=lead-remaining,feedTime=.3,travelTime=lead*.91;
+  if(elapsed<feedTime){ballX=80;y=137+Math.max(0,elapsed/feedTime)*4}
+  else if(elapsed<travelTime){
+   const u=Math.max(0,Math.min(1,(elapsed-feedTime)/(travelTime-feedTime)));
+   ballX=80+(x-80)*u;y=141+(ballX-80)*62/960;
+  }else{
+   const u=Math.max(0,Math.min(1,(elapsed-travelTime)/(lead-travelTime)));
+   ballX=x+11*Math.sin(Math.PI*Math.min(1,u*2))*(1-u);
+   y=141+(x-80)*62/960+(barY-17-(141+(x-80)*62/960))*u*u;
+  }
+  railPositions.push({item,x:ballX,y,remaining});
  }else{
-  const u=Math.max(0,Math.min(1,(elapsed-travelTime)/dropTime));
-  const railY=141+(x-80)*62/960;
-  // Paddle imparts a brief sideways kick before gravity takes over.
-  ballX=x+11*Math.sin(Math.PI*Math.min(1,u*2))*(1-u);
-  y=railY+(barY-17-railY)*u*u;
- }
-}else{
- const after=-remaining;
- if(after<.27){
-  // Bounce once onto the angled collection tray.
-  const u=Math.max(0,after/.27);
-  ballX=x+u*9;
-  y=barY-17+Math.sin(u*Math.PI)*(-16)+u*(489+((x-80)/894)*28-(barY-17));
- }else{
-  // Roll downhill to the catch cup instead of vanishing after impact.
-  const u=Math.min(1,(after-.27)/1.75);
-  const eased=u*u*(3-2*u);
-  ballX=x+(990-x)*eased;
-  y=489+(ballX-80)/894*28-12;
-  if(u>=1){ballX=990;y=516;}
+  const after=-remaining;
+  if(after<.27){
+   const u=after/.27;
+   ballX=x+u*9;
+   y=barY-17-16*Math.sin(Math.PI*u)+u*(489+(x-80)/894*28-(barY-17));
+  }else{
+   const u=Math.min(1,(after-.27)/1.69);
+   ballX=x+(990-x)*u;
+   y=489+(ballX-80)/894*28-12;
+  }
+  trayPositions.push({item,x:ballX,y,remaining});
  }
 }
-// Music rail is single-file: a following marble cannot overtake the
-// previous note's marble. Keep the original note/audio schedule intact.
-if(remaining>0){
- const gap=27;
- const permitted=Math.max(80,Math.min(ballX,leadingMusicMarbleX-gap));
- const previous=musicSpacingCache.get(n);
- // Ease into spacing adjustments instead of snapping to a new position.
- ballX=previous===undefined?permitted:Math.min(permitted,previous+3.2);
- ballX=Math.max(80,ballX);
- musicSpacingCache.set(n,ballX);
- leadingMusicMarbleX=ballX;
- // Match the constrained marble to the rail's actual slope.
- if(remaining>lead*.09) y=141+(ballX-80)*62/960;
+// Enforce single-file order by adjusting positions, never note/audio times.
+// If the rail is full, additional marbles wait unseen inside the reservoir.
+let ahead=Infinity;
+for(const p of railPositions){
+ const limit=ahead-27;
+ if(limit<80)continue;
+ p.x=Math.min(p.x,limit);
+ if(p.remaining>lead*.09)p.y=141+(p.x-80)*62/960;
+ ahead=p.x;
+ const x=xFor(p.item.note.midi);
+ const impact=Math.abs(p.remaining)<.08;
+ if(impact){ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill()}
+ marble(p.x,p.y,13);
 }
-// Enforce a marble-diameter gap on the narrow lower return ramp.
-// This is a visual collision constraint; musical note timing is unchanged.
-if(remaining<=-.27 && remaining> -1.96){
- ballX=Math.min(ballX,lastTrayMarbleX-27);
- ballX=Math.max(80,ballX);
- lastTrayMarbleX=ballX;
- y=489+(ballX-80)/894*28-12;
+// Collection tray is also single file; no frozen pile at its right end.
+ahead=Infinity;
+for(const p of trayPositions){
+ const limit=ahead-27;
+ if(limit<80)continue;
+ p.x=Math.min(p.x,limit);
+ if(p.remaining<=-.27)p.y=489+(p.x-80)/894*28-12;
+ ahead=p.x;
+ marble(p.x,p.y,13);
 }
-const impact=Math.abs(remaining)<.08;
-ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+6,barY+28,15,5,0,0,Math.PI*2);ctx.fill();
-if(impact){ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill()}
-marble(ballX,y,13)}
 if(!playing){marble(80,141,11)}
 // Three small instrument-panel additions: a note-driven marble tally,
 // a spring-charge needle, and a clear inspection pane over the governor.
