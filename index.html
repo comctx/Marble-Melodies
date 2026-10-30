@@ -603,6 +603,38 @@ ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+6,barY+28,15,5,0,0
 if(impact){ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill()}
 marble(ballX,y,13)}
 if(!playing){marble(80,141,11)}
+// Three small instrument-panel additions: a note-driven marble tally,
+// a spring-charge needle, and a clear inspection pane over the governor.
+const releasedCount=playing&&audio?score.reduce((count,n)=>count+(driveTime>=n.beat*secondsPerUnit?1:0),0):0;
+// Brass mechanical odometer, bottom left of the workshop.
+ctx.save();ctx.fillStyle='#2a1b12';ctx.strokeStyle='#c89d59';ctx.lineWidth=3;
+ctx.beginPath();ctx.roundRect(82,563,194,47,7);ctx.fill();ctx.stroke();
+ctx.fillStyle='#dcb77b';ctx.font='11px Georgia,serif';ctx.textAlign='left';ctx.fillText('MARBLES RELEASED',94,579);
+const digits=String(releasedCount).padStart(4,'0');
+for(let j=0;j<4;j++){const dx=177+j*21;ctx.fillStyle='#110f0d';ctx.fillRect(dx,583,18,20);ctx.strokeStyle='#88663c';ctx.lineWidth=1;ctx.strokeRect(dx,583,18,20);ctx.fillStyle='#f4d79c';ctx.font='bold 16px monospace';ctx.textAlign='center';ctx.fillText(digits[j],dx+9,599)}
+ctx.restore();
+// Antique analog mainspring dial; the existing accessible meter remains.
+ctx.save();const dialX=920,dialY=586;
+ctx.fillStyle='#2b1b11';ctx.strokeStyle='#caa262';ctx.lineWidth=4;
+ctx.beginPath();ctx.ellipse(dialX,dialY,79,30,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ctx.fillStyle='#e8c58d';ctx.textAlign='center';ctx.font='10px Georgia,serif';ctx.fillText('MAINSPRING',dialX,dialY-12);
+ctx.font='9px Georgia,serif';ctx.fillText('EMPTY',dialX-52,dialY+18);ctx.fillText('FULL',dialX+52,dialY+18);
+const needleAngle=Math.PI-(springCharge/100)*Math.PI;
+ctx.strokeStyle='#f4d99d';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(dialX,dialY+8);ctx.lineTo(dialX+41*Math.cos(needleAngle),dialY+8-17*Math.sin(needleAngle));ctx.stroke();
+brassRivet(dialX,dialY+8,4);ctx.restore();
+// A subtle framed glass inspection window keeps the governor visible.
+ctx.save();
+ctx.strokeStyle='#e0b36e';ctx.lineWidth=4;
+ctx.beginPath();ctx.roundRect(878,262,76,88,9);ctx.stroke();
+const glass=ctx.createLinearGradient(879,264,954,349);
+glass.addColorStop(0,'rgba(214,247,250,.12)');
+glass.addColorStop(.35,'rgba(214,247,250,.015)');
+glass.addColorStop(.8,'rgba(255,255,255,.025)');
+glass.addColorStop(1,'rgba(214,247,250,.09)');
+ctx.fillStyle=glass;ctx.beginPath();ctx.roundRect(880,264,72,84,7);ctx.fill();
+ctx.strokeStyle='rgba(235,251,250,.22)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(886,270);ctx.lineTo(899,270);ctx.stroke();
+for(const [rx,ry] of [[881,265],[951,265],[881,347],[951,347]])brassRivet(rx,ry,2.5);
+ctx.restore();
 // Playback status is already displayed in the accessible controls above.
 }
 draw();
