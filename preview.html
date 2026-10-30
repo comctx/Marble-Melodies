@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Marble Melodies — Watch the Music Come Alive</title>
+<style>
+:root{color-scheme:dark;--gold:#d6ad62;--ink:#100f14}*{box-sizing:border-box}body{margin:0;font:16px system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(ellipse at 50% 0%,#34291f,#100f14 65%);color:#f8ecd5}header{text-align:center;padding:24px 12px 8px}h1{font:clamp(30px,5vw,55px) Georgia,serif;margin:0;color:#f5d18a;letter-spacing:.05em}header p{margin:6px;color:#c9bda7}.shell{width:min(1150px,96vw);margin:auto}.controls{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:14px auto;padding:12px;border:1px solid #6c512d;background:#211b1a;border-radius:14px}button,select{background:linear-gradient(#6d4b2a,#372718);color:#fff2d7;border:1px solid #c7a268;border-radius:9px;padding:11px 17px;font-weight:650;cursor:pointer}button:hover{filter:brightness(1.17)}button:focus-visible,select:focus-visible{outline:3px solid #f6ce73}button:disabled{opacity:.5;cursor:default}label{font-size:14px;color:#e4d2b2}select{padding:10px}#status{min-width:170px;text-align:center;color:#f5d18a;font-size:14px}.stage{position:relative;overflow:hidden;border:12px ridge #84562d;border-radius:20px;background:linear-gradient(115deg,#3d281b,#5b3b23 45%,#302016);box-shadow:0 25px 50px #000a,inset 0 0 35px #0009}.stage:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 34px,#ffffff05 35px 36px);z-index:1}canvas{width:100%;height:auto;aspect-ratio:16/9;display:block;position:relative;z-index:2}.plaque{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#25170d;border:2px solid #bc9251;border-radius:6px;padding:5px 15px;color:#e3bf7c;font:12px Georgia,serif;letter-spacing:.13em;white-space:nowrap;z-index:3}.foot{text-align:center;color:#b5a995;font-size:13px;margin:15px auto 25px;max-width:850px;line-height:1.5}@media(max-width:620px){.stage{border-width:6px}.controls{gap:8px}button{padding:10px 13px}.plaque{font-size:9px}}
+</style></head>
+<body>
+<header><h1>MARBLE MELODIES</h1><p>Watch the Music Come Alive ✦ Mechanical Music Workshop</p></header>
+<p style="text-align:center;color:#ffe4a9;font-weight:700;margin:6px auto 16px">MARBLE FLOW TEST PREVIEW — original app is unchanged</p>
+<main class="shell">
+<div class="controls">
+<button id="wind">↻ Wind Fully</button><label for="winding">Spring <meter id="winding" min="0" max="100" value="0"></meter></label><button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
+<label for="tempo">Tempo</label><select id="tempo"><option value=".8">Gentle · 80%</option><option value="1" selected>Original · 100%</option><option value="1.2">Brisk · 120%</option></select>
+<label for="sound">Sound</label><select id="sound"><option value="grand" selected>Concert grand (recorded)</option><option value="piano">Electronic piano</option><option value="bell">Bell bars</option><option value="soft">Soft keys</option></select>
+<span id="status" role="status" aria-live="polite">Ready to perform</span>
+</div>
+<div class="stage"><canvas id="scene" width="1120" height="630" aria-label="Animated marble music machine with brass tracks and tuned bars"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
+<p class="foot">Extended melodic arrangement (not the complete composition). A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll across the shared ramp; timed brass paddles have visible return springs and connect to rotating eccentric cams on a shared drive shaft by follower rods, swinging to divert marbles into the correct drop channels. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Tap Play to enable sound.</p>
+<p class="foot">Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
+<script>
+"use strict";
+const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
+const playBtn=document.getElementById('play'),stopBtn=document.getElementById('stop'),tempoSel=document.getElementById('tempo'),soundSel=document.getElementById('sound'),statusEl=document.getElementById('status');
+const W=canvas.width,H=canvas.height;
+let springCharge=0,initialCharge=0,crankDragging=false,crankLastAngle=0,manualCrankAngle=0;
+const windBtn=document.getElementById('wind'),windingMeter=document.getElementById('winding');
+function setSpring(v){springCharge=Math.max(0,Math.min(100,v));windingMeter.value=springCharge;windBtn.textContent=springCharge>=99?'✓ Fully Wound':'↻ Wind Fully'}
+windBtn.addEventListener('click',()=>setSpring(100));
+function crankAngle(e){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;return {x,y,a:Math.atan2(y-374,x-1059)}}
+canvas.addEventListener('pointerdown',e=>{const p=crankAngle(e);if(Math.hypot(p.x-1059,p.y-374)>55)return;crankDragging=true;crankLastAngle=p.a;canvas.setPointerCapture(e.pointerId)});
+canvas.addEventListener('pointermove',e=>{if(!crankDragging)return;const p=crankAngle(e);let d=p.a-crankLastAngle;d=Math.atan2(Math.sin(d),Math.cos(d));if(d>0){setSpring(springCharge+d*15);manualCrankAngle+=d}crankLastAngle=p.a});
+canvas.addEventListener('pointerup',()=>crankDragging=false);canvas.addEventListener('pointercancel',()=>crankDragging=false);
+const NOTES={C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
+function midi(name){const m=/^([A-G]#?)([0-8])$/.exec(name);if(!m)throw Error('Bad note '+name);return 12*(+m[2]+1)+NOTES[m[1]]}
+function hz(m){return 440*Math.pow(2,(m-69)/12)}
+// The opening and first continuation of Für Elise. Each token is note:duration in eighth-note units.
+// This is an intentionally limited excerpt, not a claim to perform the complete composition.
+const phrases=[
+'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 G#4:1 B4:1 C5:2 E4:1 E5:1 D#5:1',
+'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:3',
+'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 G#4:1 B4:1 C5:2 E4:1 E5:1 D#5:1',
+'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:3',
+// Contrasting middle passage, adapted for the single-marble melody arrangement.
+'B4:1 C5:1 D5:1 E5:2 G4:1 F5:1 E5:1 D5:2 F4:1 E5:1 D5:1 C5:2 E4:1 D5:1 C5:1 B4:2',
+'E4:1 E5:1 E5:1 E6:1 D#5:1 E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:3',
+'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 G#4:1 B4:1 C5:2 E4:1 E5:1 D#5:1',
+'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:4'
+];
+const score=[];const phraseEnds=[];let beats=0;
+for(const phrase of phrases){for(const token of phrase.split(/\s+/)){const [name,len]=token.split(':');score.push({name,midi:midi(name),beat:beats,len:+len});beats+=+len}phraseEnds.push(score.length)}
+const pitches=[...new Set(score.map(n=>n.midi))].sort((a,b)=>a-b);
+const xFor=m=>100+(pitches.indexOf(m)/(pitches.length-1))*920;
+const barY=456,barWidth=52;
+let audio=null,master=null,playing=false,startedAt=0,secondsPerUnit=.24,frame=0,session=0,scheduled=[],duration=0;
+const lead=4.0; // Keep the approved timing and the existing piano recording.
+const MARBLE_RAIL_SPEED=195; // Constant rail speed prevents overtaking or jerky clamps.
+const MARBLE_TRAY_SPEED=245;
+const ELEVATOR_SPEED=38; // Approved elevator speed.
+const BUCKET_SLOT_SECONDS=((510-24)*2+28*2)/16/ELEVATOR_SPEED;
+let marbleEvents=[];
+// The automatic piano action can play many notes between physical marble trips.
+// Only schedule another steel marble when the elevator has enough throughput.
+// Each marble is one tracked object with release, strike, tray, cup and lift times.
+function buildMarbleEvents(){
+ const events=[];
+ let previousRelease=-Infinity,previousNote=-Infinity;
+ for(let i=0;i<score.length;i++){
+  const note=score[i],x=xFor(note.midi);
+  if(x>950)continue; // Far-end high notes sound via the piano action, not the cup ramp.
+  const noteAt=lead+note.beat*secondsPerUnit;
+  const dropAt=noteAt-.38;
+  const releaseAt=dropAt-(x-80)/MARBLE_RAIL_SPEED-.14;
+  if(releaseAt<0||releaseAt-previousRelease<2.25||noteAt-previousNote<2.25)continue;
+  const trayAt=noteAt+.27;
+  const rollEnd=trayAt+(970-(x+9))/MARBLE_TRAY_SPEED;
+  const cupAt=rollEnd+.25;
+  events.push({note,index:i,x,noteAt,dropAt,releaseAt,trayAt,rollEnd,cupAt,pickupAt:0});
+  previousRelease=releaseAt;previousNote=noteAt;
+ }
+ // Reserve successive bucket arrivals in cup-arrival order, not note order.
+ let lastSlot=-1;
+ for(const event of [...events].sort((a,b)=>a.cupAt-b.cupAt)){
+  const slot=Math.max(lastSlot+1,Math.ceil((event.cupAt+.17)/BUCKET_SLOT_SECONDS));
+  event.pickupAt=slot*BUCKET_SLOT_SECONDS;
+  lastSlot=slot;
+ }
+ return events;
+}
+function makeAudio(){if(!audio){audio=new (window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=.4;master.connect(audio.destination)}return audio.resume()}
+// A tuned-bar synthesis model: sharp mallet attack, several slightly inharmonic
+// decaying partials, and a soft body resonance. No samples or external assets.
+// Alexander Holm's Salamander Grand Piano (Yamaha C5), CC BY 3.0.
+// The audio is served by the Tone.js sample host. Samples are loaded before playback.
+const sampleBase='https://tonejs.github.io/audio/salamander/';
+const sampleNotes=[{m:57,file:'A3.mp3'},{m:60,file:'C4.mp3'},{m:63,file:'Ds4.mp3'},{m:66,file:'Fs4.mp3'},{m:69,file:'A4.mp3'},{m:72,file:'C5.mp3'},{m:75,file:'Ds5.mp3'}];
+let grandSamples=null,grandLoading=null;
+async function loadGrand(){
+ if(grandSamples)return grandSamples;
+ if(!grandLoading)grandLoading=(async()=>{
+  const results=await Promise.all(sampleNotes.map(async n=>{
+   const res=await fetch(sampleBase+n.file);
+   if(!res.ok)throw Error('Sample HTTP '+res.status);
+   const bytes=await res.arrayBuffer();
+   return {...n,buffer:await audio.decodeAudioData(bytes)};
+  }));
+  grandSamples=results;return results;
+ })().catch(e=>{grandLoading=null;throw e});
+ return grandLoading;
+}
+// Warm the recorded grand without changing the timing of the marble strikes.
+let pianoRoom=null,pianoRoomMaster=null;
+function getPianoRoom(){
+ if(pianoRoom && pianoRoomMaster===master)return pianoRoom;
+ const delay=audio.createDelay(.5),feedback=audio.createGain(),damping=audio.createBiquadFilter(),wet=audio.createGain();
+ delay.delayTime.value=.085;feedback.gain.value=.18;
+ damping.type='lowpass';damping.frequency.value=2600;wet.gain.value=.11;
+ delay.connect(damping);damping.connect(feedback);feedback.connect(delay);
+ delay.connect(wet);wet.connect(master);
+ pianoRoom=delay;pianoRoomMaster=master;return delay;
+}
+function grandSound(m,start,dur,expression=1){
+ const sample=grandSamples.reduce((a,b)=>Math.abs(a.m-m)<=Math.abs(b.m-m)?a:b);
+ const src=audio.createBufferSource(),gain=audio.createGain();
+ const warmth=audio.createBiquadFilter(),presence=audio.createBiquadFilter();
+ src.buffer=sample.buffer;src.playbackRate.value=Math.pow(2,(m-sample.m)/12);
+ warmth.type='lowshelf';warmth.frequency.value=440;warmth.gain.value=2.5;
+ presence.type='peaking';presence.frequency.value=2400;presence.Q.value=.75;presence.gain.value=-1.7;
+ // Hold a natural piano sustain before gently releasing the note.
+ // Keep the recording's own decay; avoid an abrupt artificial cutoff.
+ const end=start+Math.min(5.5,Math.max(1.9,dur*4.2));
+ const releaseStart=Math.max(start+.4,end-.95);
+ gain.gain.setValueAtTime(.00001,start);
+ gain.gain.linearRampToValueAtTime(.42*expression,start+.009);
+ gain.gain.exponentialRampToValueAtTime(.30*expression,start+.24);
+ gain.gain.exponentialRampToValueAtTime(.20*expression,releaseStart);
+ gain.gain.exponentialRampToValueAtTime(.00001,end);
+ src.connect(warmth);warmth.connect(presence);presence.connect(gain);
+ gain.connect(master);gain.connect(getPianoRoom());
+ src.start(start);src.stop(end+.03);
+ scheduled.push(gain);
+}
+function pianoSound(m,start,dur){
+ const base=hz(m),length=Math.min(3.2,Math.max(.55,dur*2.7));
+ const voice=audio.createGain();voice.connect(master);
+ voice.gain.setValueAtTime(.00001,start);
+ voice.gain.exponentialRampToValueAtTime(.19,start+.004);
+ voice.gain.exponentialRampToValueAtTime(.105,start+.065);
+ voice.gain.exponentialRampToValueAtTime(.00001,start+length);
+ const levels=[1,.23,.12,.07,.035,.02];
+ for(let h=1;h<=levels.length;h++){
+  const partial=audio.createGain();partial.gain.value=levels[h-1];partial.connect(voice);
+  for(let j=0;j<(h===1?2:1);j++){
+   const osc=audio.createOscillator();osc.type='sine';
+   osc.frequency.value=base*h*Math.sqrt(1+.00014*h*h);
+   osc.detune.value=h===1?(j===0?-1.4:1.4):0;
+   osc.connect(partial);osc.start(start);osc.stop(start+length+.04);
+  }
+ }
+ const nLen=.012,buf=audio.createBuffer(1,Math.ceil(audio.sampleRate*nLen),audio.sampleRate),data=buf.getChannelData(0);
+ for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,4);
+ const noise=audio.createBufferSource(),low=audio.createBiquadFilter(),ng=audio.createGain();
+ noise.buffer=buf;low.type='lowpass';low.frequency.value=2400;
+ ng.gain.setValueAtTime(.018,start);ng.gain.exponentialRampToValueAtTime(.00001,start+nLen);
+ noise.connect(low);low.connect(ng);ng.connect(master);noise.start(start);noise.stop(start+nLen);
+ scheduled.push(voice);
+}
+function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(m,start,dur,expression);return}if(mode==='piano'){pianoSound(m,start,dur);return}
+ const fundamental=hz(m);
+ const envelope=audio.createGain();envelope.connect(master);
+ const isBell=mode==='bell';
+ const strike=.16+Math.min(.11,dur*.07);
+ const release=isBell?Math.min(3.1,Math.max(.9,dur*2.5)):Math.min(1.8,Math.max(.35,dur*1.4));
+ envelope.gain.setValueAtTime(.00001,start);
+ envelope.gain.exponentialRampToValueAtTime(strike,start+.006);
+ envelope.gain.exponentialRampToValueAtTime(strike*.6,start+.055);
+ envelope.gain.exponentialRampToValueAtTime(.00001,start+release);
+ const ratios=isBell?[1,2.01,3.93,5.42]:[1,2,3];
+ const levels=isBell?[1,.28,.12,.045]:[1,.14,.05];
+ ratios.forEach((ratio,i)=>{
+  const osc=audio.createOscillator(),partial=audio.createGain();
+  osc.type=isBell?'sine':'triangle';
+  osc.frequency.setValueAtTime(fundamental*ratio,start);
+  partial.gain.value=levels[i];
+  osc.connect(partial);partial.connect(envelope);
+  osc.start(start);osc.stop(start+release+.04);
+ });
+ // A brief broadband mallet click makes the impact feel physical.
+ const clickLen=.016,buffer=audio.createBuffer(1,Math.ceil(audio.sampleRate*clickLen),audio.sampleRate);
+ const data=buffer.getChannelData(0);
+ for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,3);
+ const noise=audio.createBufferSource(),filter=audio.createBiquadFilter(),clickGain=audio.createGain();
+ noise.buffer=buffer;filter.type='highpass';filter.frequency.value=1400;
+ clickGain.gain.setValueAtTime(isBell?.035:.018,start);
+ clickGain.gain.exponentialRampToValueAtTime(.00001,start+clickLen);
+ noise.connect(filter);filter.connect(clickGain);clickGain.connect(master);
+ noise.start(start);noise.stop(start+clickLen);
+ scheduled.push(envelope);
+}
+function stop(){session++;playing=false;if(master&&audio){const old=master;master=audio.createGain();master.gain.value=.4;master.connect(audio.destination);old.gain.cancelScheduledValues(audio.currentTime);old.gain.setTargetAtTime(0,audio.currentTime,.008);setTimeout(()=>{try{old.disconnect()}catch{}},150)}scheduled=[];playBtn.disabled=false;stopBtn.disabled=true;statusEl.textContent='Ready to perform'}
+async function play(){if(playing)return;if(springCharge<1){statusEl.textContent='Wind the mainspring first (turn crank or Wind Fully)';return}try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
+const id=++session;playing=true;playBtn.disabled=true;stopBtn.disabled=false;secondsPerUnit=.24/Number(tempoSel.value);duration=beats*secondsPerUnit;startedAt=audio.currentTime+.16;initialCharge=springCharge;
+marbleEvents=buildMarbleEvents();
+let mode=soundSel.value;
+if(mode==='grand'){
+ statusEl.textContent='Loading concert grand recordings…';
+ try{await loadGrand()}catch(e){console.warn('Grand samples unavailable',e);mode='piano';statusEl.textContent='Samples unavailable; using electronic piano';}
+ if(id!==session)return;
+ // Begin the audio clock only after the samples have loaded.
+ startedAt=audio.currentTime+.16;
+}
+for(let i=0;i<score.length;i++){
+ const n=score[i];if(id!==session)return;
+ // Each phrase gently swells to its expressive high point, then relaxes.
+ const phraseIndex=phrases.findIndex((_,p)=>i<phraseEnds[p]);
+ const phraseStart=phraseIndex===0?0:phraseEnds[phraseIndex-1];
+ const position=(i-phraseStart)/Math.max(1,phraseEnds[phraseIndex]-phraseStart-1);
+ const swell=Math.pow(Math.sin(Math.PI*position),1.2);
+ const expression=.69+.57*swell;
+ noteSound(n.midi,startedAt+lead+n.beat*secondsPerUnit,Math.max(.12,n.len*secondsPerUnit*.85),mode,expression);
+}
+statusEl.textContent=mode==='grand'?'Playing recorded concert grand…':mode==='piano'?'Playing electronic piano…':'Playing Für Elise…';
+setTimeout(()=>{if(id===session)stop()},(lead+duration+1)*1000);
+}
+playBtn.addEventListener('click',play);stopBtn.addEventListener('click',stop);
+tempoSel.addEventListener('change',()=>{if(playing)stop()});
+function roundedRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
+function metal(x,y,w,h,bright=false){const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,bright?'#fff3c5':'#e5d7b3');g.addColorStop(.22,bright?'#f7cf78':'#a5a6a7');g.addColorStop(.5,bright?'#8c6328':'#555e64');g.addColorStop(1,'#252a30');ctx.fillStyle=g;roundedRect(x,y,w,h,6);ctx.fill();ctx.strokeStyle='#1a1614';ctx.lineWidth=2;ctx.stroke()}
+function track(x1,y1,x2,y2){ctx.lineCap='round';ctx.lineWidth=17;ctx.strokeStyle='#211a16';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.lineWidth=9;ctx.strokeStyle='#bc8d46';ctx.stroke();ctx.lineWidth=2;ctx.strokeStyle='#f5d79a';ctx.beginPath();ctx.moveTo(x1,y1-3);ctx.lineTo(x2,y2-3);ctx.stroke()}
+function marble(x,y,r){const g=ctx.createRadialGradient(x-r*.35,y-r*.45,1,x,y,r);g.addColorStop(0,'#ffffff');g.addColorStop(.22,'#d6e7f3');g.addColorStop(.55,'#6f8ca0');g.addColorStop(1,'#18232e');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#e4cf9e';ctx.lineWidth=1.5;ctx.stroke()}
+function brassRivet(x,y,r=5){ctx.fillStyle='#22180f';ctx.beginPath();ctx.arc(x,y,r+2,0,Math.PI*2);ctx.fill();const g=ctx.createRadialGradient(x-2,y-2,1,x,y,r);g.addColorStop(0,'#fff1bd');g.addColorStop(.5,'#c69645');g.addColorStop(1,'#62411d');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
+function gear(x,y,r,teeth,rotation){ctx.save();ctx.translate(x,y);ctx.rotate(rotation);ctx.fillStyle='#291e13';ctx.beginPath();for(let i=0;i<teeth*4;i++){const a=i*Math.PI*2/(teeth*4),rr=i%4===0||i%4===3?r+7:r;const px=Math.cos(a)*rr,py=Math.sin(a)*rr;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.closePath();ctx.fill();ctx.strokeStyle='#c99b52';ctx.lineWidth=5;ctx.stroke();const g=ctx.createRadialGradient(-r*.3,-r*.4,2,0,0,r);g.addColorStop(0,'#dfb86c');g.addColorStop(.6,'#86602d');g.addColorStop(1,'#382616');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r-5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#f1d49c';ctx.lineWidth=1;ctx.stroke();for(let i=0;i<6;i++){const a=i*Math.PI/3;ctx.strokeStyle='#392716';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(Math.cos(a)*12,Math.sin(a)*12);ctx.lineTo(Math.cos(a)*(r-11),Math.sin(a)*(r-11));ctx.stroke()}brassRivet(0,0,7);ctx.restore()}
+function rotatingCam(x,y,angle,lift){
+ // Eccentric cam mounted on the driven shaft, with a small follower roller.
+ ctx.save();ctx.translate(x,y);ctx.rotate(angle);
+ const g=ctx.createLinearGradient(-15,-15,18,17);
+ g.addColorStop(0,'#f4d393');g.addColorStop(.55,'#ae7937');g.addColorStop(1,'#52371b');
+ ctx.fillStyle=g;ctx.strokeStyle='#3c2918';ctx.lineWidth=2;
+ ctx.beginPath();ctx.ellipse(3,0,15,11,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ ctx.restore();
+ brassRivet(x,y,4);
+ ctx.fillStyle='#c3c9c7';ctx.strokeStyle='#49351e';ctx.lineWidth=2;
+ ctx.beginPath();ctx.arc(x+13,y-13-lift,5,0,Math.PI*2);ctx.fill();ctx.stroke();
+}
+function woodBeam(x,y,w,h){const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,'#8d5b31');g.addColorStop(.35,'#54331d');g.addColorStop(.7,'#704625');g.addColorStop(1,'#24170f');ctx.fillStyle=g;roundedRect(x,y,w,h,5);ctx.fill();ctx.strokeStyle='#bc8a4b';ctx.lineWidth=2;ctx.stroke();ctx.strokeStyle='#d7a16a33';ctx.lineWidth=1;for(let i=7;i<h;i+=12){ctx.beginPath();ctx.moveTo(x+4,y+i);ctx.bezierCurveTo(x+w*.3,y+i-4,x+w*.7,y+i+5,x+w-4,y+i);ctx.stroke()}}
+function draw(){frame=requestAnimationFrame(draw);ctx.clearRect(0,0,W,H);
+const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#49301e');bg.addColorStop(1,'#24160f');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+for(let i=0;i<16;i++){ctx.strokeStyle='rgba(237,176,97,.045)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,i*42);ctx.bezierCurveTo(250,i*42+20,850,i*42-20,W,i*42);ctx.stroke()}
+// Workshop name appears in the page header; keep the machine face uncluttered.
+// Carved hardwood chassis and brass corner hardware.
+woodBeam(43,95,29,462);woodBeam(1048,95,29,462);woodBeam(62,525,997,28);woodBeam(62,91,997,25);
+for(const x of [57,1063])for(const y of [106,540])brassRivet(x,y,7);
+// An ornamental, music-clock-inspired drive train: rotation follows the audio clock.
+const driveTime=playing&&audio?Math.max(0,audio.currentTime-startedAt):0;
+if(playing&&audio){const fraction=Math.min(1,driveTime/Math.max(1,lead+duration));setSpring(initialCharge*(1-fraction));}
+gear(172,214,43,14,driveTime*.6);gear(255,217,31,12,-driveTime*.84);gear(940,213,42,14,-driveTime*.58);gear(858,215,31,12,driveTime*.81);
+ctx.strokeStyle='#d7ae62';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(172,214);ctx.lineTo(172,281);ctx.moveTo(940,213);ctx.lineTo(940,281);ctx.stroke();
+// Compact music-box-style centrifugal governor on the right gear train.
+// The rotating weights spread slightly as the spring-driven machine runs.
+ctx.save();
+const govX=914,govY=302;
+// Positive-looking mechanical takeoff from the large drive gear: shaft,
+// two bevel-gear collars, and a vertical governor spindle.
+const shaftX=govX+17, shaftTop=242;
+ctx.strokeStyle='#362519';ctx.lineWidth=10;ctx.lineCap='round';
+ctx.beginPath();ctx.moveTo(940,213);ctx.lineTo(shaftX,shaftTop);ctx.lineTo(shaftX,govY-23);ctx.stroke();
+ctx.strokeStyle='#e9bd70';ctx.lineWidth=5;
+ctx.beginPath();ctx.moveTo(940,213);ctx.lineTo(shaftX,shaftTop);ctx.lineTo(shaftX,govY-23);ctx.stroke();
+function bevelCollar(x,y,angle,phase){
+ ctx.save();ctx.translate(x,y);ctx.rotate(angle);
+ ctx.fillStyle='#9b672d';ctx.strokeStyle='#f1d08a';ctx.lineWidth=2;
+ ctx.beginPath();ctx.ellipse(0,0,12,7,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ for(let t=0;t<8;t++){const a=t*Math.PI/4+phase;ctx.beginPath();ctx.moveTo(Math.cos(a)*7,Math.sin(a)*4);ctx.lineTo(Math.cos(a)*12,Math.sin(a)*7);ctx.stroke()}
+ ctx.restore();
+}
+bevelCollar(940,213,-.8,driveTime*.6);
+bevelCollar(shaftX,shaftTop,Math.PI/2,driveTime*3.2);
+ctx.fillStyle='#f3d28e';ctx.beginPath();ctx.arc(shaftX,shaftTop,3.5,0,Math.PI*2);ctx.fill();
+ctx.fillStyle='#352619';ctx.strokeStyle='#e1b66e';ctx.lineWidth=3;
+ctx.beginPath();ctx.ellipse(govX,govY,25,30,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+const spin=playing?driveTime*11:0,spread=playing?12+4*Math.min(1,driveTime):8;
+ctx.save();ctx.translate(govX,govY);ctx.rotate(spin);
+ctx.strokeStyle='#e9c17a';ctx.lineWidth=3;
+ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(0,22);ctx.stroke();
+for(const sign of [-1,1]){
+ ctx.beginPath();ctx.moveTo(0,-13);ctx.lineTo(sign*spread,0);ctx.lineTo(0,13);ctx.stroke();
+ const g=ctx.createRadialGradient(sign*spread-3,-3,1,sign*spread,0,8);
+ g.addColorStop(0,'#fff0b8');g.addColorStop(1,'#9c672d');
+ ctx.fillStyle=g;ctx.beginPath();ctx.arc(sign*spread,0,7,0,Math.PI*2);ctx.fill();
+}
+ctx.restore();
+brassRivet(govX,govY-27,3);brassRivet(govX,govY+27,3);
+ctx.strokeStyle='#c6a26a';ctx.lineWidth=2;
+ctx.beginPath();ctx.moveTo(govX+24,govY-23);ctx.lineTo(govX+33,govY-23);ctx.stroke();
+ctx.fillStyle='#edc88b';ctx.font='10px system-ui';ctx.textAlign='center';
+ctx.fillText('GOVERNOR',govX,govY+42);
+ctx.restore();
+// Visible elevator power train mounted to the right-hand upright.
+// A brass flywheel and its drive belt rotate whenever the bucket lift runs.
+ctx.save();
+const motorX=1059,motorY=374;
+ctx.strokeStyle='#302116';ctx.lineWidth=10;
+ctx.beginPath();ctx.moveTo(motorX,motorY);ctx.lineTo(1014,518);ctx.stroke();
+ctx.strokeStyle='#d8ab65';ctx.lineWidth=4;
+ctx.beginPath();ctx.moveTo(motorX,motorY);ctx.lineTo(1014,518);ctx.stroke();
+ctx.translate(motorX,motorY);ctx.rotate(playing?driveTime*2.8:0);
+ctx.fillStyle='#392818';ctx.strokeStyle='#edc37d';ctx.lineWidth=5;
+ctx.beginPath();ctx.arc(0,0,27,0,Math.PI*2);ctx.fill();ctx.stroke();
+for(let i=0;i<6;i++){
+ const a=i*Math.PI/3;
+ ctx.strokeStyle='#d8aa62';ctx.lineWidth=5;
+ ctx.beginPath();ctx.moveTo(Math.cos(a)*7,Math.sin(a)*7);
+ ctx.lineTo(Math.cos(a)*23,Math.sin(a)*23);ctx.stroke();
+ brassRivet(Math.cos(a)*22,Math.sin(a)*22,2.5);
+}
+ctx.restore();brassRivet(motorX,motorY,7);
+// Wind-up mainspring: a tightening spiral inside a glass-faced brass case.
+ctx.save();ctx.translate(1058,446);
+ctx.fillStyle='#2d2118';ctx.strokeStyle='#e2b774';ctx.lineWidth=5;
+ctx.beginPath();ctx.arc(0,0,34,0,Math.PI*2);ctx.fill();ctx.stroke();
+ctx.strokeStyle='#c5cbd0';ctx.lineWidth=3;ctx.beginPath();
+const turns=2+springCharge/30;
+for(let j=0;j<=100;j++){const u=j/100,a=u*turns*Math.PI*2,r=3+u*26;const px=Math.cos(a)*r,py=Math.sin(a)*r;j?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.stroke();
+ctx.fillStyle='rgba(178,225,233,.12)';ctx.beginPath();ctx.arc(0,0,30,0,Math.PI*2);ctx.fill();
+brassRivet(0,0,5);ctx.restore();
+// Hand-winding crank: curved brass arm, wooden turning grip and ratchet.
+ctx.save();ctx.translate(motorX,motorY);
+ctx.rotate(playing?driveTime*2.8:manualCrankAngle);
+ctx.strokeStyle='#332318';ctx.lineWidth=12;ctx.lineCap='round';
+ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(17,-8);ctx.lineTo(34,-8);ctx.stroke();
+ctx.strokeStyle='#edc27b';ctx.lineWidth=7;
+ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(17,-8);ctx.lineTo(34,-8);ctx.stroke();
+ctx.fillStyle='#654027';ctx.strokeStyle='#f5d396';ctx.lineWidth=2.5;
+ctx.beginPath();ctx.ellipse(34,-8,9,13,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ctx.strokeStyle='#ac7950';ctx.lineWidth=1.5;
+for(let k=-5;k<=5;k+=5){ctx.beginPath();ctx.moveTo(29,-8+k);ctx.lineTo(39,-8+k);ctx.stroke()}
+ctx.restore();
+// Ratchet teeth and pawl near the crank axle.
+ctx.save();ctx.translate(motorX,motorY);ctx.rotate(playing?driveTime*2.8:manualCrankAngle);
+ctx.strokeStyle='#d8a659';ctx.lineWidth=2;
+for(let k=0;k<12;k++){const a=k*Math.PI/6;ctx.beginPath();ctx.moveTo(Math.cos(a)*12,Math.sin(a)*12);ctx.lineTo(Math.cos(a)*17,Math.sin(a)*17);ctx.stroke()}
+ctx.restore();
+// Elevated glass-and-brass marble reservoir, with a funnel and feed gate.
+// The stock settles a little as the musical feed mechanism advances.
+ctx.save();
+// Align the hopper outlet with the left end of the marble feed rail.
+ctx.translate(-65,0);
+ctx.strokeStyle='#b48a4d';ctx.lineWidth=7;
+ctx.beginPath();ctx.moveTo(75,113);ctx.lineTo(75,174);ctx.moveTo(213,113);ctx.lineTo(213,174);ctx.stroke();
+const hopperGlass=ctx.createLinearGradient(86,0,205,0);
+hopperGlass.addColorStop(0,'rgba(181,224,230,.43)');
+hopperGlass.addColorStop(.24,'rgba(219,245,245,.16)');
+hopperGlass.addColorStop(.75,'rgba(181,216,222,.13)');
+hopperGlass.addColorStop(1,'rgba(229,248,249,.43)');
+ctx.fillStyle=hopperGlass;ctx.strokeStyle='#e2bd7b';ctx.lineWidth=4;
+ctx.beginPath();ctx.moveTo(90,73);ctx.lineTo(202,73);ctx.lineTo(202,114);
+ctx.lineTo(160,143);ctx.lineTo(151,155);ctx.lineTo(140,155);
+ctx.lineTo(130,143);ctx.lineTo(90,114);ctx.closePath();ctx.fill();ctx.stroke();
+ctx.save();ctx.beginPath();ctx.moveTo(94,77);ctx.lineTo(198,77);ctx.lineTo(198,111);
+ctx.lineTo(157,141);ctx.lineTo(149,150);ctx.lineTo(142,150);ctx.lineTo(133,141);
+ctx.lineTo(94,111);ctx.closePath();ctx.clip();
+const settle=playing?Math.sin(driveTime*4)*.6:0;
+// The hopper contains a fixed stock; each launched marble temporarily
+// reduces it until that same marble arrives back through the top conduit.
+const inTransit=playing?marbleEvents.filter(e=>
+ driveTime>=e.releaseAt && driveTime<e.pickupAt+(486+28+915)/ELEVATOR_SPEED+.42).length:0;
+const hopperStock=Math.max(0,16-inTransit);
+const hopperBalls=[];
+for(let row=0;row<3;row++)for(let col=0;col<5-row%2;col++){
+ hopperBalls.push([104+col*20+(row%2?10:0),91+row*16]);
+}
+hopperBalls.push([144,139],[151,126]);
+for(const [px,py] of hopperBalls.slice(0,hopperStock))marble(px,py+settle,8);
+ctx.restore();
+ctx.strokeStyle='#f1d69d';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(88,73);ctx.lineTo(204,73);ctx.stroke();
+ctx.strokeStyle='rgba(250,255,255,.65)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(100,81);ctx.lineTo(100,109);ctx.stroke();
+// Variable-time, two-finger marble escapement at the hopper throat.
+// Each scheduled note opens a short metering cycle at its own release time.
+const releasePhase=playing&&audio?audio.currentTime-startedAt: -1000;
+let gateCycle=-1;
+if(playing)for(const event of marbleEvents){
+ const elapsed=releasePhase-event.releaseAt;
+ if(elapsed>=0&&elapsed<.22){gateCycle=Math.max(gateCycle,elapsed); }
+}
+const lowerOpen=gateCycle>=.065&&gateCycle<.17;
+const upperOpen=gateCycle>=0&&gateCycle<.065;
+ctx.fillStyle='#9c7039';ctx.fillRect(133,149,25,19);
+// Two separate pivoting brass fingers alternate: isolate then discharge.
+for(const [gy,isOpen,side] of [[152,upperOpen,-1],[163,lowerOpen,1]]){
+ const pivotX=145+side*13;
+ ctx.save();ctx.translate(pivotX,gy);
+ ctx.rotate((isOpen?0.65:0)*side);
+ ctx.strokeStyle='#382619';ctx.lineWidth=7;ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-side*13,0);ctx.stroke();
+ ctx.strokeStyle='#f1c778';ctx.lineWidth=4;
+ ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-side*13,0);ctx.stroke();
+ ctx.restore();
+ brassRivet(pivotX,gy,3);
+}
+// A little cam disk and return spring visibly actuate the two stops.
+ctx.save();ctx.translate(166,156);ctx.rotate(gateCycle>=0?gateCycle*23:0);
+ctx.fillStyle='#b7823e';ctx.strokeStyle='#f6d58b';ctx.lineWidth=2;
+ctx.beginPath();ctx.ellipse(0,0,8,6,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ctx.restore();
+ctx.strokeStyle='#f1c778';ctx.lineWidth=2;
+ctx.beginPath();for(let k=0;k<5;k++)ctx.lineTo(159+k*3,171+(k%2?3:0));ctx.stroke();
+ctx.restore();
+// A single long gravity-feed rail runs across the top of the machine.
+// Marbles enter from the left and fall through a gate above their destination.
+track(80,153,1040,215);
+for(const m of pitches){
+ const x=xFor(m),railY=153+(x-80)*62/960;
+ // Spring-loaded brass paddle: a short swing knocks a passing marble
+ // sideways into the drop channel, returning to rest afterward.
+ const noteTime=playing&&audio?audio.currentTime-startedAt:-100;
+ let swing=0;
+ if(playing)for(const event of marbleEvents){
+  if(event.note.midi!==m)continue;
+  const dt=noteTime-event.dropAt;
+  // Smooth cam lift, brief dwell and spring-assisted return.
+  // A fixed event-time envelope avoids jitter across different frame rates.
+  const u=(dt+.10)/.34;
+  if(u>=0&&u<=1){
+   const rise=u<.42?Math.sin((u/.42)*Math.PI/2):1;
+   const fall=u>.58?Math.pow(Math.cos(((u-.58)/.42)*Math.PI/2),2):1;
+   swing=Math.max(swing,rise*fall);
+  }
+ }
+ // Mechanical linkage: a cam on the lower drive shaft lifts a follower
+ // rod, which rotates the paddle. The same swing value drives both parts.
+ const pivotY=railY+22,shaftY=283;
+ const lift=swing*13;
+ // A shaft-driven eccentric cam turns beneath the follower. Its raised
+ // lobe corresponds to the lift that operates the paddle linkage.
+ // The cam's raised lobe faces the follower during the note event.
+ // Between events it continues turning with the common shaft.
+ const camAngle=playing?driveTime*2.8+(pitches.indexOf(m)*.72)+swing*1.1:0;
+ rotatingCam(x+13,shaftY,camAngle,lift);
+ ctx.strokeStyle='#31251a';ctx.lineWidth=8;ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(x+13,shaftY);ctx.lineTo(x+13,pivotY+10-lift);ctx.stroke();
+ ctx.strokeStyle='#d7b575';ctx.lineWidth=4;
+ ctx.beginPath();ctx.moveTo(x+13,shaftY);ctx.lineTo(x+13,pivotY+10-lift);ctx.stroke();
+ ctx.strokeStyle='#e6c07b';ctx.lineWidth=5;
+ ctx.beginPath();ctx.moveTo(x+13,pivotY+10-lift);ctx.lineTo(x,pivotY);ctx.stroke();
+ brassRivet(x+13,pivotY+10-lift,3);
+ // A visible extension spring stretches as the paddle swings,
+ // then contracts when the paddle returns to its resting position.
+ const springTopX=x-20-swing*9,springTopY=pivotY-14-swing*6;
+ const springBaseX=x-27,springBaseY=pivotY+31;
+ ctx.strokeStyle='#b78d50';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(springBaseX,springBaseY);ctx.lineTo(springBaseX,springBaseY-5);ctx.stroke();
+ const dx=springTopX-springBaseX,dy=springTopY-(springBaseY-5),length=Math.hypot(dx,dy);
+ const ux=dx/length,uy=dy/length,nx=-uy,ny=ux;
+ ctx.strokeStyle='#e5e8e8';ctx.lineWidth=2.5;ctx.lineJoin='round';
+ ctx.beginPath();ctx.moveTo(springBaseX,springBaseY-5);
+ const turns=7,steps=turns*2;
+ for(let k=1;k<steps;k++){
+  const fraction=k/steps,amplitude=(k%2?4:-4);
+  ctx.lineTo(springBaseX+dx*fraction+nx*amplitude,springBaseY-5+dy*fraction+ny*amplitude);
+ }
+ ctx.lineTo(springTopX,springTopY);ctx.stroke();
+ brassRivet(springBaseX,springBaseY,3);
+ brassRivet(springTopX,springTopY,3);
+ ctx.save();ctx.translate(x,pivotY);ctx.rotate(-swing*.85);
+ ctx.strokeStyle='#291c10';ctx.lineWidth=9;ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-4,-25);ctx.stroke();
+ ctx.strokeStyle='#edc679';ctx.lineWidth=5;
+ ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-4,-25);ctx.stroke();
+ ctx.restore();
+ brassRivet(x,railY+22,5);
+}
+track(88,295,1032,295);
+// Continuous drive shaft under the paddles, connected visually to the gears.
+track(88,283,1032,283);
+for(const m of pitches){const x=xFor(m);brassRivet(x+13,283,5)}
+for(let i=0;i<5;i++){const x=155+i*205;ctx.strokeStyle='#9d7542';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(x,130);ctx.lineTo(x,540);ctx.stroke();metal(x-9,535,18,20,true);brassRivet(x,318,5);brassRivet(x,521,5)}
+// Exposed piano-string bank: each tuned key has three fine strings,
+// a brass bridge and a felt-lined hammer. Strings shimmer when struck.
+let stringClock=playing&&audio?audio.currentTime-startedAt:-100;
+for(const m of pitches){
+ const x=xFor(m),baseY=barY-18;
+ const lastHit=score.reduce((latest,n)=>{
+  if(n.midi!==m)return latest;
+  const dt=stringClock-(lead+n.beat*secondsPerUnit);
+  return dt>=0&&dt<1.1?Math.min(latest,dt):latest;
+ },Infinity);
+ const ring=Number.isFinite(lastHit)?Math.exp(-lastHit*5):0;
+ ctx.strokeStyle='#b98b43';ctx.lineWidth=6;
+ ctx.beginPath();ctx.moveTo(x-21,baseY-98);ctx.lineTo(x+21,baseY-98);ctx.stroke();
+ ctx.fillStyle='#71512b';ctx.fillRect(x-22,baseY-95,44,8);
+ for(let j=-1;j<=1;j++){
+  const sx=x+j*7;
+  ctx.strokeStyle=ring>0?'#f4e4b7':'#b7b9b5';ctx.lineWidth=1.6;
+  ctx.beginPath();ctx.moveTo(sx,baseY-91);
+  const wobble=ring*Math.sin(stringClock*68+j*2)*2;
+  ctx.quadraticCurveTo(sx+wobble,baseY-45,sx,baseY-5);ctx.stroke();
+  brassRivet(sx,baseY-91,2);
+ }
+ ctx.fillStyle='#6e4930';ctx.fillRect(x-17,baseY-7,34,7);
+ // The falling marble depresses a key lever, which throws the felt hammer
+ // toward the strings. The hammer rebounds immediately while they ring.
+ let strike=0;
+ if(playing)for(const n of score){
+  if(n.midi!==m)continue;
+  const dt=stringClock-(lead+n.beat*secondsPerUnit);
+  if(dt>=-.13&&dt<.23){
+   const v=dt<0?(dt+.13)/.13:Math.exp(-dt*22);
+   strike=Math.max(strike,Math.max(0,v));
+  }
+ }
+ const leverY=baseY+25;
+ ctx.strokeStyle='#6b4b29';ctx.lineWidth=5;
+ ctx.beginPath();ctx.moveTo(x-23,leverY-7*strike);ctx.lineTo(x+22,leverY+4*strike);ctx.stroke();
+ brassRivet(x+7,leverY,4);
+ // Vertical push rod transfers the lever's motion to the hammer pivot.
+ ctx.strokeStyle='#d5a967';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(x+20,leverY+4*strike);ctx.lineTo(x+20,baseY-6);ctx.stroke();
+ // Hammer return spring: a visible coil stretched by the strike.
+ const sx=x+29,sy=baseY-5,ey=leverY-5*strike;
+ ctx.strokeStyle='#c7cecf';ctx.lineWidth=1.8;ctx.beginPath();
+ ctx.moveTo(sx,sy);
+ for(let k=1;k<=12;k++){const u=k/13;ctx.lineTo(sx+(k%2?3:-3),sy+(ey-sy)*u)}
+ ctx.lineTo(sx,ey);ctx.stroke();
+ ctx.save();ctx.translate(x+19,baseY-9);ctx.rotate(-strike*.8);
+ ctx.strokeStyle='#bc8b4b';ctx.lineWidth=4;
+ ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-25);ctx.stroke();
+ ctx.fillStyle='#ded0b5';roundedRect(-5,-31,10,12,3);ctx.fill();
+ ctx.restore();
+ brassRivet(x+19,baseY-9,3);
+}
+for(const m of pitches){
+ const x=xFor(m);
+ ctx.strokeStyle='#b28b54';ctx.lineWidth=4;ctx.beginPath();
+ ctx.moveTo(x,295);ctx.lineTo(x,barY-15);ctx.stroke();
+ metal(x-barWidth/2,barY,barWidth,23,m%12===4||m%12===9);
+ // The clockwork piano action sounds EVERY score note, even during gaps
+ // between the less frequent physical marble releases.
+ if(playing&&audio){
+  const noteClock=audio.currentTime-startedAt;
+  let pulse=0;
+  for(const n of score){
+   if(n.midi!==m)continue;
+   const distance=Math.abs(noteClock-(lead+n.beat*secondsPerUnit));
+   if(distance<.12)pulse=Math.max(pulse,1-distance/.12);
+  }
+  if(pulse>0){
+   ctx.fillStyle='rgba(255,218,131,'+(.26*pulse)+')';
+   ctx.beginPath();ctx.ellipse(x,barY+4,29,16,0,0,Math.PI*2);ctx.fill();
+  }
+ }
+ ctx.fillStyle='#17140f';ctx.font='13px system-ui';ctx.textAlign='center';
+ const name=Object.keys(NOTES).find(k=>NOTES[k]===m%12)+(Math.floor(m/12)-1);
+ ctx.fillText(name,x,barY+16);brassRivet(x,barY+31,3);
+}
+// Sloped return tray collects marbles after they sound a note.
+ctx.strokeStyle='#302216';ctx.lineWidth=13;ctx.lineCap='round';
+ctx.beginPath();ctx.moveTo(76,492);ctx.lineTo(970,520);ctx.stroke();
+ctx.strokeStyle='#d3a55c';ctx.lineWidth=7;
+ctx.beginPath();ctx.moveTo(76,489);ctx.lineTo(970,517);ctx.stroke();
+ctx.strokeStyle='#f4d59a';ctx.lineWidth=2;
+ctx.beginPath();ctx.moveTo(76,485);ctx.lineTo(970,513);ctx.stroke();
+// A brass collection cup receives marbles at the low end of the tray.
+ctx.fillStyle='#49301a';ctx.strokeStyle='#e1b873';ctx.lineWidth=5;
+ctx.beginPath();ctx.moveTo(965,507);ctx.lineTo(965,548);
+ctx.quadraticCurveTo(1004,564,1038,548);ctx.lineTo(1038,507);ctx.stroke();ctx.fill();
+ctx.fillStyle='#c8a069';ctx.font='11px system-ui';ctx.textAlign='center';
+ctx.fillText('RETURN TRAY',525,505);
+// Recirculating marble elevator: the return cup feeds a vertical bucket chain.
+// At the top, a covered brass return channel carries marbles back to the hopper.
+const elevatorPhase=playing?driveTime*38:0;
+ctx.save();
+ctx.lineCap='round';
+// Upper return conduit, routed above the moving machinery.
+ctx.strokeStyle='#39291b';ctx.lineWidth=16;
+ctx.beginPath();ctx.moveTo(1010,119);ctx.lineTo(1010,37);ctx.lineTo(85,64);ctx.lineTo(85,78);ctx.stroke();
+ctx.strokeStyle='#c69a59';ctx.lineWidth=9;
+ctx.beginPath();ctx.moveTo(1010,119);ctx.lineTo(1010,37);ctx.lineTo(85,64);ctx.lineTo(85,78);ctx.stroke();
+ctx.strokeStyle='#f0d49d';ctx.lineWidth=2;
+ctx.beginPath();ctx.moveTo(1010,119);ctx.lineTo(1010,37);ctx.lineTo(85,64);ctx.lineTo(85,78);ctx.stroke();
+// Twin guide rails and moving bucket-chain belt.
+for(const ex of [1000,1027]){
+ ctx.strokeStyle='#2b2118';ctx.lineWidth=11;
+ ctx.beginPath();ctx.moveTo(ex,518);ctx.lineTo(ex,43);ctx.stroke();
+ ctx.strokeStyle='#bc9155';ctx.lineWidth=4;
+ ctx.beginPath();ctx.moveTo(ex,518);ctx.lineTo(ex,43);ctx.stroke();
+}
+ctx.setLineDash([9,9]);ctx.lineDashOffset=-elevatorPhase;
+ctx.strokeStyle='#e6c18a';ctx.lineWidth=3;
+ctx.beginPath();ctx.moveTo(1014,517);ctx.lineTo(1014,43);ctx.stroke();ctx.setLineDash([]);
+for(const cy of [45,518]){
+ ctx.fillStyle='#594024';ctx.strokeStyle='#d5ac6a';ctx.lineWidth=3;
+ ctx.beginPath();ctx.arc(1014,cy,13,0,Math.PI*2);ctx.fill();ctx.stroke();
+ brassRivet(1014,cy,5);
+}
+// Empty carriers circulate continuously; actual steel marbles are drawn
+// from note events below, not invented in every bucket.
+const topY=24,bottomY=510,leg=bottomY-topY,turn=28;
+const loopLength=leg*2+turn*2, bucketPitch=loopLength/16;
+const liftOffset=playing?elevatorPhase:0;
+for(let k=0;k<16;k++){
+ const phase=((liftOffset+k*bucketPitch)%loopLength+loopLength)%loopLength;
+ let bx,by,angle=0;
+ if(phase<leg){bx=1014;by=bottomY-phase}
+ else if(phase<leg+turn){
+  const u=(phase-leg)/turn;bx=1014+28*u;by=topY-5*Math.sin(Math.PI*u);
+  angle=-Math.PI/3*u;
+ }else if(phase<leg*2+turn){
+  bx=1042;by=topY+(phase-leg-turn);angle=-Math.PI/2;
+ }else{
+  const u=(phase-leg*2-turn)/turn;
+  bx=1042-28*u;by=bottomY+5*Math.sin(Math.PI*u);angle=-Math.PI/2*(1-u);
+ }
+ if(bx>1030)continue;
+ ctx.save();ctx.translate(bx,by);ctx.rotate(angle);
+ ctx.fillStyle='#8a6030';ctx.strokeStyle='#f1cd89';ctx.lineWidth=2.5;
+ ctx.beginPath();ctx.moveTo(-14,-7);ctx.lineTo(-12,10);
+ ctx.quadraticCurveTo(0,17,12,10);ctx.lineTo(14,-7);
+ ctx.stroke();ctx.fill();ctx.restore();
+}
+// One physical marble event travels through exactly one machine stage at a time.
+// Non-marble notes are sounded by the mechanically driven piano action.
+ctx.strokeStyle='#392519';ctx.lineWidth=10;ctx.lineCap='round';
+ctx.beginPath();ctx.moveTo(983,538);ctx.lineTo(1005,524);ctx.stroke();
+ctx.strokeStyle='#e5b76c';ctx.lineWidth=5;
+ctx.beginPath();ctx.moveTo(983,538);ctx.lineTo(1005,524);ctx.stroke();
+const liftSeconds=leg/ELEVATOR_SPEED,tipSeconds=turn/ELEVATOR_SPEED,returnSeconds=915/ELEVATOR_SPEED;
+const flowNow=playing&&audio?audio.currentTime-startedAt:-1000;
+const waiting=playing?marbleEvents.filter(e=>flowNow>=e.cupAt&&flowNow<e.pickupAt-.16)
+ .sort((a,b)=>a.pickupAt-b.pickupAt):[];
+let gateOpen=false;
+for(const event of playing?marbleEvents:[]){
+ const t=flowNow,x=event.x;
+ if(t<event.releaseAt||t>=event.pickupAt+liftSeconds+tipSeconds+returnSeconds+.42)continue;
+ let bx,by,r=11;
+ if(t<event.dropAt){
+  // All balls use exactly the same rolling velocity and cannot overtake.
+  const travel=Math.max(0,t-event.releaseAt-.14);
+  bx=Math.min(x,80+MARBLE_RAIL_SPEED*travel);
+  by=141+(bx-80)*62/960;
+ }else if(t<event.noteAt){
+  const u=Math.min(1,(t-event.dropAt)/.38);
+  const railY=141+(x-80)*62/960;
+  bx=x+7*Math.sin(u*Math.PI);
+  by=railY+(barY-17-railY)*u*u;
+ }else if(t<event.trayAt){
+  const u=(t-event.noteAt)/.27;
+  bx=x+9*u;
+  by=barY-17-16*Math.sin(u*Math.PI)+u*(489+(bx-80)/894*28-12-(barY-17));
+ }else if(t<event.rollEnd){
+  bx=x+9+(t-event.trayAt)*MARBLE_TRAY_SPEED;
+  by=489+(bx-80)/894*28-12;
+ }else if(t<event.cupAt){
+  const u=(t-event.rollEnd)/.25;
+  bx=970+13*u;
+  by=489+(970-80)/894*28-12+31*u*u;
+ }else if(t<event.pickupAt-.16){
+  // A queued ball has a real cup position, not another copy on the tray.
+  const order=waiting.indexOf(event);
+  const q=Math.max(0,order);
+  bx=982+(q%2)*24;by=536-Math.floor(q/2)*23;
+ }else if(t<event.pickupAt){
+  const u=(t-(event.pickupAt-.16))/.16;
+  bx=982+32*u;by=536-25*u;gateOpen=true;
+ }else if(t<event.pickupAt+liftSeconds){
+  const u=t-event.pickupAt;
+  bx=1014;by=510-u*ELEVATOR_SPEED+1;
+  if(u<.10)gateOpen=true;
+ }else if(t<event.pickupAt+liftSeconds+tipSeconds){
+  const u=(t-event.pickupAt-liftSeconds)/tipSeconds;
+  bx=1014-14*u;by=topY+6*u;
+ }else if(t<event.pickupAt+liftSeconds+tipSeconds+returnSeconds){
+  const distance=(t-event.pickupAt-liftSeconds-tipSeconds)*ELEVATOR_SPEED;
+  bx=1000-distance;by=37+(1000-bx)*27/915-7;
+ }else{
+  const u=(t-event.pickupAt-liftSeconds-tipSeconds-returnSeconds)/.42;
+  bx=85;by=57+39*u;
+ }
+ marble(bx,by,r);
+ if(Math.abs(t-event.noteAt)<.08){
+  ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();
+  ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill();
+ }
+}
+ctx.save();ctx.translate(1000,515);ctx.rotate(gateOpen?-.7:0);
+ctx.strokeStyle='#f0cc89';ctx.lineWidth=5;ctx.beginPath();
+ctx.moveTo(0,0);ctx.lineTo(-9,-13);ctx.stroke();ctx.restore();
+brassRivet(1000,515,3);
+ctx.strokeStyle='#f0d49d';ctx.lineWidth=3;ctx.beginPath();
+ctx.moveTo(1031,54);ctx.lineTo(1031,36);ctx.lineTo(1011,36);ctx.stroke();
+ctx.fillStyle='#f1cf8d';ctx.font='11px system-ui';ctx.textAlign='right';
+ctx.fillText('MARBLE LIFT',992,350);
+ctx.restore();
+if(!playing){marble(80,141,11)}
+// Three small instrument-panel additions: a note-driven marble tally,
+// a spring-charge needle, and a clear inspection pane over the governor.
+const releasedCount=playing&&audio?marbleEvents.reduce((count,e)=>count+(driveTime>=e.releaseAt?1:0),0):0;
+// Brass mechanical odometer, bottom left of the workshop.
+ctx.save();ctx.fillStyle='#2a1b12';ctx.strokeStyle='#c89d59';ctx.lineWidth=3;
+ctx.beginPath();ctx.roundRect(82,563,194,47,7);ctx.fill();ctx.stroke();
+ctx.fillStyle='#dcb77b';ctx.font='11px Georgia,serif';ctx.textAlign='left';ctx.fillText('MARBLES RELEASED',94,579);
+const digits=String(releasedCount).padStart(4,'0');
+for(let j=0;j<4;j++){const dx=177+j*21;ctx.fillStyle='#110f0d';ctx.fillRect(dx,583,18,20);ctx.strokeStyle='#88663c';ctx.lineWidth=1;ctx.strokeRect(dx,583,18,20);ctx.fillStyle='#f4d79c';ctx.font='bold 16px monospace';ctx.textAlign='center';ctx.fillText(digits[j],dx+9,599)}
+ctx.restore();
+// Antique analog mainspring dial; the existing accessible meter remains.
+ctx.save();const dialX=920,dialY=586;
+ctx.fillStyle='#2b1b11';ctx.strokeStyle='#caa262';ctx.lineWidth=4;
+ctx.beginPath();ctx.ellipse(dialX,dialY,79,30,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ctx.fillStyle='#e8c58d';ctx.textAlign='center';ctx.font='10px Georgia,serif';ctx.fillText('MAINSPRING',dialX,dialY-12);
+ctx.font='9px Georgia,serif';ctx.fillText('EMPTY',dialX-52,dialY+18);ctx.fillText('FULL',dialX+52,dialY+18);
+const needleAngle=Math.PI-(springCharge/100)*Math.PI;
+ctx.strokeStyle='#f4d99d';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(dialX,dialY+8);ctx.lineTo(dialX+41*Math.cos(needleAngle),dialY+8-17*Math.sin(needleAngle));ctx.stroke();
+brassRivet(dialX,dialY+8,4);ctx.restore();
+// A subtle framed glass inspection window keeps the governor visible.
+ctx.save();
+ctx.strokeStyle='#e0b36e';ctx.lineWidth=4;
+ctx.beginPath();ctx.roundRect(878,262,76,88,9);ctx.stroke();
+const glass=ctx.createLinearGradient(879,264,954,349);
+glass.addColorStop(0,'rgba(214,247,250,.24)');
+glass.addColorStop(.35,'rgba(214,247,250,.055)');
+glass.addColorStop(.8,'rgba(255,255,255,.065)');
+glass.addColorStop(1,'rgba(214,247,250,.19)');
+ctx.fillStyle=glass;ctx.beginPath();ctx.roundRect(880,264,72,84,7);ctx.fill();
+ctx.strokeStyle='rgba(235,251,250,.58)';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(886,333);ctx.lineTo(886,279);ctx.quadraticCurveTo(886,270,898,270);ctx.stroke();
+ctx.strokeStyle='rgba(255,255,255,.24)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(892,323);ctx.lineTo(900,290);ctx.stroke();
+for(const [rx,ry] of [[881,265],[951,265],[881,347],[951,347]])brassRivet(rx,ry,2.5);
+ctx.restore();
+// Playback status is already displayed in the accessible controls above.
+}
+draw();
+</script>
+</body></html>
