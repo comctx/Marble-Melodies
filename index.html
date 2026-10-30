@@ -212,6 +212,25 @@ for(const x of [57,1063])for(const y of [106,540])brassRivet(x,y,7);
 const driveTime=playing&&audio?Math.max(0,audio.currentTime-startedAt):0;
 gear(172,214,43,14,driveTime*.6);gear(255,217,31,12,-driveTime*.84);gear(940,213,42,14,-driveTime*.58);gear(858,215,31,12,driveTime*.81);
 ctx.strokeStyle='#d7ae62';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(172,214);ctx.lineTo(172,281);ctx.moveTo(940,213);ctx.lineTo(940,281);ctx.stroke();
+// Visible elevator power train mounted to the right-hand upright.
+// A brass flywheel and its drive belt rotate whenever the bucket lift runs.
+ctx.save();
+const motorX=1059,motorY=374;
+ctx.strokeStyle='#302116';ctx.lineWidth=10;
+ctx.beginPath();ctx.moveTo(motorX,motorY);ctx.lineTo(1014,518);ctx.stroke();
+ctx.strokeStyle='#d8ab65';ctx.lineWidth=4;
+ctx.beginPath();ctx.moveTo(motorX,motorY);ctx.lineTo(1014,518);ctx.stroke();
+ctx.translate(motorX,motorY);ctx.rotate(playing?driveTime*2.8:0);
+ctx.fillStyle='#392818';ctx.strokeStyle='#edc37d';ctx.lineWidth=5;
+ctx.beginPath();ctx.arc(0,0,27,0,Math.PI*2);ctx.fill();ctx.stroke();
+for(let i=0;i<6;i++){
+ const a=i*Math.PI/3;
+ ctx.strokeStyle='#d8aa62';ctx.lineWidth=5;
+ ctx.beginPath();ctx.moveTo(Math.cos(a)*7,Math.sin(a)*7);
+ ctx.lineTo(Math.cos(a)*23,Math.sin(a)*23);ctx.stroke();
+ brassRivet(Math.cos(a)*22,Math.sin(a)*22,2.5);
+}
+ctx.restore();brassRivet(motorX,motorY,7);
 // Elevated glass-and-brass marble reservoir, with a funnel and feed gate.
 // The stock settles a little as the musical feed mechanism advances.
 ctx.save();
