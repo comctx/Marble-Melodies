@@ -385,6 +385,50 @@ ctx.beginPath();ctx.moveTo(965,507);ctx.lineTo(965,548);
 ctx.quadraticCurveTo(1004,564,1038,548);ctx.lineTo(1038,507);ctx.stroke();ctx.fill();
 ctx.fillStyle='#c8a069';ctx.font='11px system-ui';ctx.textAlign='center';
 ctx.fillText('RETURN TRAY',525,505);
+// Recirculating marble elevator: the return cup feeds a vertical bucket chain.
+// At the top, a covered brass return channel carries marbles back to the hopper.
+const elevatorPhase=playing?driveTime*42:0;
+ctx.save();
+ctx.lineCap='round';
+// Upper return conduit, routed above the moving machinery.
+ctx.strokeStyle='#39291b';ctx.lineWidth=16;
+ctx.beginPath();ctx.moveTo(1010,119);ctx.lineTo(1010,82);ctx.lineTo(82,82);ctx.lineTo(82,99);ctx.stroke();
+ctx.strokeStyle='#c69a59';ctx.lineWidth=9;
+ctx.beginPath();ctx.moveTo(1010,119);ctx.lineTo(1010,82);ctx.lineTo(82,82);ctx.lineTo(82,99);ctx.stroke();
+ctx.strokeStyle='#f0d49d';ctx.lineWidth=2;
+ctx.beginPath();ctx.moveTo(1010,119);ctx.lineTo(1010,82);ctx.lineTo(82,82);ctx.lineTo(82,99);ctx.stroke();
+// Twin guide rails and moving bucket-chain belt.
+for(const ex of [1000,1027]){
+ ctx.strokeStyle='#2b2118';ctx.lineWidth=11;
+ ctx.beginPath();ctx.moveTo(ex,518);ctx.lineTo(ex,126);ctx.stroke();
+ ctx.strokeStyle='#bc9155';ctx.lineWidth=4;
+ ctx.beginPath();ctx.moveTo(ex,518);ctx.lineTo(ex,126);ctx.stroke();
+}
+ctx.setLineDash([9,9]);ctx.lineDashOffset=-elevatorPhase;
+ctx.strokeStyle='#e6c18a';ctx.lineWidth=3;
+ctx.beginPath();ctx.moveTo(1014,517);ctx.lineTo(1014,126);ctx.stroke();ctx.setLineDash([]);
+for(const cy of [130,518]){
+ ctx.fillStyle='#594024';ctx.strokeStyle='#d5ac6a';ctx.lineWidth=3;
+ ctx.beginPath();ctx.arc(1014,cy,13,0,Math.PI*2);ctx.fill();ctx.stroke();
+ brassRivet(1014,cy,5);
+}
+// Open-top brass buckets move upward, carrying visible steel marbles.
+for(let k=0;k<7;k++){
+ const by=510-((elevatorPhase+k*57)%390);
+ ctx.fillStyle='#8a6030';ctx.strokeStyle='#f1cd89';ctx.lineWidth=2.5;
+ ctx.beginPath();ctx.moveTo(1000,by-7);ctx.lineTo(1002,by+10);
+ ctx.quadraticCurveTo(1014,by+17,1026,by+10);ctx.lineTo(1028,by-7);
+ ctx.stroke();ctx.fill();
+ marble(1014,by-2,7);
+}
+// A small marble traverses the top return conduit toward the hopper.
+if(playing){
+ const topProgress=(driveTime*42%928)/928;
+ marble(1000-topProgress*910,82,6);
+}
+ctx.fillStyle='#f1cf8d';ctx.font='11px system-ui';ctx.textAlign='right';
+ctx.fillText('MARBLE LIFT',992,350);
+ctx.restore();
 let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
 const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-2.2&&dt<lead+.35});
 for(const n of visible){const x=xFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
