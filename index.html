@@ -54,6 +54,29 @@ const xFor=m=>100+(pitches.indexOf(m)/(pitches.length-1))*920;
 const barY=456,barWidth=52;
 let audio=null,master=null,playing=false,startedAt=0,secondsPerUnit=.24,frame=0,session=0,scheduled=[],duration=0;
 const lead=4.0; // Slow, deliberate visual travel before each note; musical tempo unchanged.
+// One audio-clock timeline drives rail travel, paddle contact and key impact.
+const railSpeed=300,feedSeconds=.18,dropSeconds=.36;
+function noteTiming(n){
+ const x=xFor(n.midi),contactX=x-16.5;
+ const hitAt=lead+n.beat*secondsPerUnit;
+ const contactAt=hitAt-dropSeconds;
+ const rollSeconds=Math.max(0,(contactX-80)/railSpeed);
+ return {x,contactX,hitAt,contactAt,rollAt:contactAt-rollSeconds,
+  releaseAt:contactAt-rollSeconds-feedSeconds};
+}
+function paddleMotion(n,now){
+ const age=now-noteTiming(n).contactAt;
+ if(age<=0||age>=.28)return 0;
+ return age<.07?Math.sin(age/.07*Math.PI/2):Math.pow(Math.cos((age-.07)/.21*Math.PI/2),2);
+}
+function approachPosition(n,now){
+ const q=noteTiming(n);
+ if(now<q.rollAt){const u=Math.max(0,(now-q.releaseAt)/feedSeconds);return {x:80,y:137+4*u};}
+ if(now<q.contactAt){const x=80+(now-q.rollAt)*railSpeed;return {x,y:141+(x-80)*62/960};}
+ const u=Math.max(0,Math.min(1,(now-q.contactAt)/dropSeconds));
+ const railY=141+(q.contactX-80)*62/960;
+ return {x:q.contactX+(q.x-q.contactX)*Math.sin(u*Math.PI/2),y:railY+(barY-13-railY)*u*u};
+}
 function makeAudio(){if(!audio){audio=new (window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=.4;master.connect(audio.destination)}return audio.resume()}
 // A tuned-bar synthesis model: sharp mallet attack, several slightly inharmonic
 // decaying partials, and a soft body resonance. No samples or external assets.
@@ -339,7 +362,7 @@ ctx.strokeStyle='rgba(250,255,255,.65)';ctx.lineWidth=3;ctx.beginPath();ctx.move
 const releasePhase=playing&&audio?audio.currentTime-startedAt: -1000;
 let gateCycle=-1;
 if(playing)for(const n of score){
- const releaseAt=n.beat*secondsPerUnit;
+ const releaseAt=noteTiming(n).releaseAt;
  const elapsed=releasePhase-releaseAt;
  if(elapsed>=0&&elapsed<.22){gateCycle=Math.max(gateCycle,elapsed); }
 }
@@ -377,15 +400,7 @@ for(const m of pitches){
  let swing=0;
  if(playing)for(const n of score){
   if(n.midi!==m)continue;
-  const dt=noteTime-(lead+n.beat*secondsPerUnit-lead*.32);
-  // Smooth cam lift, brief dwell and spring-assisted return.
-  // A fixed event-time envelope avoids jitter across different frame rates.
-  const u=(dt+.10)/.34;
-  if(u>=0&&u<=1){
-   const rise=u<.42?Math.sin((u/.42)*Math.PI/2):1;
-   const fall=u>.58?Math.pow(Math.cos(((u-.58)/.42)*Math.PI/2),2):1;
-   swing=Math.max(swing,rise*fall);
-  }
+  swing=Math.max(swing,paddleMotion(n,noteTime));
  }
  // Mechanical linkage: a cam on the lower drive shaft lifts a follower
  // rod, which rotates the paddle. The same swing value drives both parts.
@@ -464,8 +479,8 @@ for(const m of pitches){
  if(playing)for(const n of score){
   if(n.midi!==m)continue;
   const dt=stringClock-(lead+n.beat*secondsPerUnit);
-  if(dt>=-.13&&dt<.23){
-   const v=dt<0?(dt+.13)/.13:Math.exp(-dt*22);
+  if(dt>=0&&dt<.23){
+   const v=Math.exp(-dt*22);
    strike=Math.max(strike,Math.max(0,v));
   }
  }
@@ -615,43 +630,21 @@ ctx.fillStyle='#f1cf8d';ctx.font='11px system-ui';ctx.textAlign='right';
 ctx.fillText('MARBLE LIFT',992,350);
 ctx.restore();
 let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
-const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-1.96&&dt<lead+.35});
+const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-1.96&&t>=noteTiming(n).releaseAt});
 // Single-file collection tray: earlier marbles stay ahead; later ones queue behind.
 let lastTrayMarbleX=Infinity;
-let leadingMusicMarbleX=Infinity;
-const musicSpacingCache=draw.musicSpacingCache||(draw.musicSpacingCache=new WeakMap());
 for(const n of visible){const x=xFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
 let y,ballX=x;
 if(remaining>0){
- // Travel left-to-right along the shared upper rail, then release at the
- // correct note's gate. Timing is anchored to the audio clock.
- const feedTime=.3,travelTime=lead*.91,dropTime=lead-travelTime;
- const elapsed=lead-remaining;
- if(elapsed<feedTime){
-  // One marble emerges visibly through the hopper's outlet gate.
-  const u=Math.max(0,Math.min(1,elapsed/feedTime));
-  ballX=80;
-  y=137+u*4;
- }else if(elapsed<travelTime){
-  const u=Math.max(0,Math.min(1,(elapsed-feedTime)/(travelTime-feedTime)));
-  // Accelerating progress suggests gravity along the shallow slope.
-  const progress=u; // Steady rolling speed, without sudden acceleration.
-  ballX=80+(x-80)*progress;
-  y=141+(ballX-80)*62/960;
- }else{
-  const u=Math.max(0,Math.min(1,(elapsed-travelTime)/dropTime));
-  const railY=141+(x-80)*62/960;
-  // Paddle imparts a brief sideways kick before gravity takes over.
-  ballX=x+11*Math.sin(Math.PI*Math.min(1,u*2))*(1-u);
-  y=railY+(barY-17-railY)*u*u;
- }
+ const position=approachPosition(n,t);
+ ballX=position.x;y=position.y;
 }else{
  const after=-remaining;
  if(after<.27){
   // Bounce once onto the angled collection tray.
   const u=Math.max(0,after/.27);
   ballX=x+u*9;
-  y=barY-17+Math.sin(u*Math.PI)*(-16)+u*(489+((x-80)/894)*28-(barY-17));
+  y=barY-13+Math.sin(u*Math.PI)*(-16)+u*(489+((x-80)/894)*28-(barY-13));
  }else{
   // Roll downhill to the catch cup instead of vanishing after impact.
   const u=Math.min(1,(after-.27)/1.75);
@@ -661,20 +654,6 @@ if(remaining>0){
   if(u>=1){ballX=990;y=516;}
  }
 }
-// Music rail is single-file: a following marble cannot overtake the
-// previous note's marble. Keep the original note/audio schedule intact.
-if(remaining>0){
- const gap=27;
- const permitted=Math.max(80,Math.min(ballX,leadingMusicMarbleX-gap));
- const previous=musicSpacingCache.get(n);
- // Ease into spacing adjustments instead of snapping to a new position.
- ballX=previous===undefined?permitted:Math.min(permitted,previous+3.2);
- ballX=Math.max(80,ballX);
- musicSpacingCache.set(n,ballX);
- leadingMusicMarbleX=ballX;
- // Match the constrained marble to the rail's actual slope.
- if(remaining>lead*.09) y=141+(ballX-80)*62/960;
-}
 // Enforce a marble-diameter gap on the narrow lower return ramp.
 // This is a visual collision constraint; musical note timing is unchanged.
 if(remaining<=-.27 && remaining> -1.96){
@@ -683,14 +662,14 @@ if(remaining<=-.27 && remaining> -1.96){
  lastTrayMarbleX=ballX;
  y=489+(ballX-80)/894*28-12;
 }
-const impact=Math.abs(remaining)<.08;
+const impact=remaining<=0&&remaining>-.08;
 ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+6,barY+28,15,5,0,0,Math.PI*2);ctx.fill();
 if(impact){ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill()}
 marble(ballX,y,13)}
 if(!playing){marble(80,141,11)}
 // Three small instrument-panel additions: a note-driven marble tally,
 // a spring-charge needle, and a clear inspection pane over the governor.
-const releasedCount=playing&&audio?score.reduce((count,n)=>count+(driveTime>=n.beat*secondsPerUnit?1:0),0):0;
+const releasedCount=playing&&audio?score.reduce((count,n)=>count+(driveTime>=noteTiming(n).releaseAt?1:0),0):0;
 // Brass mechanical odometer, bottom left of the workshop.
 ctx.save();ctx.fillStyle='#2a1b12';ctx.strokeStyle='#c89d59';ctx.lineWidth=3;
 ctx.beginPath();ctx.roundRect(82,563,194,47,7);ctx.fill();ctx.stroke();
