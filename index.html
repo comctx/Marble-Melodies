@@ -618,6 +618,7 @@ let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
 const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-2.02&&dt<lead+.35});
 // Single-file collection tray: earlier marbles stay ahead; later ones queue behind.
 let lastTrayMarbleX=Infinity;
+let leadingMusicMarbleX=Infinity;
 for(const n of visible){const x=xFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
 let y,ballX=x;
 if(remaining>0){
@@ -658,6 +659,15 @@ if(remaining>0){
   y=489+(ballX-80)/894*28-12;
   if(u>=1){ballX=990;y=516;}
  }
+}
+// Music rail is single-file: a following marble cannot overtake the
+// previous note's marble. Keep the original note/audio schedule intact.
+if(remaining>0){
+ const gap=27;
+ ballX=Math.max(80,Math.min(ballX,leadingMusicMarbleX-gap));
+ leadingMusicMarbleX=ballX;
+ // Match the constrained marble to the rail's actual slope.
+ if(remaining>lead*.09) y=141+(ballX-80)*62/960;
 }
 // Enforce a marble-diameter gap on the narrow lower return ramp.
 // This is a visual collision constraint; musical note timing is unchanged.
