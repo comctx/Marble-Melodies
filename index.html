@@ -244,7 +244,7 @@ function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(
   // of musical tempo, matching the illustrated lift's 38px/s chain.
   const bucketPitch=(2*(510-24)+2*28)/16;
   const interval=bucketPitch/38;
-  for(let t=.12;t<lead+duration;t+=interval)mechanicalClick(startedAt+t,'lift');
+  for(let t=0;t<lead+duration;t+=interval)mechanicalClick(startedAt+t,'lift');
  }
 
 function stop(){session++;playing=false;if(master&&audio){const old=master;master=audio.createGain();master.gain.value=.4;master.connect(audio.destination);old.gain.cancelScheduledValues(audio.currentTime);old.gain.setTargetAtTime(0,audio.currentTime,.008);setTimeout(()=>{try{old.disconnect()}catch{}},150)}scheduled=[];playBtn.disabled=false;stopBtn.disabled=true;statusEl.textContent='Ready to perform'}
