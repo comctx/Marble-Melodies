@@ -614,7 +614,7 @@ ctx.restore();
 let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
 // Render each note's marble at most once. All positions use the same
 // score clock as the gate and elevator, avoiding duplicate marble sources.
-const visible=flow.filter(item=>flowNow>=item.noteAt&&flowNow<item.arrival);
+const visible=flow.filter(item=>flowNow>=item.noteAt-lead&&flowNow<item.arrival);
 const railPositions=[];
 const trayPositions=[];
 for(const item of visible){
@@ -646,6 +646,8 @@ for(const item of visible){
   trayPositions.push({item,x:ballX,y,remaining});
  }
 }
+// Each marble is present from its reservoir release through its arrival
+// at the collection cup. Release begins lead seconds before its note.
 // Enforce single-file order by adjusting positions, never note/audio times.
 // If the rail is full, additional marbles wait unseen inside the reservoir.
 let ahead=Infinity;
