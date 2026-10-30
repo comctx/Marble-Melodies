@@ -372,8 +372,21 @@ for(const m of pitches){
  brassRivet(x+19,baseY-9,3);
 }
 for(const m of pitches){const x=xFor(m);ctx.strokeStyle='#b28b54';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,295);ctx.lineTo(x,barY-15);ctx.stroke();metal(x-barWidth/2,barY,barWidth,23,m%12===4||m%12===9);ctx.fillStyle='#17140f';ctx.font='13px system-ui';ctx.textAlign='center';const name=Object.keys(NOTES).find(k=>NOTES[k]===m%12)+(Math.floor(m/12)-1);ctx.fillText(name,x,barY+16);brassRivet(x,barY+31,3)}
+// Sloped return tray collects marbles after they sound a note.
+ctx.strokeStyle='#302216';ctx.lineWidth=13;ctx.lineCap='round';
+ctx.beginPath();ctx.moveTo(76,492);ctx.lineTo(970,520);ctx.stroke();
+ctx.strokeStyle='#d3a55c';ctx.lineWidth=7;
+ctx.beginPath();ctx.moveTo(76,489);ctx.lineTo(970,517);ctx.stroke();
+ctx.strokeStyle='#f4d59a';ctx.lineWidth=2;
+ctx.beginPath();ctx.moveTo(76,485);ctx.lineTo(970,513);ctx.stroke();
+// A brass collection cup receives marbles at the low end of the tray.
+ctx.fillStyle='#49301a';ctx.strokeStyle='#e1b873';ctx.lineWidth=5;
+ctx.beginPath();ctx.moveTo(965,507);ctx.lineTo(965,548);
+ctx.quadraticCurveTo(1004,564,1038,548);ctx.lineTo(1038,507);ctx.stroke();ctx.fill();
+ctx.fillStyle='#c8a069';ctx.font='11px system-ui';ctx.textAlign='center';
+ctx.fillText('RETURN TRAY',525,505);
 let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
-const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-.35&&dt<lead+.35});
+const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-2.2&&dt<lead+.35});
 for(const n of visible){const x=xFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
 let y,ballX=x;
 if(remaining>0){
@@ -400,8 +413,20 @@ if(remaining>0){
   y=railY+(barY-17-railY)*u*u;
  }
 }else{
- const u=Math.min(1,-remaining/.33);
- y=barY-17-48*Math.sin(u*Math.PI);
+ const after=-remaining;
+ if(after<.27){
+  // Bounce once onto the angled collection tray.
+  const u=Math.max(0,after/.27);
+  ballX=x+u*9;
+  y=barY-17+Math.sin(u*Math.PI)*(-16)+u*(489+((x-80)/894)*28-(barY-17));
+ }else{
+  // Roll downhill to the catch cup instead of vanishing after impact.
+  const u=Math.min(1,(after-.27)/1.75);
+  const eased=u*u*(3-2*u);
+  ballX=x+(990-x)*eased;
+  y=489+(ballX-80)/894*28-12;
+  if(u>=1){ballX=997;y=527;}
+ }
 }
 const impact=Math.abs(remaining)<.08;
 ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+6,barY+28,15,5,0,0,Math.PI*2);ctx.fill();
