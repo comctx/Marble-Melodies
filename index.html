@@ -637,12 +637,13 @@ ctx.save();
 ctx.strokeStyle='#e0b36e';ctx.lineWidth=4;
 ctx.beginPath();ctx.roundRect(878,262,76,88,9);ctx.stroke();
 const glass=ctx.createLinearGradient(879,264,954,349);
-glass.addColorStop(0,'rgba(214,247,250,.12)');
-glass.addColorStop(.35,'rgba(214,247,250,.015)');
-glass.addColorStop(.8,'rgba(255,255,255,.025)');
-glass.addColorStop(1,'rgba(214,247,250,.09)');
+glass.addColorStop(0,'rgba(214,247,250,.24)');
+glass.addColorStop(.35,'rgba(214,247,250,.055)');
+glass.addColorStop(.8,'rgba(255,255,255,.065)');
+glass.addColorStop(1,'rgba(214,247,250,.19)');
 ctx.fillStyle=glass;ctx.beginPath();ctx.roundRect(880,264,72,84,7);ctx.fill();
-ctx.strokeStyle='rgba(235,251,250,.22)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(886,270);ctx.lineTo(899,270);ctx.stroke();
+ctx.strokeStyle='rgba(235,251,250,.58)';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(886,333);ctx.lineTo(886,279);ctx.quadraticCurveTo(886,270,898,270);ctx.stroke();
+ctx.strokeStyle='rgba(255,255,255,.24)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(892,323);ctx.lineTo(900,290);ctx.stroke();
 for(const [rx,ry] of [[881,265],[951,265],[881,347],[951,347]])brassRivet(rx,ry,2.5);
 ctx.restore();
 // Playback status is already displayed in the accessible controls above.
