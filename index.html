@@ -169,7 +169,7 @@ for(let i=0;i<score.length;i++){
  const phraseStart=phraseIndex===0?0:phraseEnds[phraseIndex-1];
  const position=(i-phraseStart)/Math.max(1,phraseEnds[phraseIndex]-phraseStart-1);
  const swell=Math.pow(Math.sin(Math.PI*position),1.2);
- const expression=.78+.36*swell;
+ const expression=.69+.57*swell;
  noteSound(n.midi,startedAt+lead+n.beat*secondsPerUnit,Math.max(.12,n.len*secondsPerUnit*.85),mode,expression);
 }
 statusEl.textContent=mode==='grand'?'Playing recorded concert grand…':mode==='piano'?'Playing electronic piano…':'Playing Für Elise…';
