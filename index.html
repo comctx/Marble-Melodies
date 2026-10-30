@@ -530,44 +530,51 @@ for(const cy of [45,518]){
  ctx.beginPath();ctx.arc(1014,cy,13,0,Math.PI*2);ctx.fill();ctx.stroke();
  brassRivet(1014,cy,5);
 }
-// Continuous bucket-chain loop: buckets travel upward, around the top
-// sprocket, then descend empty. No teleporting at the top of the lift.
+// Empty carriers circulate continuously; actual steel marbles are drawn
+// from note events below, not invented in every bucket.
 const topY=24,bottomY=510,leg=bottomY-topY,turn=28;
 const loopLength=leg*2+turn*2, bucketPitch=loopLength/16;
 const liftOffset=playing?elevatorPhase:0;
 for(let k=0;k<16;k++){
  const phase=((liftOffset+k*bucketPitch)%loopLength+loopLength)%loopLength;
- let bx,by,angle=0,carrying=false;
- if(phase<leg){bx=1014;by=bottomY-phase;carrying=true}
+ let bx,by,angle=0;
+ if(phase<leg){bx=1014;by=bottomY-phase}
  else if(phase<leg+turn){
   const u=(phase-leg)/turn;bx=1014+28*u;by=topY-5*Math.sin(Math.PI*u);
-  angle=-Math.PI/3*u;carrying=u<.65;
+  angle=-Math.PI/3*u;
  }else if(phase<leg*2+turn){
   bx=1042;by=topY+(phase-leg-turn);angle=-Math.PI/2;
  }else{
   const u=(phase-leg*2-turn)/turn;
   bx=1042-28*u;by=bottomY+5*Math.sin(Math.PI*u);angle=-Math.PI/2*(1-u);
  }
- // Keep the returning empty buckets behind the right-side housing.
  if(bx>1030)continue;
  ctx.save();ctx.translate(bx,by);ctx.rotate(angle);
  ctx.fillStyle='#8a6030';ctx.strokeStyle='#f1cd89';ctx.lineWidth=2.5;
  ctx.beginPath();ctx.moveTo(-14,-7);ctx.lineTo(-12,10);
  ctx.quadraticCurveTo(0,17,12,10);ctx.lineTo(14,-7);
  ctx.stroke();ctx.fill();ctx.restore();
- if(carrying)marble(bx-(phase>=leg?14*(phase-leg)/turn:0),by+1-(phase>=leg?7*(phase-leg)/turn:0),8);
 }
-// The top discharge travels leftward at a steady rate, in the same
-// cadence as buckets passing over the top pulley.
-if(playing){
- for(let k=-24;k<32;k++){
-  const since=liftOffset+k*bucketPitch-leg-turn*.65;
-  if(since<0)continue;
-  const distance=since*105/42;
-  if(distance>915)continue;
-  const returnX=1000-distance;
-  const returnY=37+(1000-returnX)*27/915;
-  marble(returnX,returnY-7,8);
+// Per-note marble identities progress from collection cup to lift, tip,
+// return ramp and reservoir. This replaces the unrelated marble stream.
+const liftSeconds=leg/42,tipSeconds=turn/42,returnSeconds=915/105;
+if(playing&&audio){
+ const now=audio.currentTime-startedAt;
+ for(const note of score){
+  const impactAt=lead+note.beat*secondsPerUnit;
+  const pickupAt=impactAt+2.02;
+  const age=now-pickupAt;
+  if(age<0)continue;
+  if(age<liftSeconds){
+   marble(1014,510-age*42+1,8);
+  }else if(age<liftSeconds+tipSeconds){
+   const u=(age-liftSeconds)/tipSeconds;
+   marble(1014-14*u,topY-5*Math.sin(Math.PI*u)-7*u,8);
+  }else if(age<liftSeconds+tipSeconds+returnSeconds){
+   const distance=(age-liftSeconds-tipSeconds)*105;
+   const rx=1000-distance;
+   marble(rx,37+(1000-rx)*27/915-7,8);
+  }
  }
 }
 // Small stationary guide at the discharge point, not a second marble source.
@@ -577,7 +584,7 @@ ctx.fillStyle='#f1cf8d';ctx.font='11px system-ui';ctx.textAlign='right';
 ctx.fillText('MARBLE LIFT',992,350);
 ctx.restore();
 let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
-const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-2.2&&dt<lead+.35});
+const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-2.02&&dt<lead+.35});
 // Single-file collection tray: earlier marbles stay ahead; later ones queue behind.
 let lastTrayMarbleX=Infinity;
 for(const n of visible){const x=xFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
