@@ -555,16 +555,22 @@ for(let k=0;k<16;k++){
  ctx.quadraticCurveTo(0,17,12,10);ctx.lineTo(14,-7);
  ctx.stroke();ctx.fill();ctx.restore();
 }
-// Per-note marble identities progress from collection cup to lift, tip,
-// return ramp and reservoir. This replaces the unrelated marble stream.
+// Queue marbles at the collection cup. Only one marble may board each
+// passing carrier: pickups occur on the actual bucket-chain cadence.
 const liftSeconds=leg/42,tipSeconds=turn/42,returnSeconds=915/105;
+const slotSeconds=bucketPitch/42;
 if(playing&&audio){
  const now=audio.currentTime-startedAt;
+ let nextSlot=0,waiting=0;
  for(const note of score){
-  const impactAt=lead+note.beat*secondsPerUnit;
-  const pickupAt=impactAt+2.02;
+  const readyAt=lead+note.beat*secondsPerUnit+2.02;
+  // Every marble waits until both its arrival AND a free bucket slot.
+  const slot=Math.max(nextSlot,Math.ceil(Math.max(0,readyAt)/slotSeconds));
+  const pickupAt=slot*slotSeconds;
+  nextSlot=slot+1;
+  if(now<readyAt)continue;
   const age=now-pickupAt;
-  if(age<0)continue;
+  if(age<0){waiting++;continue}
   if(age<liftSeconds){
    marble(1014,510-age*42+1,8);
   }else if(age<liftSeconds+tipSeconds){
@@ -575,6 +581,12 @@ if(playing&&audio){
    const rx=1000-distance;
    marble(rx,37+(1000-rx)*27/915-7,8);
   }
+ }
+ // Visible queue inside the cup; keep it compact when music is fast.
+ const shown=Math.min(waiting,7);
+ for(let q=0;q<shown;q++){
+  const col=q%3,row=Math.floor(q/3);
+  marble(978+col*19,535-row*17,8);
  }
 }
 // Small stationary guide at the discharge point, not a second marble source.
