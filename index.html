@@ -212,7 +212,7 @@ function woodBeam(x,y,w,h){const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addCo
 function draw(){frame=requestAnimationFrame(draw);ctx.clearRect(0,0,W,H);
 const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#49301e');bg.addColorStop(1,'#24160f');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 for(let i=0;i<16;i++){ctx.strokeStyle='rgba(237,176,97,.045)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,i*42);ctx.bezierCurveTo(250,i*42+20,850,i*42-20,W,i*42);ctx.stroke()}
-ctx.fillStyle='#d6b273';ctx.font='23px Georgia';ctx.textAlign='center';ctx.fillText('THE MARBLE MUSIC WORKSHOP',W/2,608);
+ctx.fillStyle='#d6b273';ctx.font='23px Georgia';ctx.textAlign='center';ctx.fillText('THE MARBLE MUSIC WORKSHOP',W/2,568);
 // Carved hardwood chassis and brass corner hardware.
 woodBeam(43,95,29,462);woodBeam(1048,95,29,462);woodBeam(62,525,997,28);woodBeam(62,91,997,25);
 for(const x of [57,1063])for(const y of [106,540])brassRivet(x,y,7);
@@ -527,7 +527,7 @@ ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+6,barY+28,15,5,0,0
 if(impact){ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill()}
 marble(ballX,y,13)}
 if(!playing){marble(80,141,11)}
-ctx.fillStyle='#c3a875';ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText(playing?'Synchronized marble performance':'Press Play to begin',W/2,582);
+ctx.fillStyle='#c3a875';ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText(playing?'Synchronized marble performance':'Press Play to begin',W/2,595);
 }
 draw();
 </script>
