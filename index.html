@@ -16,7 +16,7 @@
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="630" aria-label="Animated marble music machine with brass tracks and tuned bars"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot">Extended melodic arrangement (not the complete composition). A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll across the shared ramp; timed brass paddles are connected to a shared drive shaft by visible follower rods and swing to divert marbles into the correct drop channels. The paddle action is illustrative, while impacts stay timed to the audio. Tap Play to enable sound.</p>
+<p class="foot">Extended melodic arrangement (not the complete composition). A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll across the shared ramp; timed brass paddles have visible return springs and connect to a shared drive shaft by follower rods, swinging to divert marbles into the correct drop channels. The paddle action is illustrative, while impacts stay timed to the audio. Tap Play to enable sound.</p>
 <p class="foot">Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
@@ -225,6 +225,24 @@ for(const m of pitches){
  ctx.strokeStyle='#e6c07b';ctx.lineWidth=5;
  ctx.beginPath();ctx.moveTo(x+13,pivotY+10-lift);ctx.lineTo(x,pivotY);ctx.stroke();
  brassRivet(x+13,pivotY+10-lift,3);
+ // A visible extension spring stretches as the paddle swings,
+ // then contracts when the paddle returns to its resting position.
+ const springTopX=x-20-swing*9,springTopY=pivotY-14-swing*6;
+ const springBaseX=x-27,springBaseY=pivotY+31;
+ ctx.strokeStyle='#b78d50';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(springBaseX,springBaseY);ctx.lineTo(springBaseX,springBaseY-5);ctx.stroke();
+ const dx=springTopX-springBaseX,dy=springTopY-(springBaseY-5),length=Math.hypot(dx,dy);
+ const ux=dx/length,uy=dy/length,nx=-uy,ny=ux;
+ ctx.strokeStyle='#e5e8e8';ctx.lineWidth=2.5;ctx.lineJoin='round';
+ ctx.beginPath();ctx.moveTo(springBaseX,springBaseY-5);
+ const turns=7,steps=turns*2;
+ for(let k=1;k<steps;k++){
+  const fraction=k/steps,amplitude=(k%2?4:-4);
+  ctx.lineTo(springBaseX+dx*fraction+nx*amplitude,springBaseY-5+dy*fraction+ny*amplitude);
+ }
+ ctx.lineTo(springTopX,springTopY);ctx.stroke();
+ brassRivet(springBaseX,springBaseY,3);
+ brassRivet(springTopX,springTopY,3);
  ctx.save();ctx.translate(x,pivotY);ctx.rotate(-swing*.85);
  ctx.strokeStyle='#291c10';ctx.lineWidth=9;ctx.lineCap='round';
  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-4,-25);ctx.stroke();
