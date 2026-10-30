@@ -15,8 +15,8 @@
 <label for="sound">Sound</label><select id="sound"><option value="grand" selected>Concert grand (recorded)</option><option value="piano">Electronic piano</option><option value="bell">Bell bars</option><option value="soft">Soft keys</option></select>
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
-<div class="stage"><canvas id="scene" width="1120" height="630" aria-label="Animated marble music machine with brass tracks and tuned bars"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot">Extended melodic arrangement (not the complete composition). A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll across the shared ramp; timed brass paddles have visible return springs and connect to rotating eccentric cams on a shared drive shaft by follower rods, swinging to divert marbles into the correct drop channels. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Tap Play to enable sound.</p>
+<div class="stage"><canvas id="scene" width="1120" height="630" aria-label="Animated marble music machine with brass tracks and 25 staggered tuned bars from C4 through C6"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
+<p class="foot">Extended melodic arrangement (not the complete composition). The machine now has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll across the shared ramp; timed brass paddles have visible return springs and connect to rotating eccentric cams on a shared drive shaft by follower rods, swinging to divert marbles into the correct drop channels. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Tap Play to enable sound.</p>
 <p class="foot">Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
@@ -49,9 +49,16 @@ const phrases=[
 ];
 const score=[];const phraseEnds=[];let beats=0;
 for(const phrase of phrases){for(const token of phrase.split(/\s+/)){const [name,len]=token.split(':');score.push({name,midi:midi(name),beat:beats,len:+len});beats+=+len}phraseEnds.push(score.length)}
-const pitches=[...new Set(score.map(n=>n.midi))].sort((a,b)=>a-b);
-const xFor=m=>100+(pitches.indexOf(m)/(pitches.length-1))*920;
-const barY=456,barWidth=52;
+// A full two-octave chromatic keyboard: 25 physical notes, C4 through C6.
+// One original E6 accent is kept at its true audio pitch and represented by
+// the E5 action in the physical two-octave mechanism.
+const pitches=Array.from({length:25},(_,i)=>60+i);
+const visualPitch=m=>m>84?m-12:m;
+const xFor=m=>110+(visualPitch(m)-60)*35.5;
+// Alternate tuned bars between upper and lower banks, while leaving the
+// hopper, single feed rail, drive shaft, return tray and elevator intact.
+const barYFor=m=>visualPitch(m)%2?408:452;
+const barWidth=32;
 let audio=null,master=null,playing=false,startedAt=0,secondsPerUnit=.24,frame=0,session=0,scheduled=[],duration=0;
 const lead=4.0; // Slow, deliberate visual travel before each note; musical tempo unchanged.
 // One audio-clock timeline drives rail travel, paddle contact and key impact.
@@ -75,7 +82,7 @@ function approachPosition(n,now){
  if(now<q.contactAt){const x=80+(now-q.rollAt)*railSpeed;return {x,y:141+(x-80)*62/960};}
  const u=Math.max(0,Math.min(1,(now-q.contactAt)/dropSeconds));
  const railY=141+(q.contactX-80)*62/960;
- return {x:q.contactX+(q.x-q.contactX)*Math.sin(u*Math.PI/2),y:railY+(barY-13-railY)*u*u};
+ return {x:q.contactX+(q.x-q.contactX)*Math.sin(u*Math.PI/2),y:railY+(barYFor(n.midi)-13-railY)*u*u};
 }
 function makeAudio(){if(!audio){audio=new (window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=.4;master.connect(audio.destination)}return audio.resume()}
 // A tuned-bar synthesis model: sharp mallet attack, several slightly inharmonic
@@ -399,7 +406,7 @@ for(const m of pitches){
  const noteTime=playing&&audio?audio.currentTime-startedAt:-100;
  let swing=0;
  if(playing)for(const n of score){
-  if(n.midi!==m)continue;
+  if(visualPitch(n.midi)!==m)continue;
   swing=Math.max(swing,paddleMotion(n,noteTime));
  }
  // Mechanical linkage: a cam on the lower drive shaft lifts a follower
@@ -454,9 +461,9 @@ for(let i=0;i<5;i++){const x=155+i*205;ctx.strokeStyle='#9d7542';ctx.lineWidth=1
 // a brass bridge and a felt-lined hammer. Strings shimmer when struck.
 let stringClock=playing&&audio?audio.currentTime-startedAt:-100;
 for(const m of pitches){
- const x=xFor(m),baseY=barY-18;
+ const x=xFor(m),baseY=barYFor(m)-18;
  const lastHit=score.reduce((latest,n)=>{
-  if(n.midi!==m)return latest;
+  if(visualPitch(n.midi)!==m)return latest;
   const dt=stringClock-(lead+n.beat*secondsPerUnit);
   return dt>=0&&dt<1.1?Math.min(latest,dt):latest;
  },Infinity);
@@ -477,7 +484,7 @@ for(const m of pitches){
  // toward the strings. The hammer rebounds immediately while they ring.
  let strike=0;
  if(playing)for(const n of score){
-  if(n.midi!==m)continue;
+  if(visualPitch(n.midi)!==m)continue;
   const dt=stringClock-(lead+n.beat*secondsPerUnit);
   if(dt>=0&&dt<.23){
    const v=Math.exp(-dt*22);
@@ -504,7 +511,8 @@ for(const m of pitches){
  ctx.restore();
  brassRivet(x+19,baseY-9,3);
 }
-for(const m of pitches){const x=xFor(m);ctx.strokeStyle='#b28b54';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,295);ctx.lineTo(x,barY-15);ctx.stroke();metal(x-barWidth/2,barY,barWidth,23,m%12===4||m%12===9);ctx.fillStyle='#17140f';ctx.font='13px system-ui';ctx.textAlign='center';const name=Object.keys(NOTES).find(k=>NOTES[k]===m%12)+(Math.floor(m/12)-1);ctx.fillText(name,x,barY+16);brassRivet(x,barY+31,3)}
+// Compact chromatic keys; alternating elevations make both rows legible.
+for(const m of pitches){const x=xFor(m),y=barYFor(m);ctx.strokeStyle='#b28b54';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,295);ctx.lineTo(x,y-15);ctx.stroke();metal(x-barWidth/2,y,barWidth,23,m%12===4||m%12===9);ctx.fillStyle='#17140f';ctx.font='11px system-ui';ctx.textAlign='center';const name=Object.keys(NOTES).find(k=>NOTES[k]===m%12)+(Math.floor(m/12)-1);ctx.fillText(name,x,y+16);brassRivet(x,y+28,2.5)}
 // Sloped return tray collects marbles after they sound a note.
 ctx.strokeStyle='#302216';ctx.lineWidth=13;ctx.lineCap='round';
 ctx.beginPath();ctx.moveTo(76,492);ctx.lineTo(970,520);ctx.stroke();
@@ -633,7 +641,7 @@ let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
 const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-1.96&&t>=noteTiming(n).releaseAt});
 // Single-file collection tray: earlier marbles stay ahead; later ones queue behind.
 let lastTrayMarbleX=Infinity;
-for(const n of visible){const x=xFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
+for(const n of visible){const x=xFor(n.midi),impactY=barYFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
 let y,ballX=x;
 if(remaining>0){
  const position=approachPosition(n,t);
@@ -644,7 +652,7 @@ if(remaining>0){
   // Bounce once onto the angled collection tray.
   const u=Math.max(0,after/.27);
   ballX=x+u*9;
-  y=barY-13+Math.sin(u*Math.PI)*(-16)+u*(489+((x-80)/894)*28-(barY-13));
+  y=impactY-13+Math.sin(u*Math.PI)*(-16)+u*(489+((x-80)/894)*28-(impactY-13));
  }else{
   // Roll downhill to the catch cup instead of vanishing after impact.
   const u=Math.min(1,(after-.27)/1.75);
@@ -663,8 +671,8 @@ if(remaining<=-.27 && remaining> -1.96){
  y=489+(ballX-80)/894*28-12;
 }
 const impact=remaining<=0&&remaining>-.08;
-ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+6,barY+28,15,5,0,0,Math.PI*2);ctx.fill();
-if(impact){ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill()}
+ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+6,impactY+28,15,5,0,0,Math.PI*2);ctx.fill();
+if(impact){ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();ctx.ellipse(x,impactY+12,22,15,0,0,Math.PI*2);ctx.fill()}
 marble(ballX,y,13)}
 if(!playing){marble(80,141,11)}
 // Three small instrument-panel additions: a note-driven marble tally,
