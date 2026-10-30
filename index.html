@@ -530,24 +530,25 @@ for(const cy of [130,518]){
  ctx.beginPath();ctx.arc(1014,cy,13,0,Math.PI*2);ctx.fill();ctx.stroke();
  brassRivet(1014,cy,5);
 }
-// Open-top brass buckets move upward, carrying visible steel marbles.
+// One continuous bucket-to-return animation: a marble stays with its
+// bucket until the top, then that same marble enters the overhead chute.
+// A shared phase prevents a marble appearing in both places at once.
+const liftLength=390,returnLength=915,returnSpeed=105,liftSpeed=42;
+const returnPhaseLength=returnLength*liftSpeed/returnSpeed;
+const cycleLength=liftLength+returnPhaseLength;
 for(let k=0;k<7;k++){
- const by=510-((elevatorPhase+k*57)%390);
- ctx.fillStyle='#8a6030';ctx.strokeStyle='#f1cd89';ctx.lineWidth=2.5;
- ctx.beginPath();ctx.moveTo(1000,by-7);ctx.lineTo(1002,by+10);
- ctx.quadraticCurveTo(1014,by+17,1026,by+10);ctx.lineTo(1028,by-7);
- ctx.stroke();ctx.fill();
- marble(1014,by-2,7);
-}
-// A small marble traverses the top return conduit toward the hopper.
-if(playing){
- // Several buckets discharge in succession; their marbles travel down
- // the return chute at even intervals instead of showing only one.
- const spacing=145,run=928;
- for(let k=0;k<7;k++){
-  const distance=(driveTime*105-k*spacing)%(run+spacing);
-  if(distance<0||distance>run)continue;
-  const returnX=1000-distance*915/run;
+ const phase=playing?((elevatorPhase+k*57)%cycleLength):k*57;
+ if(phase<liftLength){
+  const by=510-phase;
+  ctx.fillStyle='#8a6030';ctx.strokeStyle='#f1cd89';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(1000,by-7);ctx.lineTo(1002,by+10);
+  ctx.quadraticCurveTo(1014,by+17,1026,by+10);ctx.lineTo(1028,by-7);
+  ctx.stroke();ctx.fill();
+  // The marble is visible in the bucket, not also on the return ramp.
+  marble(1014,by-2,7);
+ }else if(playing){
+  const distance=(phase-liftLength)*returnSpeed/liftSpeed;
+  const returnX=1000-distance;
   const returnY=37+(1000-returnX)*27/915;
   marble(returnX,returnY-7,7);
  }
