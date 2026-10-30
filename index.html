@@ -16,7 +16,7 @@
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="630" aria-label="Animated marble music machine with brass tracks and tuned bars"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot">Extended melodic arrangement (not the complete composition). A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears and long upper rail are illustrated mechanisms. Marbles roll across the shared ramp; timed brass paddles swing to divert them into the correct drop channels. The paddle action is illustrative, while impacts stay timed to the audio. Tap Play to enable sound.</p>
+<p class="foot">Extended melodic arrangement (not the complete composition). A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears and long upper rail are illustrated mechanisms. Marbles roll across the shared ramp; timed brass paddles are connected to a shared drive shaft by visible follower rods and swing to divert marbles into the correct drop channels. The paddle action is illustrative, while impacts stay timed to the audio. Tap Play to enable sound.</p>
 <p class="foot">Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
@@ -214,7 +214,18 @@ for(const m of pitches){
   const dt=noteTime-(lead+n.beat*secondsPerUnit-lead*.32);
   if(dt>=-.10&&dt<=.24)swing=Math.max(swing,Math.sin((dt+.10)/.34*Math.PI));
  }
- ctx.save();ctx.translate(x,railY+22);ctx.rotate(-swing*.85);
+ // Mechanical linkage: a cam on the lower drive shaft lifts a follower
+ // rod, which rotates the paddle. The same swing value drives both parts.
+ const pivotY=railY+22,shaftY=283;
+ const lift=swing*13;
+ ctx.strokeStyle='#31251a';ctx.lineWidth=8;ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(x+13,shaftY);ctx.lineTo(x+13,pivotY+10-lift);ctx.stroke();
+ ctx.strokeStyle='#d7b575';ctx.lineWidth=4;
+ ctx.beginPath();ctx.moveTo(x+13,shaftY);ctx.lineTo(x+13,pivotY+10-lift);ctx.stroke();
+ ctx.strokeStyle='#e6c07b';ctx.lineWidth=5;
+ ctx.beginPath();ctx.moveTo(x+13,pivotY+10-lift);ctx.lineTo(x,pivotY);ctx.stroke();
+ brassRivet(x+13,pivotY+10-lift,3);
+ ctx.save();ctx.translate(x,pivotY);ctx.rotate(-swing*.85);
  ctx.strokeStyle='#291c10';ctx.lineWidth=9;ctx.lineCap='round';
  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-4,-25);ctx.stroke();
  ctx.strokeStyle='#edc679';ctx.lineWidth=5;
@@ -223,6 +234,9 @@ for(const m of pitches){
  brassRivet(x,railY+22,5);
 }
 track(88,295,1032,295);
+// Continuous drive shaft under the paddles, connected visually to the gears.
+track(88,283,1032,283);
+for(const m of pitches){const x=xFor(m);brassRivet(x+13,283,5)}
 for(let i=0;i<5;i++){const x=155+i*205;ctx.strokeStyle='#9d7542';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(x,130);ctx.lineTo(x,540);ctx.stroke();metal(x-9,535,18,20,true);brassRivet(x,318,5);brassRivet(x,521,5)}
 for(const m of pitches){const x=xFor(m);ctx.strokeStyle='#b28b54';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,295);ctx.lineTo(x,barY-15);ctx.stroke();metal(x-barWidth/2,barY,barWidth,23,m%12===4||m%12===9);ctx.fillStyle='#17140f';ctx.font='13px system-ui';ctx.textAlign='center';const name=Object.keys(NOTES).find(k=>NOTES[k]===m%12)+(Math.floor(m/12)-1);ctx.fillText(name,x,barY+16);brassRivet(x,barY+31,3)}
 let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
