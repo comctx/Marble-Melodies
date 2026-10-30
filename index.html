@@ -12,12 +12,12 @@
 <div class="controls">
 <button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
 <label for="tempo">Tempo</label><select id="tempo"><option value=".8">Gentle · 80%</option><option value="1" selected>Original · 100%</option><option value="1.2">Brisk · 120%</option></select>
-<label for="sound">Sound</label><select id="sound"><option value="piano" selected>Piano keys</option><option value="bell">Bell bars</option><option value="soft">Soft keys</option></select>
+<label for="sound">Sound</label><select id="sound"><option value="grand" selected>Concert grand (recorded)</option><option value="piano">Electronic piano</option><option value="bell">Bell bars</option><option value="soft">Soft keys</option></select>
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="630" aria-label="Animated marble music machine with brass tracks and tuned bars"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
 <p class="foot">Prototype 1: A musical clock drives both the sound and the marbles, so each impact lands on the beat. The mechanical motion is stylized for now; physically simulated tracks and additional movements are future improvements. Tap Play to enable sound.</p>
-</main>
+<p class="foot">Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
 const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
@@ -44,6 +44,36 @@ const lead=1.3;
 function makeAudio(){if(!audio){audio=new (window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=.4;master.connect(audio.destination)}return audio.resume()}
 // A tuned-bar synthesis model: sharp mallet attack, several slightly inharmonic
 // decaying partials, and a soft body resonance. No samples or external assets.
+// Alexander Holm's Salamander Grand Piano (Yamaha C5), CC BY 3.0.
+// The audio is served by the Tone.js sample host. Samples are loaded before playback.
+const sampleBase='https://tonejs.github.io/audio/salamander/';
+const sampleNotes=[{m:57,file:'A3.mp3'},{m:60,file:'C4.mp3'},{m:63,file:'Ds4.mp3'},{m:66,file:'Fs4.mp3'},{m:69,file:'A4.mp3'},{m:72,file:'C5.mp3'},{m:75,file:'Ds5.mp3'}];
+let grandSamples=null,grandLoading=null;
+async function loadGrand(){
+ if(grandSamples)return grandSamples;
+ if(!grandLoading)grandLoading=(async()=>{
+  const results=await Promise.all(sampleNotes.map(async n=>{
+   const res=await fetch(sampleBase+n.file);
+   if(!res.ok)throw Error('Sample HTTP '+res.status);
+   const bytes=await res.arrayBuffer();
+   return {...n,buffer:await audio.decodeAudioData(bytes)};
+  }));
+  grandSamples=results;return results;
+ })().catch(e=>{grandLoading=null;throw e});
+ return grandLoading;
+}
+function grandSound(m,start,dur){
+ const sample=grandSamples.reduce((a,b)=>Math.abs(a.m-m)<=Math.abs(b.m-m)?a:b);
+ const src=audio.createBufferSource(),gain=audio.createGain();
+ src.buffer=sample.buffer;src.playbackRate.value=Math.pow(2,(m-sample.m)/12);
+ gain.gain.setValueAtTime(.00001,start);
+ gain.gain.linearRampToValueAtTime(.42,start+.008);
+ const end=start+Math.min(2.8,Math.max(.6,dur*2.2));
+ gain.gain.setValueAtTime(.42,Math.max(start+.01,end-.22));
+ gain.gain.exponentialRampToValueAtTime(.00001,end);
+ src.connect(gain);gain.connect(master);src.start(start);src.stop(end+.02);
+ scheduled.push(gain);
+}
 function pianoSound(m,start,dur){
  const base=hz(m),length=Math.min(3.2,Math.max(.55,dur*2.7));
  const voice=audio.createGain();voice.connect(master);
@@ -69,7 +99,7 @@ function pianoSound(m,start,dur){
  noise.connect(low);low.connect(ng);ng.connect(master);noise.start(start);noise.stop(start+nLen);
  scheduled.push(voice);
 }
-function noteSound(m,start,dur,mode){if(mode==='piano'){pianoSound(m,start,dur);return}
+function noteSound(m,start,dur,mode){if(mode==='grand'){grandSound(m,start,dur);return}if(mode==='piano'){pianoSound(m,start,dur);return}
  const fundamental=hz(m);
  const envelope=audio.createGain();envelope.connect(master);
  const isBell=mode==='bell';
@@ -104,9 +134,16 @@ function noteSound(m,start,dur,mode){if(mode==='piano'){pianoSound(m,start,dur);
 function stop(){session++;playing=false;if(master&&audio){const old=master;master=audio.createGain();master.gain.value=.4;master.connect(audio.destination);old.gain.cancelScheduledValues(audio.currentTime);old.gain.setTargetAtTime(0,audio.currentTime,.008);setTimeout(()=>{try{old.disconnect()}catch{}},150)}scheduled=[];playBtn.disabled=false;stopBtn.disabled=true;statusEl.textContent='Ready to perform'}
 async function play(){if(playing)return;try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
 const id=++session;playing=true;playBtn.disabled=true;stopBtn.disabled=false;secondsPerUnit=.24/Number(tempoSel.value);duration=beats*secondsPerUnit;startedAt=audio.currentTime+.16;
-const mode=soundSel.value;
+let mode=soundSel.value;
+if(mode==='grand'){
+ statusEl.textContent='Loading concert grand recordings…';
+ try{await loadGrand()}catch(e){console.warn('Grand samples unavailable',e);mode='piano';statusEl.textContent='Samples unavailable; using electronic piano';}
+ if(id!==session)return;
+ // Begin the audio clock only after the samples have loaded.
+ startedAt=audio.currentTime+.16;
+}
 for(const n of score){if(id!==session)return;noteSound(n.midi,startedAt+lead+n.beat*secondsPerUnit,Math.max(.12,n.len*secondsPerUnit*.85),mode)}
-statusEl.textContent='Playing Für Elise…';
+statusEl.textContent=mode==='grand'?'Playing recorded concert grand…':mode==='piano'?'Playing electronic piano…':'Playing Für Elise…';
 setTimeout(()=>{if(id===session)stop()},(lead+duration+1)*1000);
 }
 playBtn.addEventListener('click',play);stopBtn.addEventListener('click',stop);
