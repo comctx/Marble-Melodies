@@ -533,9 +533,9 @@ for(const cy of [45,518]){
 // Empty carriers circulate continuously; actual steel marbles are drawn
 // from note events below, not invented in every bucket.
 const topY=24,bottomY=510,leg=bottomY-topY,turn=28;
-const loopLength=leg*2+turn*2, bucketPitch=44;
+const loopLength=leg*2+turn*2, bucketPitch=loopLength/24;
 const liftOffset=playing?elevatorPhase:0;
-for(let k=0;k<16;k++){
+for(let k=0;k<24;k++){
  const phase=((liftOffset+k*bucketPitch)%loopLength+loopLength)%loopLength;
  let bx,by,angle=0;
  if(phase<leg){bx=1014;by=bottomY-phase}
@@ -555,24 +555,34 @@ for(let k=0;k<16;k++){
  ctx.quadraticCurveTo(0,17,12,10);ctx.lineTo(14,-7);
  ctx.stroke();ctx.fill();ctx.restore();
 }
-// Queue marbles at the collection cup. Only one marble may board each
-// passing carrier: pickups occur on the actual bucket-chain cadence.
+// A short brass loading chute leads from the collection cup to the
+// elevator pickup point. A cam-controlled stop opens for each bucket.
+ctx.strokeStyle='#392519';ctx.lineWidth=10;ctx.lineCap='round';
+ctx.beginPath();ctx.moveTo(983,538);ctx.lineTo(1005,524);ctx.stroke();
+ctx.strokeStyle='#e5b76c';ctx.lineWidth=5;
+ctx.beginPath();ctx.moveTo(983,538);ctx.lineTo(1005,524);ctx.stroke();
 const liftSeconds=leg/150,tipSeconds=turn/150,returnSeconds=915/150;
 const slotSeconds=bucketPitch/150;
 if(playing&&audio){
  const now=audio.currentTime-startedAt;
- let nextSlot=0,waiting=0;
+ let nextSlot=0,waiting=0,loading=-1;
  for(const note of score){
-  const readyAt=lead+note.beat*secondsPerUnit+2.02;
-  // Every marble waits until both its arrival AND a free bucket slot.
+  const readyAt=lead+note.beat*secondsPerUnit+1.82;
+  // One reserved pickup slot per marble; subsequent notes queue behind it.
   const slot=Math.max(nextSlot,Math.ceil(Math.max(0,readyAt)/slotSeconds));
   const pickupAt=slot*slotSeconds;
   nextSlot=slot+1;
   if(now<readyAt)continue;
   const age=now-pickupAt;
-  if(age<0){waiting++;continue}
-  if(age<liftSeconds){
+  if(age<-.16){waiting++;continue}
+  if(age<0){
+   // The marble crosses the feed chute only as its bucket arrives.
+   const u=(age+.16)/.16;
+   marble(985+29*u,536-25*u,8);
+   loading=Math.max(loading,u);
+  }else if(age<liftSeconds){
    marble(1014,510-age*150+1,8);
+   if(age<.10)loading=1;
   }else if(age<liftSeconds+tipSeconds){
    const u=(age-liftSeconds)/tipSeconds;
    marble(1014-14*u,topY-5*Math.sin(Math.PI*u)-7*u,8);
@@ -582,12 +592,21 @@ if(playing&&audio){
    marble(rx,37+(1000-rx)*27/915-7,8);
   }
  }
- // Visible queue inside the cup; keep it compact when music is fast.
+ // Marbles queue behind the stop, with no two occupying the same position.
  const shown=Math.min(waiting,6);
  for(let q=0;q<shown;q++){
   const col=q%3,row=Math.floor(q/3);
-  marble(979+col*20,536-row*18,8);
+  marble(977+col*19,542-row*18,8);
  }
+ // Brass gate pivots open only during a bucket's pickup.
+ ctx.save();ctx.translate(1000,515);ctx.rotate(loading>=0?-.7:0);
+ ctx.strokeStyle='#f0cc89';ctx.lineWidth=5;ctx.beginPath();
+ ctx.moveTo(0,0);ctx.lineTo(-9,-13);ctx.stroke();ctx.restore();
+ brassRivet(1000,515,3);
+}else{
+ ctx.strokeStyle='#f0cc89';ctx.lineWidth=5;ctx.beginPath();
+ ctx.moveTo(1000,515);ctx.lineTo(991,502);ctx.stroke();
+ brassRivet(1000,515,3);
 }
 // Small stationary guide at the discharge point, not a second marble source.
 ctx.strokeStyle='#f0d49d';ctx.lineWidth=3;ctx.beginPath();
