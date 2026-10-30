@@ -16,7 +16,7 @@
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="630" aria-label="Animated marble music machine with brass tracks and tuned bars"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot">Extended melodic arrangement (not the complete composition). A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears and long upper rail are illustrated mechanisms. Marbles roll across the shared ramp and drop through their note gates onto tuned bars, with impacts timed to the audio. Tap Play to enable sound.</p>
+<p class="foot">Extended melodic arrangement (not the complete composition). A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears and long upper rail are illustrated mechanisms. Marbles roll across the shared ramp; timed brass paddles swing to divert them into the correct drop channels. The paddle action is illustrative, while impacts stay timed to the audio. Tap Play to enable sound.</p>
 <p class="foot">Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
@@ -205,9 +205,22 @@ ctx.strokeStyle='#d7ae62';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(172,214);ct
 track(80,153,1040,215);
 for(const m of pitches){
  const x=xFor(m),railY=153+(x-80)*62/960;
- ctx.strokeStyle='#d7ad61';ctx.lineWidth=3;
- ctx.beginPath();ctx.moveTo(x,railY+9);ctx.lineTo(x,railY+24);ctx.stroke();
- brassRivet(x,railY+20,3);
+ // Spring-loaded brass paddle: a short swing knocks a passing marble
+ // sideways into the drop channel, returning to rest afterward.
+ const noteTime=playing&&audio?audio.currentTime-startedAt:-100;
+ let swing=0;
+ if(playing)for(const n of score){
+  if(n.midi!==m)continue;
+  const dt=noteTime-(lead+n.beat*secondsPerUnit-lead*.32);
+  if(dt>=-.10&&dt<=.24)swing=Math.max(swing,Math.sin((dt+.10)/.34*Math.PI));
+ }
+ ctx.save();ctx.translate(x,railY+22);ctx.rotate(-swing*.85);
+ ctx.strokeStyle='#291c10';ctx.lineWidth=9;ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-4,-25);ctx.stroke();
+ ctx.strokeStyle='#edc679';ctx.lineWidth=5;
+ ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-4,-25);ctx.stroke();
+ ctx.restore();
+ brassRivet(x,railY+22,5);
 }
 track(88,295,1032,295);
 for(let i=0;i<5;i++){const x=155+i*205;ctx.strokeStyle='#9d7542';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(x,130);ctx.lineTo(x,540);ctx.stroke();metal(x-9,535,18,20,true);brassRivet(x,318,5);brassRivet(x,521,5)}
@@ -230,6 +243,8 @@ if(remaining>0){
  }else{
   const u=Math.max(0,Math.min(1,(elapsed-travelTime)/dropTime));
   const railY=141+(x-80)*62/960;
+  // Paddle imparts a brief sideways kick before gravity takes over.
+  ballX=x+11*Math.sin(Math.PI*Math.min(1,u*2))*(1-u);
   y=railY+(barY-17-railY)*u*u;
  }
 }else{
