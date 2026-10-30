@@ -379,10 +379,15 @@ let y,ballX=x;
 if(remaining>0){
  // Travel left-to-right along the shared upper rail, then release at the
  // correct note's gate. Timing is anchored to the audio clock.
- const travelTime=lead*.68,dropTime=lead-travelTime;
+ const feedTime=.16,travelTime=lead*.68,dropTime=lead-travelTime;
  const elapsed=lead-remaining;
- if(elapsed<travelTime){
-  const u=Math.max(0,Math.min(1,elapsed/travelTime));
+ if(elapsed<feedTime){
+  // One marble emerges visibly through the hopper's outlet gate.
+  const u=Math.max(0,Math.min(1,elapsed/feedTime));
+  ballX=80;
+  y=137+u*4;
+ }else if(elapsed<travelTime){
+  const u=Math.max(0,Math.min(1,(elapsed-feedTime)/(travelTime-feedTime)));
   // Accelerating progress suggests gravity along the shallow slope.
   const progress=u*u*(3-2*u);
   ballX=80+(x-80)*progress;
@@ -402,7 +407,7 @@ const impact=Math.abs(remaining)<.08;
 ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+6,barY+28,15,5,0,0,Math.PI*2);ctx.fill();
 if(impact){ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill()}
 marble(ballX,y,13)}
-if(!playing){for(let i=0;i<7;i++){const x=80+i*130;marble(x,141+(x-80)*62/960,11)}}
+if(!playing){marble(80,141,11)}
 ctx.fillStyle='#c3a875';ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText(playing?'Synchronized marble performance':'Press Play to begin',W/2,582);
 }
 draw();
