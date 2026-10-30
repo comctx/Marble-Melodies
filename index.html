@@ -16,7 +16,7 @@
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="630" aria-label="Animated marble music machine with brass tracks and tuned bars"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot">Extended melodic arrangement (not the complete composition). A musical clock drives both the sound and the marbles, so each impact lands on the beat. The mechanical motion is stylized for now; physically simulated tracks and additional movements are future improvements. Tap Play to enable sound.</p>
+<p class="foot">Extended melodic arrangement (not the complete composition). A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass drive gears, and tuned bars are decorative illustrations; the marble strikes remain precisely timed to the audio. Physically simulated tracks are a future improvement. Tap Play to enable sound.</p>
 <p class="foot">Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
@@ -186,19 +186,30 @@ function roundedRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
 function metal(x,y,w,h,bright=false){const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,bright?'#fff3c5':'#e5d7b3');g.addColorStop(.22,bright?'#f7cf78':'#a5a6a7');g.addColorStop(.5,bright?'#8c6328':'#555e64');g.addColorStop(1,'#252a30');ctx.fillStyle=g;roundedRect(x,y,w,h,6);ctx.fill();ctx.strokeStyle='#1a1614';ctx.lineWidth=2;ctx.stroke()}
 function track(x1,y1,x2,y2){ctx.lineCap='round';ctx.lineWidth=17;ctx.strokeStyle='#211a16';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.lineWidth=9;ctx.strokeStyle='#bc8d46';ctx.stroke();ctx.lineWidth=2;ctx.strokeStyle='#f5d79a';ctx.beginPath();ctx.moveTo(x1,y1-3);ctx.lineTo(x2,y2-3);ctx.stroke()}
 function marble(x,y,r){const g=ctx.createRadialGradient(x-r*.35,y-r*.45,1,x,y,r);g.addColorStop(0,'#ffffff');g.addColorStop(.22,'#d6e7f3');g.addColorStop(.55,'#6f8ca0');g.addColorStop(1,'#18232e');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#e4cf9e';ctx.lineWidth=1.5;ctx.stroke()}
+function brassRivet(x,y,r=5){ctx.fillStyle='#22180f';ctx.beginPath();ctx.arc(x,y,r+2,0,Math.PI*2);ctx.fill();const g=ctx.createRadialGradient(x-2,y-2,1,x,y,r);g.addColorStop(0,'#fff1bd');g.addColorStop(.5,'#c69645');g.addColorStop(1,'#62411d');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
+function gear(x,y,r,teeth,rotation){ctx.save();ctx.translate(x,y);ctx.rotate(rotation);ctx.fillStyle='#291e13';ctx.beginPath();for(let i=0;i<teeth*4;i++){const a=i*Math.PI*2/(teeth*4),rr=i%4===0||i%4===3?r+7:r;const px=Math.cos(a)*rr,py=Math.sin(a)*rr;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.closePath();ctx.fill();ctx.strokeStyle='#c99b52';ctx.lineWidth=5;ctx.stroke();const g=ctx.createRadialGradient(-r*.3,-r*.4,2,0,0,r);g.addColorStop(0,'#dfb86c');g.addColorStop(.6,'#86602d');g.addColorStop(1,'#382616');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r-5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#f1d49c';ctx.lineWidth=1;ctx.stroke();for(let i=0;i<6;i++){const a=i*Math.PI/3;ctx.strokeStyle='#392716';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(Math.cos(a)*12,Math.sin(a)*12);ctx.lineTo(Math.cos(a)*(r-11),Math.sin(a)*(r-11));ctx.stroke()}brassRivet(0,0,7);ctx.restore()}
+function woodBeam(x,y,w,h){const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,'#8d5b31');g.addColorStop(.35,'#54331d');g.addColorStop(.7,'#704625');g.addColorStop(1,'#24170f');ctx.fillStyle=g;roundedRect(x,y,w,h,5);ctx.fill();ctx.strokeStyle='#bc8a4b';ctx.lineWidth=2;ctx.stroke();ctx.strokeStyle='#d7a16a33';ctx.lineWidth=1;for(let i=7;i<h;i+=12){ctx.beginPath();ctx.moveTo(x+4,y+i);ctx.bezierCurveTo(x+w*.3,y+i-4,x+w*.7,y+i+5,x+w-4,y+i);ctx.stroke()}}
 function draw(){frame=requestAnimationFrame(draw);ctx.clearRect(0,0,W,H);
 const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#49301e');bg.addColorStop(1,'#24160f');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 for(let i=0;i<16;i++){ctx.strokeStyle='rgba(237,176,97,.045)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,i*42);ctx.bezierCurveTo(250,i*42+20,850,i*42-20,W,i*42);ctx.stroke()}
 ctx.fillStyle='#d6b273';ctx.font='23px Georgia';ctx.textAlign='center';ctx.fillText('THE MARBLE MUSIC WORKSHOP',W/2,54);
+// Carved hardwood chassis and brass corner hardware.
+woodBeam(43,95,29,462);woodBeam(1048,95,29,462);woodBeam(62,525,997,28);woodBeam(62,91,997,25);
+for(const x of [57,1063])for(const y of [106,540])brassRivet(x,y,7);
+// An ornamental, music-clock-inspired drive train: rotation follows the audio clock.
+const driveTime=playing&&audio?Math.max(0,audio.currentTime-startedAt):0;
+gear(172,214,43,14,driveTime*.6);gear(255,217,31,12,-driveTime*.84);gear(940,213,42,14,-driveTime*.58);gear(858,215,31,12,driveTime*.81);
+ctx.strokeStyle='#d7ae62';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(172,214);ctx.lineTo(172,281);ctx.moveTo(940,213);ctx.lineTo(940,281);ctx.stroke();
 track(72,130,1048,130);track(72,130,72,238);track(1048,130,1048,238);
 track(88,295,1032,295);
-for(let i=0;i<5;i++){const x=155+i*205;ctx.strokeStyle='#9d7542';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(x,130);ctx.lineTo(x,540);ctx.stroke();metal(x-9,535,18,20,true)}
-for(const m of pitches){const x=xFor(m);ctx.strokeStyle='#b28b54';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,295);ctx.lineTo(x,barY-15);ctx.stroke();metal(x-barWidth/2,barY,barWidth,23,m%12===4||m%12===9);ctx.fillStyle='#17140f';ctx.font='13px system-ui';ctx.textAlign='center';const name=Object.keys(NOTES).find(k=>NOTES[k]===m%12)+(Math.floor(m/12)-1);ctx.fillText(name,x,barY+16)}
+for(let i=0;i<5;i++){const x=155+i*205;ctx.strokeStyle='#9d7542';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(x,130);ctx.lineTo(x,540);ctx.stroke();metal(x-9,535,18,20,true);brassRivet(x,318,5);brassRivet(x,521,5)}
+for(const m of pitches){const x=xFor(m);ctx.strokeStyle='#b28b54';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,295);ctx.lineTo(x,barY-15);ctx.stroke();metal(x-barWidth/2,barY,barWidth,23,m%12===4||m%12===9);ctx.fillStyle='#17140f';ctx.font='13px system-ui';ctx.textAlign='center';const name=Object.keys(NOTES).find(k=>NOTES[k]===m%12)+(Math.floor(m/12)-1);ctx.fillText(name,x,barY+16);brassRivet(x,barY+31,3)}
 let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
 const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=-.35&&dt<lead+.35});
 for(const n of visible){const x=xFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
 let y;if(remaining>0){const u=Math.max(0,Math.min(1,1-remaining/lead));y=155+(barY-17-155)*u*u}else{const u=Math.min(1,-remaining/.33);y=barY-17-48*Math.sin(u*Math.PI)}
 const impact=Math.abs(remaining)<.08;
+ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+6,barY+28,15,5,0,0,Math.PI*2);ctx.fill();
 if(impact){ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill()}
 marble(x,y,13)}
 if(!playing){for(let i=0;i<8;i++)marble(150+i*112,113,12)}
