@@ -423,10 +423,16 @@ for(let k=0;k<7;k++){
 }
 // A small marble traverses the top return conduit toward the hopper.
 if(playing){
- const topProgress=(driveTime*42%928)/928;
- const returnX=1000-topProgress*910;
- const returnY=74+(1000-returnX)*38/918;
- marble(returnX,returnY-7,6);
+ // Several buckets discharge in succession; their marbles travel down
+ // the return chute at even intervals instead of showing only one.
+ const spacing=145,run=928;
+ for(let k=0;k<7;k++){
+  const distance=(driveTime*105-k*spacing)%(run+spacing);
+  if(distance<0||distance>run)continue;
+  const returnX=1000-distance*910/run;
+  const returnY=74+(1000-returnX)*38/918;
+  marble(returnX,returnY-7,7);
+ }
 }
 ctx.fillStyle='#f1cf8d';ctx.font='11px system-ui';ctx.textAlign='right';
 ctx.fillText('MARBLE LIFT',992,350);
