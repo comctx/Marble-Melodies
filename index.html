@@ -16,7 +16,7 @@
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="630" aria-label="Animated marble music machine with brass tracks and tuned bars"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot">Extended melodic arrangement (not the complete composition). A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears and sloped delivery ramps are illustrated mechanisms. Marbles roll along individual ramps before dropping onto their tuned bars, with impacts timed to the audio. Tap Play to enable sound.</p>
+<p class="foot">Extended melodic arrangement (not the complete composition). A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears and long upper rail are illustrated mechanisms. Marbles roll across the shared ramp and drop through their note gates onto tuned bars, with impacts timed to the audio. Tap Play to enable sound.</p>
 <p class="foot">Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
@@ -200,11 +200,16 @@ for(const x of [57,1063])for(const y of [106,540])brassRivet(x,y,7);
 const driveTime=playing&&audio?Math.max(0,audio.currentTime-startedAt):0;
 gear(172,214,43,14,driveTime*.6);gear(255,217,31,12,-driveTime*.84);gear(940,213,42,14,-driveTime*.58);gear(858,215,31,12,driveTime*.81);
 ctx.strokeStyle='#d7ae62';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(172,214);ctx.lineTo(172,281);ctx.moveTo(940,213);ctx.lineTo(940,281);ctx.stroke();
-track(72,130,1048,130);track(72,130,72,238);track(1048,130,1048,238);
+// A single long gravity-feed rail runs across the top of the machine.
+// Marbles enter from the left and fall through a gate above their destination.
+track(80,153,1040,215);
+for(const m of pitches){
+ const x=xFor(m),railY=153+(x-80)*62/960;
+ ctx.strokeStyle='#d7ad61';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(x,railY+9);ctx.lineTo(x,railY+24);ctx.stroke();
+ brassRivet(x,railY+20,3);
+}
 track(88,295,1032,295);
-// Individual sloping brass delivery ramps guide each marble to its tuned bar.
-// The lower end is open, allowing the marble to drop onto the instrument.
-for(const m of pitches){const x=xFor(m);track(x-38,337,x,358);brassRivet(x-38,337,3)}
 for(let i=0;i<5;i++){const x=155+i*205;ctx.strokeStyle='#9d7542';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(x,130);ctx.lineTo(x,540);ctx.stroke();metal(x-9,535,18,20,true);brassRivet(x,318,5);brassRivet(x,521,5)}
 for(const m of pitches){const x=xFor(m);ctx.strokeStyle='#b28b54';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,295);ctx.lineTo(x,barY-15);ctx.stroke();metal(x-barWidth/2,barY,barWidth,23,m%12===4||m%12===9);ctx.fillStyle='#17140f';ctx.font='13px system-ui';ctx.textAlign='center';const name=Object.keys(NOTES).find(k=>NOTES[k]===m%12)+(Math.floor(m/12)-1);ctx.fillText(name,x,barY+16);brassRivet(x,barY+31,3)}
 let t=-100; if(playing&&audio)t=audio.currentTime-startedAt;
@@ -212,16 +217,20 @@ const visible=score.filter(n=>{const dt=n.beat*secondsPerUnit+lead-t;return dt>=
 for(const n of visible){const x=xFor(n.midi),remaining=n.beat*secondsPerUnit+lead-t;
 let y,ballX=x;
 if(remaining>0){
- // Roll down the dedicated ramp, then drop vertically onto the bar.
+ // Travel left-to-right along the shared upper rail, then release at the
+ // correct note's gate. Timing is anchored to the audio clock.
+ const travelTime=lead*.68,dropTime=lead-travelTime;
  const elapsed=lead-remaining;
- const rollTime=.78,dropTime=lead-rollTime;
- if(elapsed<rollTime){
-  const u=Math.max(0,Math.min(1,elapsed/rollTime));
-  ballX=x-38+38*u;
-  y=325+21*u;
+ if(elapsed<travelTime){
+  const u=Math.max(0,Math.min(1,elapsed/travelTime));
+  // Accelerating progress suggests gravity along the shallow slope.
+  const progress=u*u*(3-2*u);
+  ballX=80+(x-80)*progress;
+  y=141+(ballX-80)*62/960;
  }else{
-  const u=Math.max(0,Math.min(1,(elapsed-rollTime)/dropTime));
-  y=346+(barY-17-346)*u*u;
+  const u=Math.max(0,Math.min(1,(elapsed-travelTime)/dropTime));
+  const railY=141+(x-80)*62/960;
+  y=railY+(barY-17-railY)*u*u;
  }
 }else{
  const u=Math.min(1,-remaining/.33);
@@ -231,7 +240,7 @@ const impact=Math.abs(remaining)<.08;
 ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+6,barY+28,15,5,0,0,Math.PI*2);ctx.fill();
 if(impact){ctx.fillStyle='rgba(255,218,131,.22)';ctx.beginPath();ctx.ellipse(x,barY+12,40,22,0,0,Math.PI*2);ctx.fill()}
 marble(ballX,y,13)}
-if(!playing){for(const m of pitches)marble(xFor(m)-38,325,9)}
+if(!playing){for(let i=0;i<7;i++){const x=100+i*130;marble(x,141+(x-80)*62/960,11)}}
 ctx.fillStyle='#c3a875';ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText(playing?'Synchronized marble performance':'Press Play to begin',W/2,582);
 }
 draw();
