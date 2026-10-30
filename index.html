@@ -17,8 +17,8 @@
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="630" aria-label="Animated marble music machine with brass tracks and 25 staggered tuned bars from C4 through C6"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot">Extended melodic arrangement (not the complete composition). The machine now has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll across the shared ramp; timed brass paddles have visible return springs and connect to rotating eccentric cams on a shared drive shaft by follower rods, swinging to divert marbles into the correct drop channels. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Tap Play to enable sound.</p>
-<p class="foot">Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
+<p class="foot">Complete opening A section of Für Elise, with the engraved repeats and both endings, including the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. The original high E6 note sounds at its true pitch but uses the E5 paddle visually. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll across the shared ramp; timed brass paddles have visible return springs and connect to rotating eccentric cams on a shared drive shaft by follower rods, swinging to divert marbles into the correct drop channels. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Tap Play to enable sound.</p>
+<p class="foot">Piano score: OpenScore (CC0). Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
 const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
@@ -35,18 +35,59 @@ canvas.addEventListener('pointerup',()=>crankDragging=false);canvas.addEventList
 const NOTES={C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
 function midi(name){const m=/^([A-G]#?)([0-8])$/.exec(name);if(!m)throw Error('Bad note '+name);return 12*(+m[2]+1)+NOTES[m[1]]}
 function hz(m){return 440*Math.pow(2,(m-69)/12)}
-// A compact Für Elise arrangement: opening statement, contrasting episode, reprise.
-// Tokens are note:duration in eighth-note units; not the complete composition.
-const phrases=[
-'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 G#4:1 B4:1 C5:2 E4:1 E5:1 D#5:1',
-'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:3',
-// Contrasting episode, followed by a final statement of the opening theme.
-'B4:1 C5:1 D5:1 E5:2 G4:1 F5:1 E5:1 D5:2 F4:1 E5:1 D5:1 C5:2 E4:1 D5:1 C5:1 B4:2',
-'E5:1 D#5:1 E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 G#4:1 B4:1 C5:2 E4:1 E5:1 D#5:1',
-'E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1 A4:2 C4:1 E4:1 A4:1 B4:2 E4:1 C5:1 B4:1 A4:4'
+// Beethoven, Für Elise WoO 59, opening A section (OpenScore CC0).
+// Notes are from the original treble and bass staves in 3/8.
+// Each duration is measured in sixteenth notes; R means a written rest.
+const scoreMeasures=[
+ ["E5:1 D#5:1","R:2"], // pickup
+ ["E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1","R:6"], // 1
+ ["A4:2 R:1 C4:1 E4:1 A4:1","A2:1 E3:1 A3:1 R:1 R:2"], // 2
+ ["B4:2 R:1 E4:1 G#4:1 B4:1","E2:1 E3:1 G#3:1 R:1 R:2"], // 3
+ ["C5:2 R:1 E4:1 E5:1 D#5:1","A2:1 E3:1 A3:1 R:1 R:2"], // 4
+ ["E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1","R:6"], // 5
+ ["A4:2 R:1 C4:1 E4:1 A4:1","A2:1 E3:1 A3:1 R:1 R:2"], // 6
+ ["B4:2 R:1 E4:1 C5:1 B4:1","E2:1 E3:1 G#3:1 R:1 R:2"], // 7
+ ["A4:4","A2:1 E3:1 A3:1 R:1"], // 8
+ ["A4:2 R:1 B4:1 C5:1 D5:1","A2:1 E3:1 A3:1 R:1 R:2"], // 9
+ ["E5:3 G4:1 F5:1 E5:1","C3:1 G3:1 C4:1 R:1 R:2"], // 10
+ ["D5:3 F4:1 E5:1 D5:1","G2:1 G3:1 B3:1 R:1 R:2"], // 11
+ ["C5:3 E4:1 D5:1 C5:1","A2:1 E3:1 A3:1 R:1 R:2"], // 12
+ ["B4:2 R:1 E4:1 E5:1 R:1","E2:1 E3:1 E4:1 R:2 E4:1"], // 13
+ ["R:1 E5:1 E6:1 R:2 D#5:1","E5:1 R:2 D#5:1 E5:1 R:1"], // 14
+ ["E5:2 R:1 D#5:1 E5:1 D#5:1","R:1 D#5:1 E5:1 R:1 R:2"], // 15
+ ["E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1","R:6"], // 16
+ ["A4:2 R:1 C4:1 E4:1 A4:1","A2:1 E3:1 A3:1 R:1 R:2"], // 17
+ ["B4:2 R:1 E4:1 G#4:1 B4:1","E2:1 E3:1 G#3:1 R:1 R:2"], // 18
+ ["C5:2 R:1 E4:1 E5:1 D#5:1","A2:1 E3:1 A3:1 R:1 R:2"], // 19
+ ["E5:1 D#5:1 E5:1 B4:1 D5:1 C5:1","R:6"], // 20
+ ["A4:2 R:1 C4:1 E4:1 A4:1","A2:1 E3:1 A3:1 R:1 R:2"], // 21
+ ["B4:2 R:1 D4:1 C5:1 B4:1","E2:1 E3:1 G#3:1 R:1 R:2"], // 22
+ ["A4:2 R:1 B4:1 C5:1 D5:1","A2:1 E3:1 A3:1 R:1 R:2"], // 23
+ ["A4:2 R:1 E4:1 F4:1 E4:1","A2:1 E3:1 A3:1 Bb3:1 A3:1 G3:1"] // 24
 ];
-const score=[];const phraseEnds=[];let beats=0;
-for(const phrase of phrases){for(const token of phrase.split(/\s+/)){const [name,len]=token.split(':');score.push({name,midi:midi(name),beat:beats,len:+len});beats+=+len}phraseEnds.push(score.length)}
+// Perform the two engraved repeat signs with first and second endings.
+const sectionPasses=[[0,1,2,3,4,5,6,7,8],[0,1,2,3,4,5,6,7,9],[10,11,12,13,14,15,16,17,18,19,20,21,22,23],[10,11,12,13,14,15,16,17,18,19,20,21,22,24]];
+const score=[],accompanimentScore=[],phraseEnds=[];
+let beats=0;
+for(let pass=0;pass<sectionPasses.length;pass++){
+ for(const measure of sectionPasses[pass]){
+  const tracks=scoreMeasures[measure],cutoff=pass===3&&measure===24?3:Infinity;
+  let measureLength=0;
+  tracks.forEach((tokens,voice)=>{
+   let within=0;
+   for(const token of tokens.split(' ')){
+    const [name,duration]=token.split(':'),len=Number(duration);
+    if(within<cutoff&&name!=='R'){
+     (voice===0?score:accompanimentScore).push({name,midi:midi(name),beat:beats+within,len:Math.min(len,cutoff-within)});
+    }
+    within+=len;
+   }
+   measureLength=Math.max(measureLength,Math.min(within,cutoff));
+  });
+  beats+=measureLength;
+ }
+ phraseEnds.push(score.length);
+}
 // A full two-octave chromatic keyboard: 25 physical notes, C4 through C6.
 // One original E6 accent is kept at its true audio pitch and represented by
 // the E5 action in the physical two-octave mechanism.
@@ -135,12 +176,12 @@ function grandSound(m,start,dur,expression=1){
  src.start(start);src.stop(end+.03);
  scheduled.push(gain);
 }
-function pianoSound(m,start,dur){
+function pianoSound(m,start,dur,expression=1){
  const base=hz(m),length=Math.min(3.2,Math.max(.55,dur*2.7));
  const voice=audio.createGain();voice.connect(master);
  voice.gain.setValueAtTime(.00001,start);
- voice.gain.exponentialRampToValueAtTime(.19,start+.004);
- voice.gain.exponentialRampToValueAtTime(.105,start+.065);
+ voice.gain.exponentialRampToValueAtTime(.19*expression,start+.004);
+ voice.gain.exponentialRampToValueAtTime(.105*expression,start+.065);
  voice.gain.exponentialRampToValueAtTime(.00001,start+length);
  const levels=[1,.23,.12,.07,.035,.02];
  for(let h=1;h<=levels.length;h++){
@@ -156,15 +197,15 @@ function pianoSound(m,start,dur){
  for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,4);
  const noise=audio.createBufferSource(),low=audio.createBiquadFilter(),ng=audio.createGain();
  noise.buffer=buf;low.type='lowpass';low.frequency.value=2400;
- ng.gain.setValueAtTime(.018,start);ng.gain.exponentialRampToValueAtTime(.00001,start+nLen);
+ ng.gain.setValueAtTime(.018*expression,start);ng.gain.exponentialRampToValueAtTime(.00001,start+nLen);
  noise.connect(low);low.connect(ng);ng.connect(master);noise.start(start);noise.stop(start+nLen);
  scheduled.push(voice);
 }
-function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(m,start,dur,expression);return}if(mode==='piano'){pianoSound(m,start,dur);return}
+function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(m,start,dur,expression);return}if(mode==='piano'){pianoSound(m,start,dur,expression);return}
  const fundamental=hz(m);
  const envelope=audio.createGain();envelope.connect(master);
  const isBell=mode==='bell';
- const strike=.16+Math.min(.11,dur*.07);
+ const strike=(.16+Math.min(.11,dur*.07))*expression;
  const release=isBell?Math.min(3.1,Math.max(.9,dur*2.5)):Math.min(1.8,Math.max(.35,dur*1.4));
  envelope.gain.setValueAtTime(.00001,start);
  envelope.gain.exponentialRampToValueAtTime(strike,start+.006);
@@ -186,7 +227,7 @@ function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(
  for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,3);
  const noise=audio.createBufferSource(),filter=audio.createBiquadFilter(),clickGain=audio.createGain();
  noise.buffer=buffer;filter.type='highpass';filter.frequency.value=1400;
- clickGain.gain.setValueAtTime(isBell?.035:.018,start);
+ clickGain.gain.setValueAtTime((isBell?.035:.018)*expression,start);
  clickGain.gain.exponentialRampToValueAtTime(.00001,start+clickLen);
  noise.connect(filter);filter.connect(clickGain);clickGain.connect(master);
  noise.start(start);noise.stop(start+clickLen);
@@ -258,12 +299,17 @@ if(mode==='grand'){
 for(let i=0;i<score.length;i++){
  const n=score[i];if(id!==session)return;
  // Each phrase gently swells to its expressive high point, then relaxes.
- const phraseIndex=phrases.findIndex((_,p)=>i<phraseEnds[p]);
+ const phraseIndex=phraseEnds.findIndex(end=>i<end);
  const phraseStart=phraseIndex===0?0:phraseEnds[phraseIndex-1];
  const position=(i-phraseStart)/Math.max(1,phraseEnds[phraseIndex]-phraseStart-1);
  const swell=Math.pow(Math.sin(Math.PI*position),1.2);
  const expression=.69+.57*swell;
  noteSound(n.midi,startedAt+lead+n.beat*secondsPerUnit,Math.max(.12,n.len*secondsPerUnit*.85),mode,expression);
+}
+// The left hand is intentionally quieter, and doesn't release extra marbles.
+for(const n of accompanimentScore){
+ if(id!==session)return;
+ noteSound(n.midi,startedAt+lead+n.beat*secondsPerUnit,Math.max(.13,n.len*secondsPerUnit*.80),mode,.37);
 }
 scheduleMechanicalSounds();
 statusEl.textContent=mode==='grand'?'Playing recorded concert grand…':mode==='piano'?'Playing electronic piano…':'Playing Für Elise…';
