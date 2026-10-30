@@ -530,39 +530,40 @@ for(const cy of [45,518]){
  ctx.beginPath();ctx.arc(1014,cy,13,0,Math.PI*2);ctx.fill();ctx.stroke();
  brassRivet(1014,cy,5);
 }
-// Bucket elevator: lift the marble to the height of the overhead return
-// rail, tip the bucket, and roll the SAME marble left into the reservoir.
-// All three stages use a single continuous phase, without teleportation.
-const liftLength=466, tipLength=28, returnLength=925;
-const liftSpeed=42, returnSpeed=105;
-const returnPhaseLength=returnLength*liftSpeed/returnSpeed;
-const cycleLength=liftLength+tipLength+returnPhaseLength;
-for(let k=0;k<7;k++){
- const phase=playing?((elevatorPhase+k*67)%cycleLength):(k*67);
- if(phase<liftLength){
-  const by=510-phase;
-  ctx.fillStyle='#8a6030';ctx.strokeStyle='#f1cd89';ctx.lineWidth=2.5;
-  ctx.beginPath();ctx.moveTo(1000,by-7);ctx.lineTo(1002,by+10);
-  ctx.quadraticCurveTo(1014,by+17,1026,by+10);ctx.lineTo(1028,by-7);
-  ctx.stroke();ctx.fill();
-  marble(1014,by+1,8);
- }else if(phase<liftLength+tipLength){
-  // At the top the bucket rotates counterclockwise, pouring the ball
-  // gently onto the leftward return channel at the same elevation.
-  const u=(phase-liftLength)/tipLength;
-  const tipAngle=-Math.min(1,u*1.5)*Math.PI/3;
-  ctx.save();ctx.translate(1014,44);ctx.rotate(tipAngle);
-  ctx.fillStyle='#8a6030';ctx.strokeStyle='#f1cd89';ctx.lineWidth=2.5;
-  ctx.beginPath();ctx.moveTo(-14,-7);ctx.lineTo(-12,10);
-  ctx.quadraticCurveTo(0,17,12,10);ctx.lineTo(14,-7);ctx.stroke();ctx.fill();
-  ctx.restore();
-  // The marble crosses the lip and joins the return track.
-  marble(1014-14*u,44-7*u,8);
- }else if(playing){
-  const distance=(phase-liftLength-tipLength)*returnSpeed/liftSpeed;
+// Eight continuously circulating buckets, with no empty stretches in
+// the visible lift. Their bowls rise high enough to reach the discharge lip.
+const bucketPitch=59, bucketLoop=bucketPitch*8, liftSpeed=42, returnSpeed=105;
+const liftOffset=playing?elevatorPhase:0;
+for(let k=0;k<8;k++){
+ const phase=(liftOffset+k*bucketPitch)%bucketLoop;
+ const by=510-phase;
+ const nearTop=by<49;
+ const tilt=nearTop?-(49-by)/22*Math.PI/4:0;
+ ctx.save();ctx.translate(1014,by);ctx.rotate(Math.max(-Math.PI/3,tilt));
+ ctx.fillStyle='#8a6030';ctx.strokeStyle='#f1cd89';ctx.lineWidth=2.5;
+ ctx.beginPath();ctx.moveTo(-14,-7);ctx.lineTo(-12,10);
+ ctx.quadraticCurveTo(0,17,12,10);ctx.lineTo(14,-7);
+ ctx.stroke();ctx.fill();
+ ctx.restore();
+ // Ball remains seated until the bucket reaches the discharge point.
+ if(!nearTop)marble(1014,by+1,8);
+ else if(by>=27){
+  const u=(49-by)/22;
+  marble(1014-14*u,by+1-7*u,8);
+ }
+}
+// Each discharge generates one left-moving marble on the return channel.
+// Use the bucket crossing times to keep the return marbles evenly spaced.
+if(playing){
+ const elapsed=liftOffset-461;
+ for(let k=-8;k<16;k++){
+  const since=elapsed+k*bucketPitch;
+  if(since<0)continue;
+  const distance=since*returnSpeed/liftSpeed;
+  if(distance>915)continue;
   const returnX=1000-distance;
   const returnY=37+(1000-returnX)*27/915;
-  if(returnX>=85)marble(returnX,returnY-7,8);
+  marble(returnX,returnY-7,8);
  }
 }
 // Small stationary guide at the discharge point, not a second marble source.
