@@ -105,6 +105,22 @@ let activeViolinMode='duet';
 // Open violin strings: G3, D4, A4, E5 (the instrument's actual tuning).
 const violinOpenStrings=[55,62,69,76];
 function violinStringIndex(m){for(let i=3;i>=0;i--)if(m>=violinOpenStrings[i])return i;return 0;}
+// Each bowed string can sustain one note at a time. Precompute the next
+// strike on that string so a previous bow releases before the new impact.
+const nextViolinNoteIndex=score.map((n,i)=>{
+ const string=violinStringIndex(n.midi);
+ for(let j=i+1;j<score.length;j++)if(violinStringIndex(score[j].midi)===string)return j;
+ return -1;
+});
+function violinVoiceShape(n,index){
+ const raw=Math.max(.12,n.len*secondsPerUnit*.85);
+ const desired=Math.min(.9,Math.max(.14,raw*.98));
+ const j=nextViolinNoteIndex[index];
+ const gap=j<0?Infinity:(score[j].beat-n.beat)*secondsPerUnit;
+ const release=Number.isFinite(gap)?Math.min(.07,Math.max(.025,gap*.22)):.07;
+ const sustain=Math.max(.055,Math.min(desired,gap-release-.008));
+ return {sustain,release};
+}
 // Four selector ports below the tuned keys, one for each bowed string.
 const violinSelectorX=[350,466,582,698];
 const violinBusY=i=>541+i*5.6;
@@ -121,19 +137,19 @@ function noteTiming(n){
 }
 // A violin note starts ONLY when its corresponding marble reaches the key.
 // This identical impact time drives its sound, finger stop, bow, and brass rods.
-function violinNoteDuration(n){
- const noteLength=Math.max(.12,n.len*secondsPerUnit*.85);
- return Math.min(.9,Math.max(.17,noteLength*.95));
+function violinNoteDuration(n,index){
+ return violinVoiceShape(n,index);
 }
 function violinActuationsAt(now){
  const states=[null,null,null,null];
  if(!playing||!audio||activeViolinMode==='off')return states;
- for(const note of score){
-  const age=now-noteTiming(note).hitAt,duration=violinNoteDuration(note);
-  if(age<0||age>=duration+.15)continue;
+ for(let index=0;index<score.length;index++){
+  const note=score[index],age=now-noteTiming(note).hitAt;
+  const shape=violinNoteDuration(note,index);
+  if(age<0||age>=shape.sustain+shape.release)continue;
   const i=violinStringIndex(note.midi);
   if(!states[i]||age<states[i].age){
-   states[i]={note,age,duration,string:i,keyX:xFor(note.midi)};
+   states[i]={note,age,duration:shape.sustain,release:shape.release,string:i,keyX:xFor(note.midi)};
   }
  }
  return states;
@@ -209,7 +225,7 @@ function roomImpulse(mode){
   for(let i=0;i<data.length;i++){
    const t=i/sr-predelay;if(t<0)continue;
    const random=Math.random()*2-1;
-   filtered=.56*filtered+.44*random;
+   filtered=.70*filtered+.30*random;
    const value=filtered*Math.exp(-decay*t);
    data[i]=value;energy+=value*value;
   }
@@ -224,7 +240,7 @@ function updateReverb(){
  try{
   if(mode!=='off')reverbConvolver.buffer=roomImpulse(mode);
   // Keep the direct instrument attack intact, add only modest ambience.
-  reverbWet.gain.setTargetAtTime(mode==='room'?.18:mode==='hall'?.28:0,audio.currentTime,.06);
+  reverbWet.gain.setTargetAtTime(mode==='room'?.115:mode==='hall'?.19:0,audio.currentTime,.08);
  }catch(err){
   console.warn('Room ambience unavailable; playing dry',err);
   reverbWet.gain.setTargetAtTime(0,audio.currentTime,.02);
@@ -338,29 +354,29 @@ function violinFriction(){
  for(let i=0;i<values.length;i++)values[i]=(Math.random()*2-1)*.35;
  return violinFrictionBuffer;
 }
-function violinSound(m,start,noteLength,level){
- const sustain=Math.min(1.3,Math.max(.19,noteLength*1.02));
- const attack=Math.min(.057,Math.max(.027,sustain*.20));
- const holdEnd=Math.max(start+attack+.08,start+sustain);
- const end=holdEnd+.13,base=hz(m);
+function violinSound(m,start,shape,level){
+ const {sustain,release}=shape;
+ const attack=Math.min(.045,Math.max(.012,sustain*.30));
+ const holdEnd=start+sustain;
+ const end=holdEnd+release,base=hz(m);
  const envelope=audio.createGain(),warmth=audio.createBiquadFilter();
- warmth.type='lowpass';warmth.Q.value=.54;
- const cutoff=Math.min(4500,Math.max(1550,base*3.3));
+ warmth.type='lowpass';warmth.Q.value=.50;
+ const cutoff=Math.min(3300,Math.max(1300,base*2.6));
  warmth.frequency.setValueAtTime(cutoff*.68,start);
  warmth.frequency.linearRampToValueAtTime(cutoff,start+attack+.06);
  warmth.frequency.linearRampToValueAtTime(cutoff*.85,end);
  warmth.connect(envelope);envelope.connect(instrumentBus);
  envelope.gain.setValueAtTime(.00001,start);
- envelope.gain.linearRampToValueAtTime(level*.77,start+attack);
- envelope.gain.linearRampToValueAtTime(level,start+attack+.067);
- envelope.gain.setValueAtTime(level*.9,holdEnd);
+ envelope.gain.linearRampToValueAtTime(level*.84,start+attack);
+ envelope.gain.linearRampToValueAtTime(level,start+Math.min(sustain*.80,attack+.035));
+ envelope.gain.setValueAtTime(level*.88,holdEnd);
  envelope.gain.exponentialRampToValueAtTime(.00001,end);
  // Two regular oscillators are supported in all Web Audio browsers. This
  // also makes the duet much lighter than the previous custom wave model.
  const fundamental=audio.createOscillator(),body=audio.createOscillator();
  fundamental.type='triangle';fundamental.frequency.setValueAtTime(base,start);
  body.type='sine';body.frequency.setValueAtTime(base*2,start);
- const bodyGain=audio.createGain();bodyGain.gain.value=.14;
+ const bodyGain=audio.createGain();bodyGain.gain.value=.095;
  fundamental.connect(warmth);body.connect(bodyGain);bodyGain.connect(warmth);
  // Short notes stay steady. Long bowed notes gain a delayed gentle vibrato.
  if(sustain>.27){
@@ -368,7 +384,7 @@ function violinSound(m,start,noteLength,level){
   vibrato.frequency.value=5.1;
   vibratoGain.gain.setValueAtTime(0,start);
   vibratoGain.gain.setValueAtTime(0,start+Math.min(.11,sustain*.32));
-  vibratoGain.gain.linearRampToValueAtTime(3.9,start+Math.min(.18,sustain*.56));
+  vibratoGain.gain.linearRampToValueAtTime(2.8,start+Math.min(.18,sustain*.56));
   vibrato.connect(vibratoGain);
   vibratoGain.connect(fundamental.detune);vibratoGain.connect(body.detune);
   vibrato.start(start);vibrato.stop(end+.015);
@@ -381,8 +397,8 @@ function violinSound(m,start,noteLength,level){
  friction.buffer=violinFriction();friction.loop=true;
  noiseFilter.type='bandpass';noiseFilter.frequency.value=1550;noiseFilter.Q.value=.9;
  noiseGain.gain.setValueAtTime(.00001,start);
- noiseGain.gain.linearRampToValueAtTime(level*.032,start+attack);
- noiseGain.gain.setValueAtTime(level*.023,holdEnd);
+ noiseGain.gain.linearRampToValueAtTime(level*.014,start+attack);
+ noiseGain.gain.setValueAtTime(level*.010,holdEnd);
  noiseGain.gain.exponentialRampToValueAtTime(.00001,end);
  friction.connect(noiseFilter);noiseFilter.connect(noiseGain);noiseGain.connect(instrumentBus);
  friction.start(start);friction.stop(end+.015);
@@ -467,7 +483,7 @@ for(let i=0;i<score.length;i++){
  if(activeViolinMode!=='lead')noteSound(n.midi,onset,noteLength,mode,expression);
  if(activeViolinMode!=='off'&&violinAvailable){
   try{
-   violinSound(n.midi,onset,noteLength,(activeViolinMode==='lead'?.17:.072)*expression);
+   violinSound(n.midi,onset,violinVoiceShape(n,i),(activeViolinMode==='lead'?.145:.068)*expression);
   }catch(error){
    // Even if a browser cannot render the violin, NEVER silence the duet
    // or leave violin-lead mode without a melody.
@@ -590,7 +606,7 @@ function drawViolinModule(now,active){
  // and four-way mechanical selector, rather than a separate melody timer.
  const names=['G3','D4','A4','E5'];
  for(let i=0;i<4;i++){
-  const y=78+i*38,a=active[i],activeAmount=a?Math.min(1,a.age/.065)*Math.min(1,(a.duration+.15-a.age)/.16):0;
+  const y=78+i*38,a=active[i],activeAmount=a?Math.min(1,a.age/.055)*Math.min(1,(a.duration+a.release-a.age)/Math.min(.07,a.release)):0;
   const stringX=246,stopTo=907;
   // Straight, bright steel strings; the active one shimmers gently.
   v.strokeStyle='#16100d';v.lineWidth=5;
