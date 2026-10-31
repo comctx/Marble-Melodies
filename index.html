@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Marble Melodies — Watch the Music Come Alive</title>
 <style>
-:root{color-scheme:dark;--gold:#d6ad62;--ink:#100f14}*{box-sizing:border-box}body{margin:0;font:16px system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(ellipse at 50% 0%,#34291f,#100f14 65%);color:#f8ecd5}header{text-align:center;padding:24px 12px 8px}h1{font:clamp(30px,5vw,55px) Georgia,serif;margin:0;color:#f5d18a;letter-spacing:.05em}header p{margin:6px;color:#c9bda7}.shell{width:min(1150px,96vw);margin:auto}.controls{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:14px auto;padding:12px;border:1px solid #6c512d;background:#211b1a;border-radius:14px}button,select{background:linear-gradient(#6d4b2a,#372718);color:#fff2d7;border:1px solid #c7a268;border-radius:9px;padding:11px 17px;font-weight:650;cursor:pointer}button:hover{filter:brightness(1.17)}button:focus-visible,select:focus-visible{outline:3px solid #f6ce73}button:disabled{opacity:.5;cursor:default}label{font-size:14px;color:#e4d2b2}select{padding:10px}#status{min-width:170px;text-align:center;color:#f5d18a;font-size:14px}.stage{position:relative;overflow:hidden;border:12px ridge #84562d;border-radius:20px;background:linear-gradient(115deg,#3d281b,#5b3b23 45%,#302016);box-shadow:0 25px 50px #000a,inset 0 0 35px #0009}.stage:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 34px,#ffffff05 35px 36px);z-index:1}canvas{width:100%;height:auto;aspect-ratio:16/9;display:block;position:relative;z-index:2}.plaque{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#25170d;border:2px solid #bc9251;border-radius:6px;padding:5px 15px;color:#e3bf7c;font:12px Georgia,serif;letter-spacing:.13em;white-space:nowrap;z-index:3}.foot{text-align:center;color:#b5a995;font-size:13px;margin:15px auto 25px;max-width:850px;line-height:1.5}@media(max-width:620px){.stage{border-width:6px}.controls{gap:8px}button{padding:10px 13px}.plaque{font-size:9px}}
+:root{color-scheme:dark;--gold:#d6ad62;--ink:#100f14}*{box-sizing:border-box}body{margin:0;font:16px system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(ellipse at 50% 0%,#34291f,#100f14 65%);color:#f8ecd5}header{text-align:center;padding:24px 12px 8px}h1{font:clamp(30px,5vw,55px) Georgia,serif;margin:0;color:#f5d18a;letter-spacing:.05em}header p{margin:6px;color:#c9bda7}.shell{width:min(1150px,96vw);margin:auto}.controls{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:14px auto;padding:12px;border:1px solid #6c512d;background:#211b1a;border-radius:14px}button,select{background:linear-gradient(#6d4b2a,#372718);color:#fff2d7;border:1px solid #c7a268;border-radius:9px;padding:11px 17px;font-weight:650;cursor:pointer}button:hover{filter:brightness(1.17)}button:focus-visible,select:focus-visible{outline:3px solid #f6ce73}button:disabled{opacity:.5;cursor:default}label{font-size:14px;color:#e4d2b2}select{padding:10px}#status{min-width:170px;text-align:center;color:#f5d18a;font-size:14px}.stage{position:relative;overflow:hidden;border:12px ridge #84562d;border-radius:20px;background:linear-gradient(115deg,#3d281b,#5b3b23 45%,#302016);box-shadow:0 25px 50px #000a,inset 0 0 35px #0009}.stage:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 34px,#ffffff05 35px 36px);z-index:1}canvas{width:100%;height:auto;aspect-ratio:16/9;display:block;position:relative;z-index:2}.violin-stage{position:relative;overflow:hidden;margin-top:14px;border:9px ridge #84562d;border-radius:18px;background:#2c1e15;box-shadow:0 15px 26px #0008}.violin-stage canvas{display:block;width:100%;height:auto;aspect-ratio:1120 / 220}.plaque{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#25170d;border:2px solid #bc9251;border-radius:6px;padding:5px 15px;color:#e3bf7c;font:12px Georgia,serif;letter-spacing:.13em;white-space:nowrap;z-index:3}.foot{text-align:center;color:#b5a995;font-size:13px;margin:15px auto 25px;max-width:850px;line-height:1.5}@media(max-width:620px){.stage{border-width:6px}.controls{gap:8px}button{padding:10px 13px}.plaque{font-size:9px}}
 </style></head>
 <body>
 <header><h1>MARBLE MELODIES</h1><p>Watch the Music Come Alive ✦ Mechanical Music Workshop</p></header>
@@ -14,15 +14,18 @@
 <label for="tempo">Tempo</label><select id="tempo"><option value=".8">Gentle · 80%</option><option value="1" selected>Original · 100%</option><option value="1.2">Brisk · 120%</option></select>
 <label for="sound">Sound</label><select id="sound"><option value="grand" selected>Concert grand (recorded)</option><option value="piano">Electronic piano</option><option value="bell">Bell bars</option><option value="soft">Soft keys</option></select>
 <label for="mechanics">Mechanics</label><select id="mechanics" aria-label="Mechanical sound volume"><option value="0">Off</option><option value="1" selected>Subtle</option><option value="2">More audible</option></select>
+<label for="violin">Violin</label><select id="violin" aria-label="Violin instrument"><option value="off">Off</option><option value="duet" selected>Soft duet</option><option value="lead">Violin lead</option></select>
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="630" aria-label="Animated marble music machine with brass tracks and 25 staggered tuned bars from C4 through C6"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot">Complete opening A section of Für Elise, with the engraved repeats and both endings, including the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. The original high E6 note sounds at its true pitch but uses the E5 paddle visually. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Tap Play to enable sound.</p>
+<div class="violin-stage"><canvas id="violin-scene" width="1120" height="220" aria-label="Four-string mechanical violin with moving bows and finger stops synchronized to marble notes"></canvas></div>
+<p class="foot">Complete opening A section of Für Elise, with the engraved repeats and both endings, including the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. The original high E6 note sounds at its true pitch but uses the E5 paddle visually. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Beneath the machine is a four-string mechanical violin module: a marble's note drives its bow and finger stop. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Tap Play to enable sound.</p>
 <p class="foot">Piano score: OpenScore (CC0). Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
 const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
-const playBtn=document.getElementById('play'),stopBtn=document.getElementById('stop'),tempoSel=document.getElementById('tempo'),soundSel=document.getElementById('sound'),mechanicsSel=document.getElementById('mechanics'),statusEl=document.getElementById('status');
+const violinCanvas=document.getElementById('violin-scene'),vctx=violinCanvas.getContext('2d');
+const playBtn=document.getElementById('play'),stopBtn=document.getElementById('stop'),tempoSel=document.getElementById('tempo'),soundSel=document.getElementById('sound'),mechanicsSel=document.getElementById('mechanics'),violinSel=document.getElementById('violin'),statusEl=document.getElementById('status');
 const W=canvas.width,H=canvas.height;
 let springCharge=0,initialCharge=0,crankDragging=false,crankLastAngle=0,manualCrankAngle=0;
 const windBtn=document.getElementById('wind'),windingMeter=document.getElementById('winding');
@@ -99,6 +102,10 @@ const xFor=m=>110+(visualPitch(m)-60)*35.5;
 const barYFor=m=>visualPitch(m)%2?408:452;
 const barWidth=32;
 let audio=null,master=null,playing=false,startedAt=0,secondsPerUnit=.24,frame=0,session=0,scheduled=[],duration=0;
+let activeViolinMode='duet';
+// Open violin strings: G3, D4, A4, E5 (the instrument's actual tuning).
+const violinOpenStrings=[55,62,69,76];
+function violinStringIndex(m){for(let i=3;i>=0;i--)if(m>=violinOpenStrings[i])return i;return 0;}
 const lead=4.0; // Slow, deliberate visual travel before each note; musical tempo unchanged.
 // One audio-clock timeline drives rail travel, paddle contact and key impact.
 const railSpeed=300,feedSeconds=.18,dropSeconds=.36;
@@ -257,6 +264,34 @@ function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(
  scheduled.push(envelope);
 }
 
+// A softly bowed, filtered harmonic tone. The attack, release, and modest
+// vibrato imitate a violin, without downloading or licensing audio samples.
+// The same note-on clock that launches the piano also launches the bow.
+function violinSound(m,start,noteLength,level){
+ const sustain=Math.min(.90,Math.max(.17,noteLength*.95));
+ const attack=Math.min(.072,sustain*.34),end=start+sustain+.15;
+ const envelope=audio.createGain(),filter=audio.createBiquadFilter();
+ filter.type='lowpass';filter.frequency.value=Math.min(6500,Math.max(2100,hz(m)*4.8));
+ filter.Q.value=.58;
+ envelope.gain.setValueAtTime(.00001,start);
+ envelope.gain.linearRampToValueAtTime(level,start+attack);
+ envelope.gain.linearRampToValueAtTime(level*.78,start+sustain);
+ envelope.gain.exponentialRampToValueAtTime(.00001,end);
+ filter.connect(envelope);envelope.connect(master);
+ const vibrato=audio.createOscillator(),vibratoDepth=audio.createGain();
+ vibrato.frequency.value=5.3;vibratoDepth.gain.value=4.2;
+ vibrato.connect(vibratoDepth);
+ for(const [type,mix] of [['sawtooth',.48],['triangle',.72]]){
+  const osc=audio.createOscillator(),amplitude=audio.createGain();
+  osc.type=type;osc.frequency.value=hz(m);
+  amplitude.gain.value=mix;osc.connect(amplitude);amplitude.connect(filter);
+  vibratoDepth.connect(osc.detune);
+  osc.start(start);osc.stop(end+.025);
+ }
+ vibrato.start(start);vibrato.stop(end+.025);
+ scheduled.push(envelope);
+}
+
  // Quiet, local Web Audio mechanical effects; no downloaded sound files.
  // Scheduled on the SAME audio clock as the paddle animation and piano.
  let mechanicsBus=null,mechanicalNoise=null;
@@ -312,6 +347,7 @@ function stop(){session++;playing=false;if(master&&audio){const old=master;maste
 async function play(){if(playing)return;if(springCharge<1){statusEl.textContent='Wind the mainspring first (turn crank or Wind Fully)';return}try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
 const id=++session;playing=true;playBtn.disabled=true;stopBtn.disabled=false;secondsPerUnit=.24/Number(tempoSel.value);duration=beats*secondsPerUnit;startedAt=audio.currentTime+.16;initialCharge=springCharge;
 let mode=soundSel.value;
+activeViolinMode=violinSel.value;
 if(mode==='grand'){
  statusEl.textContent='Loading concert grand recordings…';
  try{await loadGrand()}catch(e){console.warn('Grand samples unavailable',e);mode='piano';statusEl.textContent='Samples unavailable; using electronic piano';}
@@ -327,7 +363,10 @@ for(let i=0;i<score.length;i++){
  const position=(i-phraseStart)/Math.max(1,phraseEnds[phraseIndex]-phraseStart-1);
  const swell=Math.pow(Math.sin(Math.PI*position),1.2);
  const expression=.69+.57*swell;
- noteSound(n.midi,startedAt+lead+n.beat*secondsPerUnit,Math.max(.12,n.len*secondsPerUnit*.85),mode,expression);
+ const onset=startedAt+lead+n.beat*secondsPerUnit;
+ const noteLength=Math.max(.12,n.len*secondsPerUnit*.85);
+ if(activeViolinMode!=='lead')noteSound(n.midi,onset,noteLength,mode,expression);
+ if(activeViolinMode!=='off')violinSound(n.midi,onset,noteLength,(activeViolinMode==='lead'?.17:.072)*expression);
 }
 // The left hand is intentionally quieter, and doesn't release extra marbles.
 for(const n of accompanimentScore){
@@ -340,6 +379,7 @@ setTimeout(()=>{if(id===session)stop()},(lead+duration+1)*1000);
 }
 playBtn.addEventListener('click',play);stopBtn.addEventListener('click',stop);
 tempoSel.addEventListener('change',()=>{if(playing)stop()});
+violinSel.addEventListener('change',()=>{activeViolinMode=violinSel.value;if(playing)stop()});
 function roundedRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
 function metal(x,y,w,h,bright=false){const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,bright?'#fff3c5':'#e5d7b3');g.addColorStop(.22,bright?'#f7cf78':'#a5a6a7');g.addColorStop(.5,bright?'#8c6328':'#555e64');g.addColorStop(1,'#252a30');ctx.fillStyle=g;roundedRect(x,y,w,h,6);ctx.fill();ctx.strokeStyle='#1a1614';ctx.lineWidth=2;ctx.stroke()}
 function track(x1,y1,x2,y2){ctx.lineCap='round';ctx.lineWidth=17;ctx.strokeStyle='#211a16';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.lineWidth=9;ctx.strokeStyle='#bc8d46';ctx.stroke();ctx.lineWidth=2;ctx.strokeStyle='#f5d79a';ctx.beginPath();ctx.moveTo(x1,y1-3);ctx.lineTo(x2,y2-3);ctx.stroke()}
@@ -388,6 +428,112 @@ function drawBrassGuide(m){
  }
  ctx.restore();
 }
+
+// Independent four-string instrument module. Drawn below the main cabinet so
+// the 25 marble guides, keys, and elevator remain unobstructed.
+function drawViolinModule(now){
+ const v=vctx,V=violinCanvas.width,Hv=violinCanvas.height;
+ v.clearRect(0,0,V,Hv);
+ const wood=v.createLinearGradient(0,0,0,Hv);
+ wood.addColorStop(0,'#57361f');wood.addColorStop(.54,'#302015');wood.addColorStop(1,'#17110d');
+ v.fillStyle=wood;v.fillRect(0,0,V,Hv);
+ for(let y=14;y<Hv;y+=27){
+  v.strokeStyle='rgba(237,180,102,.055)';v.lineWidth=3;
+  v.beginPath();v.moveTo(12,y);v.bezierCurveTo(270,y-7,780,y+8,1110,y);v.stroke();
+ }
+ v.strokeStyle='#ac7940';v.lineWidth=3;
+ v.strokeRect(14,12,V-28,Hv-24);
+ v.fillStyle='#f0ce8f';v.font='bold 18px Georgia,serif';v.textAlign='left';
+ v.fillText('THE VIOLIN WORKSHOP',32,37);
+ v.font='12px Georgia,serif';v.fillStyle='#c7a47b';
+ v.fillText('Four tensioned strings · miniature bows · adjustable finger stops',32,56);
+ v.textAlign='right';v.fillStyle='#ddbd83';
+ v.fillText(activeViolinMode==='off'?'STANDBY':activeViolinMode==='lead'?'VIOLIN LEAD':'PIANO + VIOLIN',1080,38);
+ // The carved soundboard is separated from the tensioned, horizontal strings.
+ v.save();
+ v.translate(145,136);
+ const body=v.createRadialGradient(-25,-26,10,0,0,105);
+ body.addColorStop(0,'#c58745');body.addColorStop(.65,'#8b4c21');body.addColorStop(1,'#392012');
+ v.fillStyle=body;v.strokeStyle='#e3b474';v.lineWidth=4;
+ v.beginPath();v.moveTo(3,-69);
+ v.bezierCurveTo(95,-89,98,-22,62,-3);
+ v.bezierCurveTo(102,39,75,82,0,70);
+ v.bezierCurveTo(-75,82,-102,39,-62,-3);
+ v.bezierCurveTo(-98,-22,-95,-89,3,-69);
+ v.fill();v.stroke();
+ for(const side of [-1,1]){
+  v.save();v.translate(side*36,0);v.rotate(side*.18);
+  v.strokeStyle='#2b1c11';v.lineWidth=4;
+  v.beginPath();v.moveTo(0,-20);v.bezierCurveTo(side*12,-11,side*12,9,0,16);
+  v.moveTo(side*12,-23);v.lineTo(side*6,-10);
+  v.moveTo(-side*2,8);v.lineTo(-side*7,22);
+  v.stroke();v.restore();
+ }
+ v.restore();
+ // Rigid tailpiece and bridge anchor the four open strings.
+ v.fillStyle='#251a12';v.strokeStyle='#bf9057';v.lineWidth=3;
+ v.beginPath();v.roundRect(229,66,24,130,5);v.fill();v.stroke();
+ v.beginPath();v.roundRect(948,66,21,130,5);v.fill();v.stroke();
+ const active=[];
+ if(playing&&audio&&activeViolinMode!=='off'){
+  for(const n of score){
+   const onset=lead+n.beat*secondsPerUnit,age=now-onset;
+   const sustained=Math.min(.9,Math.max(.17,n.len*secondsPerUnit*.85*.95));
+   if(age>=0&&age<sustained+.15){
+    const idx=violinStringIndex(n.midi);
+    if(!active[idx]||age<active[idx].age)active[idx]={note:n,age,duration:sustained};
+   }
+  }
+ }
+ const names=['G3','D4','A4','E5'];
+ for(let i=0;i<4;i++){
+  const y=78+i*38,a=active[i],activeAmount=a?Math.min(1,a.age/.065)*Math.min(1,(a.duration+.15-a.age)/.16):0;
+  const stringX=246,stopTo=907;
+  // Straight, bright steel strings; the active one shimmers gently.
+  v.strokeStyle='#16100d';v.lineWidth=5;
+  v.beginPath();v.moveTo(stringX,y);v.lineTo(948,y);v.stroke();
+  v.strokeStyle=a?'#f9e4ae':'#c8bbaa';v.lineWidth=a?2.4:1.5;
+  v.beginPath();v.moveTo(stringX,y);
+  for(let x=stringX+7;x<=948;x+=7){
+   const ripple=activeAmount*Math.sin((x-stringX)*.22-now*53)*1.6*Math.sin(Math.PI*(x-stringX)/(948-stringX));
+   v.lineTo(x,y+ripple);
+  }
+  v.lineTo(948,y);v.stroke();
+  // Working finger stop moves along the neck to choose the played semitone.
+  const stopped=a?Math.max(0,a.note.midi-violinOpenStrings[i]):0;
+  const fingerX=290+520*(1-Math.pow(2,-stopped/12));
+  v.fillStyle='#b5874d';v.strokeStyle='#eecf8e';v.lineWidth=2;
+  v.beginPath();v.roundRect(fingerX-7,y-10,14,20,4);v.fill();v.stroke();
+  v.fillStyle='#1c1813';v.beginPath();v.arc(fingerX,y,3,0,Math.PI*2);v.fill();
+  // Each string has its own spring bow; the short left/right stroke is
+  // started by the note's corresponding marble reaching its tuned key.
+  const bx=731+(a?Math.sin(a.age*15)*28:0);
+  v.strokeStyle='#785229';v.lineWidth=8;
+  v.beginPath();v.moveTo(bx-37,y-20);v.lineTo(bx+37,y-20);v.stroke();
+  v.strokeStyle='#ede1c9';v.lineWidth=3;
+  v.beginPath();v.moveTo(bx-36,y-13);v.lineTo(bx+36,y-13);v.stroke();
+  v.strokeStyle='#d2a568';v.lineWidth=4;
+  v.beginPath();v.moveTo(bx,y-11);v.lineTo(bx,y-2);v.stroke();
+  v.fillStyle=a?'#fbe2a6':'#b88b4f';
+  v.beginPath();v.arc(bx,y-17,5,0,Math.PI*2);v.fill();
+  v.fillStyle='#eed3a2';v.textAlign='left';v.font='bold 12px Georgia,serif';
+  v.fillText(names[i],268,y+5);
+  if(a){
+   v.fillStyle='#fff0bb';v.font='bold 13px system-ui';v.textAlign='right';
+   v.fillText(a.note.name,1047,y+5);
+  }else{
+   v.fillStyle='#9c815f';v.font='11px system-ui';v.textAlign='right';v.fillText('—',1047,y+5);
+  }
+ }
+ // Four cam links form a visible common mechanical bow drive.
+ v.strokeStyle='#ab8254';v.lineWidth=5;v.beginPath();v.moveTo(731,64);v.lineTo(731,202);v.stroke();
+ for(const y of [78,116,154,192]){
+  v.fillStyle='#e6bf7e';v.beginPath();v.arc(731,y-18,3.5,0,Math.PI*2);v.fill();
+ }
+ v.fillStyle='#bd9562';v.font='11px Georgia,serif';v.textAlign='right';
+ v.fillText('BOW-CAM SHAFT',1065,208);
+}
+
 function draw(){frame=requestAnimationFrame(draw);ctx.clearRect(0,0,W,H);
 const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#49301e');bg.addColorStop(1,'#24160f');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 for(let i=0;i<16;i++){ctx.strokeStyle='rgba(237,176,97,.045)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,i*42);ctx.bezierCurveTo(250,i*42+20,850,i*42-20,W,i*42);ctx.stroke()}
@@ -861,6 +1007,7 @@ ctx.strokeStyle='rgba(255,255,255,.24)';ctx.lineWidth=5;ctx.beginPath();ctx.move
 for(const [rx,ry] of [[881,265],[951,265],[881,347],[951,347]])brassRivet(rx,ry,2.5);
 ctx.restore();
 // Playback status is already displayed in the accessible controls above.
+ drawViolinModule(driveTime);
 }
 draw();
 </script>
