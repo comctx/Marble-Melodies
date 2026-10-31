@@ -10,7 +10,7 @@
 <header><h1>MARBLE MELODIES</h1><p>Watch the Music Come Alive ✦ Mechanical Music Workshop</p></header>
 <main class="shell">
 <div class="controls">
-<button id="wind">↻ Wind Fully</button><label for="winding">Spring <meter id="winding" min="0" max="100" value="0"></meter></label><label for="song">Song</label><select id="song" aria-label="Choose a song"><option value="elise" selected>Für Elise</option><option value="hymn">Battle Hymn of the Republic</option><option value="grace">Amazing Grace</option></select><button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
+<button id="wind">↻ Wind Fully</button><label for="winding">Spring <meter id="winding" min="0" max="100" value="0"></meter></label><label for="song">Song</label><select id="song" aria-label="Choose a song"><option value="elise" selected>Für Elise</option><option value="hymn">Battle Hymn of the Republic</option><option value="grace">Amazing Grace</option><option value="joy">Joy to the World</option></select><button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
 <label for="tempo">Tempo</label><select id="tempo"><option value=".8">Gentle · 80%</option><option value="1" selected>Original · 100%</option><option value="1.2">Brisk · 120%</option></select>
 <label for="sound">Sound</label><select id="sound"><option value="grand" selected>Concert grand (recorded)</option><option value="piano">Electronic piano</option><option value="bell">Bell bars</option><option value="soft">Soft keys</option></select>
 <label for="mechanics">Mechanics</label><select id="mechanics" aria-label="Mechanical sound volume"><option value="0">Off</option><option value="1" selected>Subtle</option><option value="2">More audible</option></select>
@@ -19,8 +19,8 @@
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="850" aria-label="One tall mechanical marble and violin music machine with twenty-five tuned bars, brass guides, and four bowed violin strings in a shared hardwood cabinet"></canvas><div class="plaque" id="song-plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot" id="song-description">Für Elise: complete opening A section, with the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included; high E6 sounds at its true pitch but uses the E5 paddle visually.</p><p class="foot">Choose from three songs above. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
-<p class="foot">Für Elise score: OpenScore (CC0). Battle Hymn of the Republic: public-domain tune traditionally attributed to William Steffe, arranged for Marble Melodies from historical melody notation (<a style="color:#f5d18a" href="https://www.loc.gov/collections/patriotic-melodies/articles-and-essays/battle-hymn-of-the-republic/" target="_blank" rel="noopener">Library of Congress history</a>). Amazing Grace: traditional public-domain NEW BRITAIN melody (<a style="color:#f5d18a" href="https://hymnary.org/tune/new_britain" target="_blank" rel="noopener">Hymnary</a>), with a fresh accompaniment for this machine. Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
+<p class="foot" id="song-description">Für Elise: complete opening A section, with the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included; high E6 sounds at its true pitch but uses the E5 paddle visually.</p><p class="foot">Choose from four songs above. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
+<p class="foot">Für Elise score: OpenScore (CC0). Battle Hymn of the Republic: public-domain tune traditionally attributed to William Steffe, arranged for Marble Melodies from historical melody notation (<a style="color:#f5d18a" href="https://www.loc.gov/collections/patriotic-melodies/articles-and-essays/battle-hymn-of-the-republic/" target="_blank" rel="noopener">Library of Congress history</a>). Joy to the World: the traditional public-domain ANTIOCH tune, transposed from a historical transcription (<a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fabc%2Fsession%2FSudburyAncients%2Fxmas%2FJoy_To_the_World-D-20-2%2F0000" target="_blank" rel="noopener">John Chambers ABC archive</a>), with original piano accompaniment. Amazing Grace: traditional public-domain NEW BRITAIN melody (<a style="color:#f5d18a" href="https://hymnary.org/tune/new_britain" target="_blank" rel="noopener">Hymnary</a>), with a fresh accompaniment for this machine. Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
 const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
@@ -207,6 +207,68 @@ function buildAmazingGrace(){
  return {score:melody,accompanimentScore:backing,phraseEnds:phrases,beats:tick};
 }
 const amazingGraceSong=buildAmazingGrace();
+// JOY TO THE WORLD — traditional public-domain ANTIOCH tune.
+// Based on historical 2/4 notation, transposed from D major to C major
+// to fit the machine's physical C4–C6 keyboard. The melodic pattern
+// follows John Chambers's SudburyAncients ABC archive transcription:
+// https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fabc%2Fsession%2FSudburyAncients%2Fxmas%2FJoy_To_the_World-D-20-2%2F0000
+// The 20 bars below use eighth-note beats (four units per measure).
+// Two instrumental passes; the second pass adds an original arpeggio.
+function buildJoyToTheWorld(){
+ const bars=[
+  ['C5:2 B4:1.5 A4:.5','C'], // Joy to the world
+  ['G4:3 F4:1','C'],
+  ['E4:2 D4:2','G'],
+  ['C4:3 G4:1','C'],
+  ['A4:3 A4:1','F'],
+  ['B4:3 B4:1','G'],
+  ['C5:7','C'],              // held note tied into the following bar
+  ['R:3 C5:1','C'],
+  ['C5:1 B4:1 A4:1 G4:1','C'],
+  ['G4:1.5 F4:.5 E4:1 C5:1','C'],
+  ['C5:1 B4:1 A4:1 G4:1','C'],
+  ['G4:1.5 F4:.5 E4:1 E4:1','G'],
+  ['E4:1 E4:1 E4:1 E4:.5 F4:.5','C'],
+  ['G4:3 F4:.5 E4:.5','G'],
+  ['D4:1 D4:1 D4:1 D4:.5 E4:.5','G'],
+  ['F4:3 E4:.5 D4:.5','G'],
+  ['C4:1 C5:2 A4:1','C'],
+  ['G4:1.5 F4:.5 E4:1 F4:1','G'],
+  ['E4:2 D4:2','G'],
+  ['C4:4','C']
+ ];
+ const chords={
+  C:['C3','G3','E4'],F:['F3','C4','A3'],G:['G2','D3','B3']
+ };
+ const melody=[],accompaniment=[],phrases=[];
+ let tick=0;
+ for(let pass=0;pass<2;pass++){
+  for(let bar=0;bar<bars.length;bar++){
+   const [notes,chordName]=bars[bar],chord=chords[chordName];
+   let offset=0;
+   for(const token of notes.split(' ')){
+    const [name,length]=token.split(':'),len=Number(length);
+    if(name!=='R')melody.push({name,midi:midi(name),beat:tick+offset,len});
+    offset+=len;
+   }
+   // The 7-eighth tied C5 spans bars 7 and 8, so bar 7 is
+   // intentionally represented by a long held note of seven units.
+   if(offset!==4&&bar!==6)throw Error('Joy to the World bar '+(bar+1)+' is invalid');
+   if(bar===6&&offset!==7)throw Error('Joy to the World tie invalid');
+   const pattern=pass===0?
+    [[chord[0],0,2],[chord[1],2,2]]:
+    [[chord[0],0,1.5],[chord[1],1.5,1.5],[chord[2],3,1]];
+   for(const [name,at,len] of pattern){
+    accompaniment.push({name,midi:midi(name),beat:tick+at,len});
+   }
+   tick+=4;
+   if((bar+1)%5===0)phrases.push(melody.length);
+  }
+ }
+ return {score:melody,accompanimentScore:accompaniment,phraseEnds:phrases,beats:tick};
+}
+const joyToTheWorldSong=buildJoyToTheWorld();
+
 
 // A full two-octave chromatic keyboard: 25 physical notes, C4 through C6.
 // One original E6 accent is kept at its true audio pitch and represented by
@@ -235,19 +297,27 @@ function buildNextViolinNoteIndex(){
 }
 let nextViolinNoteIndex=buildNextViolinNoteIndex();
 function selectedSongTitle(){
- return songSel.value==='grace'?'Amazing Grace':
+ return songSel.value==='joy'?'Joy to the World':
+  songSel.value==='grace'?'Amazing Grace':
   songSel.value==='hymn'?'Battle Hymn of the Republic':'Für Elise';
 }
 function selectSong(){
  const kind=songSel.value;
- const chosen=kind==='grace'?amazingGraceSong:kind==='hymn'?battleHymnSong:furEliseSong;
+ const chosen=kind==='joy'?joyToTheWorldSong:
+  kind==='grace'?amazingGraceSong:
+  kind==='hymn'?battleHymnSong:furEliseSong;
  score=chosen.score;accompanimentScore=chosen.accompanimentScore;
  phraseEnds=chosen.phraseEnds;beats=chosen.beats;
  nextViolinNoteIndex=buildNextViolinNoteIndex();
- playBtn.textContent=kind==='grace'?'▶ Play Amazing Grace':kind==='hymn'?'▶ Play Battle Hymn':'▶ Play Für Elise';
- songPlaque.textContent=kind==='grace'?'AMAZING GRACE • NEW BRITAIN':
+ playBtn.textContent=kind==='joy'?'▶ Play Joy to the World':
+  kind==='grace'?'▶ Play Amazing Grace':
+  kind==='hymn'?'▶ Play Battle Hymn':'▶ Play Für Elise';
+ songPlaque.textContent=kind==='joy'?'JOY TO THE WORLD • ANTIOCH':
+  kind==='grace'?'AMAZING GRACE • NEW BRITAIN':
   kind==='hymn'?'BATTLE HYMN OF THE REPUBLIC • 1862':'FÜR ELISE • L. VAN BEETHOVEN';
- songDescription.textContent=kind==='grace'?
+ songDescription.textContent=kind==='joy'?
+  'Joy to the World: two instrumental performances of the traditional public-domain ANTIOCH hymn melody in 2/4, with the second pass accompanied by flowing piano arpeggios. Play it with piano alone or an optional violin.':
+  kind==='grace'?
   'Amazing Grace: two instrumental verses of the traditional public-domain NEW BRITAIN tune in 3/4, with gentle piano accompaniment and optional mechanical violin.':
   kind==='hymn'?
   'Battle Hymn of the Republic: one full verse and the Glory, Glory refrain, arranged for the marble piano and four-string mechanical violin. Historic public-domain melody with original piano accompaniment.':
@@ -633,7 +703,7 @@ async function play(){
  try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
  const id=++session;
  playing=true;playBtn.disabled=true;stopBtn.disabled=false;
- secondsPerUnit=(songSel.value==='grace'?.34:.24)/Number(tempoSel.value);
+ secondsPerUnit=(songSel.value==='grace'?.34:songSel.value==='joy'?.23:.24)/Number(tempoSel.value);
  duration=beats*secondsPerUnit;initialCharge=springCharge;
  let mode=soundSel.value,violinAvailable=true;
  activeViolinMode=violinSel.value;
