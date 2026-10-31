@@ -284,32 +284,91 @@ function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(
  scheduled.push(envelope);
 }
 
-// A softly bowed, filtered harmonic tone. The attack, release, and modest
-// vibrato imitate a violin, without downloading or licensing audio samples.
-// The same note-on clock that launches the piano also launches the bow.
-function violinSound(m,start,noteLength,level){
- const sustain=Math.min(.90,Math.max(.17,noteLength*.95));
- const attack=Math.min(.072,sustain*.34),end=start+sustain+.15;
- const envelope=audio.createGain(),filter=audio.createBiquadFilter();
- filter.type='lowpass';filter.frequency.value=Math.min(6500,Math.max(2100,hz(m)*4.8));
- filter.Q.value=.58;
- envelope.gain.setValueAtTime(.00001,start);
- envelope.gain.linearRampToValueAtTime(level,start+attack);
- envelope.gain.linearRampToValueAtTime(level*.78,start+sustain);
- envelope.gain.exponentialRampToValueAtTime(.00001,end);
- filter.connect(envelope);envelope.connect(master);
- const vibrato=audio.createOscillator(),vibratoDepth=audio.createGain();
- vibrato.frequency.value=5.3;vibratoDepth.gain.value=4.2;
- vibrato.connect(vibratoDepth);
- for(const [type,mix] of [['sawtooth',.48],['triangle',.72]]){
-  const osc=audio.createOscillator(),amplitude=audio.createGain();
-  osc.type=type;osc.frequency.value=hz(m);
-  amplitude.gain.value=mix;osc.connect(amplitude);amplitude.connect(filter);
-  vibratoDepth.connect(osc.detune);
-  osc.start(start);osc.stop(end+.025);
+// Bowed-string synthesis with a warm, band-limited harmonic spectrum,
+// breathy bow friction and a gradual attack. It avoids the old raw sawtooth
+// buzz, while remaining offline and synchronized to each marble impact.
+const violinWaveCache=new Map();
+let violinFrictionBuffer=null;
+function violinWave(m){
+ if(violinWaveCache.has(m))return violinWaveCache.get(m);
+ const fundamental=hz(m);
+ const partials=Math.min(32,Math.max(2,Math.floor(10000/fundamental)));
+ const real=new Float32Array(partials+1),imag=new Float32Array(partials+1);
+ for(let h=1;h<=partials;h++){
+  const f=fundamental*h;
+  // A dark string spectrum with gentle resonances from the wooden body.
+  const body=.72
+   +.26*Math.exp(-Math.pow((f-520)/460,2))
+   +.37*Math.exp(-Math.pow((f-1620)/890,2))
+   +.12*Math.exp(-Math.pow((f-2850)/1040,2));
+  imag[h]=body*Math.pow(h,-1.24)*Math.exp(-f/10500);
  }
- vibrato.start(start);vibrato.stop(end+.025);
- scheduled.push(envelope);
+ const wave=audio.createPeriodicWave(real,imag);
+ violinWaveCache.set(m,wave);
+ return wave;
+}
+function violinFriction(){
+ if(violinFrictionBuffer)return violinFrictionBuffer;
+ const length=Math.ceil(audio.sampleRate*.27);
+ violinFrictionBuffer=audio.createBuffer(1,length,audio.sampleRate);
+ const samples=violinFrictionBuffer.getChannelData(0);
+ for(let i=0;i<samples.length;i++)samples[i]=(Math.random()*2-1)*.7;
+ return violinFrictionBuffer;
+}
+function violinSound(m,start,noteLength,level){
+ const sustain=Math.min(1.55,Math.max(.19,noteLength*1.06));
+ const attack=Math.min(.064,Math.max(.035,sustain*.27));
+ const release=.13,end=start+sustain+release;
+ const output=audio.createGain(),warmth=audio.createBiquadFilter();
+ const body=audio.createBiquadFilter();
+ const brightness=Math.min(4800,Math.max(2350,1400+hz(m)*1.7));
+ warmth.type='lowpass';warmth.Q.value=.58;
+ warmth.frequency.setValueAtTime(brightness*.60,start);
+ warmth.frequency.linearRampToValueAtTime(brightness,start+attack+.065);
+ warmth.frequency.exponentialRampToValueAtTime(brightness*.84,end);
+ body.type='peaking';body.frequency.value=1150;body.Q.value=.95;body.gain.value=2.2;
+ body.connect(warmth);warmth.connect(output);output.connect(master);
+ output.gain.setValueAtTime(.00001,start);
+ output.gain.linearRampToValueAtTime(level*.80,start+attack);
+ output.gain.linearRampToValueAtTime(level,start+attack+.055);
+ output.gain.linearRampToValueAtTime(level*.82,start+sustain);
+ output.gain.exponentialRampToValueAtTime(.00001,end);
+ // Vibrato develops only after the bow has started moving. Short notes
+ // remain relatively straight; long notes gain gentle expressive movement.
+ const vibrato=audio.createOscillator(),depth=audio.createGain();
+ vibrato.type='sine';vibrato.frequency.value=5.15;
+ const vibratoDelay=Math.min(.18,sustain*.60);
+ depth.gain.setValueAtTime(0,start);
+ depth.gain.setValueAtTime(0,start+vibratoDelay);
+ depth.gain.linearRampToValueAtTime(5.4,start+vibratoDelay+.08);
+ depth.gain.linearRampToValueAtTime(2.7,end);
+ vibrato.connect(depth);
+ const wave=violinWave(m);
+ for(const [cents,mix] of [[-1.5,.82],[2.6,.18]]){
+  const osc=audio.createOscillator(),volume=audio.createGain();
+  osc.setPeriodicWave(wave);
+  osc.frequency.setValueAtTime(hz(m)*1.0007,start);
+  osc.frequency.exponentialRampToValueAtTime(hz(m),start+.075);
+  osc.detune.value=cents;
+  depth.connect(osc.detune);
+  volume.gain.value=mix;
+  osc.connect(volume);volume.connect(body);
+  osc.start(start);osc.stop(end+.015);
+ }
+ vibrato.start(start);vibrato.stop(end+.015);
+ // Extremely quiet bow/rosin friction follows the same envelope, instead
+ // of a loud synthesized attack click at every marble strike.
+ const friction=audio.createBufferSource(),noiseFilter=audio.createBiquadFilter();
+ const noiseGain=audio.createGain();
+ friction.buffer=violinFriction();friction.loop=true;
+ noiseFilter.type='bandpass';noiseFilter.frequency.value=1850;noiseFilter.Q.value=.65;
+ noiseGain.gain.setValueAtTime(.00001,start);
+ noiseGain.gain.linearRampToValueAtTime(level*.065,start+attack);
+ noiseGain.gain.linearRampToValueAtTime(level*.038,start+sustain);
+ noiseGain.gain.exponentialRampToValueAtTime(.00001,end);
+ friction.connect(noiseFilter);noiseFilter.connect(noiseGain);noiseGain.connect(master);
+ friction.start(start);friction.stop(end+.015);
+ scheduled.push(output);
 }
 
  // Quiet, local Web Audio mechanical effects; no downloaded sound files.
