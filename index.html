@@ -18,7 +18,7 @@
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="850" aria-label="One tall mechanical marble and violin music machine with twenty-five tuned bars, brass guides, and four bowed violin strings in a shared hardwood cabinet"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot">Complete opening A section of Für Elise, with the engraved repeats and both endings, including the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. The original high E6 note sounds at its true pitch but uses the E5 paddle visually. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of this same hardwood cabinet, four violin strings have miniature bows and finger stops driven in time with the marble notes through a shared brass drive linkage. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Tap Play to enable sound.</p>
+<p class="foot">Complete opening A section of Für Elise, with the engraved repeats and both endings, including the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. The original high E6 note sounds at its true pitch but uses the E5 paddle visually. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Tap Play to enable sound.</p>
 <p class="foot">Piano score: OpenScore (CC0). Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
@@ -104,6 +104,8 @@ let activeViolinMode='duet';
 // Open violin strings: G3, D4, A4, E5 (the instrument's actual tuning).
 const violinOpenStrings=[55,62,69,76];
 function violinStringIndex(m){for(let i=3;i>=0;i--)if(m>=violinOpenStrings[i])return i;return 0;}
+// Four selector ports below the tuned keys, one for each bowed string.
+const violinSelectorX=[350,466,582,698];
 const lead=4.0; // Slow, deliberate visual travel before each note; musical tempo unchanged.
 // One audio-clock timeline drives rail travel, paddle contact and key impact.
 const railSpeed=300,feedSeconds=.18,dropSeconds=.36;
@@ -114,6 +116,25 @@ function noteTiming(n){
  const rollSeconds=Math.max(0,(contactX-80)/railSpeed);
  return {x,contactX,hitAt,contactAt,rollAt:contactAt-rollSeconds,
   releaseAt:contactAt-rollSeconds-feedSeconds};
+}
+// A violin note starts ONLY when its corresponding marble reaches the key.
+// This identical impact time drives its sound, finger stop, bow, and brass rods.
+function violinNoteDuration(n){
+ const noteLength=Math.max(.12,n.len*secondsPerUnit*.85);
+ return Math.min(.9,Math.max(.17,noteLength*.95));
+}
+function violinActuationsAt(now){
+ const states=[null,null,null,null];
+ if(!playing||!audio||activeViolinMode==='off')return states;
+ for(const note of score){
+  const age=now-noteTiming(note).hitAt,duration=violinNoteDuration(note);
+  if(age<0||age>=duration+.15)continue;
+  const i=violinStringIndex(note.midi);
+  if(!states[i]||age<states[i].age){
+   states[i]={note,age,duration,string:i,keyX:xFor(note.midi)};
+  }
+ }
+ return states;
 }
 function paddleMotion(n,now){
  const age=now-noteTiming(n).contactAt;
@@ -361,7 +382,7 @@ for(let i=0;i<score.length;i++){
  const position=(i-phraseStart)/Math.max(1,phraseEnds[phraseIndex]-phraseStart-1);
  const swell=Math.pow(Math.sin(Math.PI*position),1.2);
  const expression=.69+.57*swell;
- const onset=startedAt+lead+n.beat*secondsPerUnit;
+ const onset=startedAt+noteTiming(n).hitAt;
  const noteLength=Math.max(.12,n.len*secondsPerUnit*.85);
  if(activeViolinMode!=='lead')noteSound(n.midi,onset,noteLength,mode,expression);
  if(activeViolinMode!=='off')violinSound(n.midi,onset,noteLength,(activeViolinMode==='lead'?.17:.072)*expression);
@@ -430,7 +451,7 @@ function drawBrassGuide(m){
 // One lower chamber INSIDE the same cabinet. The violin is not a separate
 // stage: the transformation fits its working parts between the wooden uprights.
 // Marble timing and the moving bow stay on the shared audio clock.
-function drawViolinModule(now){
+function drawViolinModule(now,active){
  const v=ctx,V=1120,Hv=220;
  v.save();
  v.translate(75,624);
@@ -475,17 +496,8 @@ function drawViolinModule(now){
  v.fillStyle='#251a12';v.strokeStyle='#bf9057';v.lineWidth=3;
  v.beginPath();v.roundRect(229,66,24,130,5);v.fill();v.stroke();
  v.beginPath();v.roundRect(948,66,21,130,5);v.fill();v.stroke();
- const active=[];
- if(playing&&audio&&activeViolinMode!=='off'){
-  for(const n of score){
-   const onset=lead+n.beat*secondsPerUnit,age=now-onset;
-   const sustained=Math.min(.9,Math.max(.17,n.len*secondsPerUnit*.85*.95));
-   if(age>=0&&age<sustained+.15){
-    const idx=violinStringIndex(n.midi);
-    if(!active[idx]||age<active[idx].age)active[idx]={note:n,age,duration:sustained};
-   }
-  }
- }
+ // The bows now use the exact same marble-strike events as the key followers
+ // and four-way mechanical selector, rather than a separate melody timer.
  const names=['G3','D4','A4','E5'];
  for(let i=0;i<4;i++){
   const y=78+i*38,a=active[i],activeAmount=a?Math.min(1,a.age/.065)*Math.min(1,(a.duration+.15-a.age)/.16):0;
@@ -536,6 +548,79 @@ function drawViolinModule(now){
  v.restore();
 }
 
+
+// Key follower pins are fixed to the 25 note bars. A marble impact pulls its
+// follower toward a four-way selector below the returning marbles.
+function drawKeyFollowers(active){
+ const selected=new Map();
+ for(const a of active)if(a)selected.set(visualPitch(a.note.midi),a);
+ ctx.save();ctx.lineCap='round';
+ for(const m of pitches){
+  const x=xFor(m),start=barYFor(m)+24,a=selected.get(m),pulse=a?Math.exp(-a.age*12):0;
+  // Short brass key plungers disappear behind the return chute.
+  ctx.strokeStyle='#392819';ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(x,start);ctx.lineTo(x,481);ctx.stroke();
+  ctx.strokeStyle=a?'#f5d18c':'#917247';ctx.lineWidth=a?2.6:1.6;
+  ctx.beginPath();ctx.moveTo(x,start-4*pulse);ctx.lineTo(x,479);ctx.stroke();
+  ctx.fillStyle=a?'#ffdf9d':'#a98248';
+  ctx.beginPath();ctx.arc(x,start-4*pulse,3.5,0,Math.PI*2);ctx.fill();
+ }
+ ctx.restore();
+}
+// Four mechanical pull-rods transfer key movement to the correct violin bow
+// and finger-stop. Each highlighted rod starts at an actual marble key strike.
+function drawViolinLinkages(active){
+ ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+ // Four-way selector gallery, tucked between the return chute and violin bay.
+ ctx.fillStyle='#271b13';ctx.strokeStyle='#b98d50';ctx.lineWidth=3;
+ ctx.beginPath();ctx.roundRect(304,567,458,43,7);ctx.fill();ctx.stroke();
+ ctx.strokeStyle='#e3b573';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(321,579);ctx.lineTo(749,579);ctx.stroke();
+ ctx.fillStyle='#e8c080';ctx.font='10px Georgia,serif';ctx.textAlign='center';
+ ctx.fillText('MARBLE-TO-VIOLIN SELECTOR',533,605);
+ for(let i=0;i<4;i++){
+  const a=active[i],sx=violinSelectorX[i];
+  const rowY=624+.89*(78+i*38),bowRestX=75+.865*731;
+  const bowX=bowRestX+(a?Math.sin(a.age*15)*28*.865:0);
+  const pulse=a?Math.exp(-a.age*10):0,engaged=!!a;
+  // Static four-way bearing: all rods are visible, but only the selected
+  // string's follower moves, so the visual signal is easy to trace.
+  ctx.strokeStyle='#33251a';ctx.lineWidth=7;
+  ctx.beginPath();ctx.moveTo(sx,585);ctx.lineTo(sx,637+i*6);
+  ctx.lineTo(bowRestX-11,rowY-17);ctx.stroke();
+  ctx.strokeStyle=engaged?'#f4cb7d':'#916d42';ctx.lineWidth=engaged?3.5:2;
+  ctx.beginPath();ctx.moveTo(sx,585-5*pulse);ctx.lineTo(sx,637+i*6);
+  ctx.lineTo(bowX-11,rowY-17);ctx.stroke();
+  // The cam at each selector port pulls inward at the moment of impact.
+  ctx.save();ctx.translate(sx,586);ctx.rotate(engaged?-pulse*.55:0);
+  ctx.fillStyle=engaged?'#b78a43':'#4a3625';ctx.strokeStyle='#e5bb79';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-6,0);ctx.lineTo(6,0);ctx.stroke();
+  ctx.restore();
+  // A narrow cable from the just-struck key reaches the selector port;
+  // it travels behind the bottom of the marble collection chute.
+  if(a){
+   const x=a.keyX,fromY=barYFor(a.note.midi)+26;
+   ctx.strokeStyle='rgba(25,18,13,.8)';ctx.lineWidth=5;
+   ctx.beginPath();ctx.moveTo(x,fromY);ctx.lineTo(x,550);
+   ctx.quadraticCurveTo(x,565,sx,576);ctx.lineTo(sx,579);ctx.stroke();
+   ctx.strokeStyle='#f2cc7e';ctx.lineWidth=2.5;
+   ctx.beginPath();ctx.moveTo(x,fromY-5*pulse);ctx.lineTo(x,550);
+   ctx.quadraticCurveTo(x,565,sx,576);ctx.lineTo(sx,579-5*pulse);ctx.stroke();
+   ctx.fillStyle='#ffe2a3';ctx.beginPath();ctx.arc(x,fromY-5*pulse,4.5,0,Math.PI*2);ctx.fill();
+   // Pitch selection is mechanical too: a separate fine Bowden cable ends
+   // at the visible fingering stop on the appropriate violin string.
+   const semitones=Math.max(0,a.note.midi-violinOpenStrings[i]);
+   const localFingerX=290+520*(1-Math.pow(2,-semitones/12));
+   const fingerX=75+.865*localFingerX;
+   ctx.strokeStyle='rgba(229,187,118,.65)';ctx.lineWidth=1.5;
+   ctx.beginPath();ctx.moveTo(sx,620);ctx.quadraticCurveTo(fingerX,655,fingerX,rowY-9);ctx.stroke();
+   ctx.fillStyle='#f9d38d';ctx.beginPath();ctx.arc(fingerX,rowY-9,3,0,Math.PI*2);ctx.fill();
+  }
+ }
+ ctx.restore();
+}
+
 function draw(){frame=requestAnimationFrame(draw);ctx.clearRect(0,0,W,H);
 const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#49301e');bg.addColorStop(1,'#24160f');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 for(let i=0;i<16;i++){ctx.strokeStyle='rgba(237,176,97,.045)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,i*42);ctx.bezierCurveTo(250,i*42+20,850,i*42-20,W,i*42);ctx.stroke()}
@@ -545,6 +630,7 @@ woodBeam(43,95,29,729);woodBeam(1048,95,29,729);woodBeam(62,525,997,28);woodBeam
 for(const x of [57,1063])for(const y of [106,540])brassRivet(x,y,7);
 // An ornamental, music-clock-inspired drive train: rotation follows the audio clock.
 const driveTime=playing&&audio?Math.max(0,audio.currentTime-startedAt):0;
+const violinActuators=violinActuationsAt(driveTime);
 if(playing&&audio){const fraction=Math.min(1,driveTime/Math.max(1,lead+duration));setSpring(initialCharge*(1-fraction));}
 gear(172,214,43,14,driveTime*.6);gear(255,217,31,12,-driveTime*.84);gear(940,213,42,14,-driveTime*.58);gear(858,215,31,12,driveTime*.81);
 ctx.strokeStyle='#d7ae62';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(172,214);ctx.lineTo(172,281);ctx.moveTo(940,213);ctx.lineTo(940,281);ctx.stroke();
@@ -813,6 +899,7 @@ for(const m of pitches){
 }
 // Compact chromatic keys; alternating elevations make both rows legible.
 for(const m of pitches){const x=xFor(m),y=barYFor(m);ctx.strokeStyle='#b28b54';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,295);ctx.lineTo(x,y-15);ctx.stroke();metal(x-barWidth/2,y,barWidth,23,m%12===4||m%12===9);ctx.fillStyle='#17140f';ctx.font='11px system-ui';ctx.textAlign='center';const name=Object.keys(NOTES).find(k=>NOTES[k]===m%12)+(Math.floor(m/12)-1);ctx.fillText(name,x,y+16);brassRivet(x,y+28,2.5)}
+drawKeyFollowers(violinActuators);
 // Sloped return tray collects marbles after they sound a note.
 ctx.strokeStyle='#302216';ctx.lineWidth=13;ctx.lineCap='round';
 ctx.beginPath();ctx.moveTo(76,492);ctx.lineTo(970,520);ctx.stroke();
@@ -1009,7 +1096,8 @@ ctx.strokeStyle='rgba(255,255,255,.24)';ctx.lineWidth=5;ctx.beginPath();ctx.move
 for(const [rx,ry] of [[881,265],[951,265],[881,347],[951,347]])brassRivet(rx,ry,2.5);
 ctx.restore();
 // The lower music chamber shares the frame and drive with the marble machine.
- drawViolinModule(driveTime);
+ drawViolinModule(driveTime,violinActuators);
+ drawViolinLinkages(violinActuators);
  // Visible mechanical power takeoff: original upper drive shaft to the
  // violin bow-cam shaft. Draw last so the coupling remains easy to follow.
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
