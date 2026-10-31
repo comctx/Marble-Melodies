@@ -1360,11 +1360,11 @@ songSel.addEventListener('change',()=>{if(playing)stop();selectSong();});
 tempoSel.addEventListener('change',()=>{if(playing)stop()});
 violinSel.addEventListener('change',()=>{activeViolinMode=violinSel.value;if(playing)stop()});
 function roundedRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
-function metal(x,y,w,h,bright=false){const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,bright?'#fff3c5':'#e5d7b3');g.addColorStop(.22,bright?'#f7cf78':'#a5a6a7');g.addColorStop(.5,bright?'#8c6328':'#555e64');g.addColorStop(1,'#252a30');ctx.fillStyle=g;roundedRect(x,y,w,h,6);ctx.fill();ctx.strokeStyle='#1a1614';ctx.lineWidth=2;ctx.stroke()}
+function metal(x,y,w,h,bright=false){const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,bright?'#fff3c5':'#e5d7b3');g.addColorStop(.14,bright?'#c69542':'#8c9495');g.addColorStop(.25,bright?'#fff1b0':'#f0f3ec');g.addColorStop(.33,bright?'#d8b05e':'#a5a6a7');g.addColorStop(.56,bright?'#8c6328':'#555e64');g.addColorStop(.78,bright?'#dfb766':'#9ca8a8');g.addColorStop(1,'#252a30');ctx.fillStyle=g;roundedRect(x,y,w,h,6);ctx.fill();ctx.strokeStyle='#1a1614';ctx.lineWidth=2;ctx.stroke()}
 function track(x1,y1,x2,y2){ctx.lineCap='round';ctx.lineWidth=17;ctx.strokeStyle='#211a16';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.lineWidth=9;ctx.strokeStyle='#bc8d46';ctx.stroke();ctx.lineWidth=2;ctx.strokeStyle='#f5d79a';ctx.beginPath();ctx.moveTo(x1,y1-3);ctx.lineTo(x2,y2-3);ctx.stroke()}
-function marble(x,y,r,featured=false){const g=ctx.createRadialGradient(x-r*.35,y-r*.45,1,x,y,r);g.addColorStop(0,'#ffffff');g.addColorStop(.22,featured&&rubyEnabled?'#ffa7b9':'#d6e7f3');g.addColorStop(.55,featured&&rubyEnabled?'#df2558':'#6f8ca0');g.addColorStop(1,featured&&rubyEnabled?'#580a27':'#18232e');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.strokeStyle=featured&&rubyEnabled?'#fff1be':'#e4cf9e';ctx.lineWidth=featured&&rubyEnabled?2.5:1.5;ctx.stroke();if(featured&&rubyEnabled){ctx.strokeStyle='#fff1be';ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(x,y,r*.65,-2.6,-.8);ctx.stroke()}}
+function marble(x,y,r,featured=false){ctx.save();ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(x+3,y+r+3,r*.85,r*.28,0,0,Math.PI*2);ctx.fill();const g=ctx.createRadialGradient(x-r*.35,y-r*.45,1,x,y,r);g.addColorStop(0,'#ffffff');g.addColorStop(.22,featured&&rubyEnabled?'#ffa7b9':'#d6e7f3');g.addColorStop(.55,featured&&rubyEnabled?'#df2558':'#6f8ca0');g.addColorStop(1,featured&&rubyEnabled?'#580a27':'#18232e');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.strokeStyle=featured&&rubyEnabled?'#fff1be':'#e4cf9e';ctx.lineWidth=featured&&rubyEnabled?2.5:1.5;ctx.stroke();if(featured&&rubyEnabled){ctx.strokeStyle='#fff1be';ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(x,y,r*.65,-2.6,-.8);ctx.stroke()}ctx.restore()}
 function brassRivet(x,y,r=5){ctx.fillStyle='#22180f';ctx.beginPath();ctx.arc(x,y,r+2,0,Math.PI*2);ctx.fill();const g=ctx.createRadialGradient(x-2,y-2,1,x,y,r);g.addColorStop(0,'#fff1bd');g.addColorStop(.5,'#c69645');g.addColorStop(1,'#62411d');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
-function gear(x,y,r,teeth,rotation){ctx.save();ctx.translate(x,y);ctx.rotate(rotation);ctx.fillStyle='#291e13';ctx.beginPath();for(let i=0;i<teeth*4;i++){const a=i*Math.PI*2/(teeth*4),rr=i%4===0||i%4===3?r+7:r;const px=Math.cos(a)*rr,py=Math.sin(a)*rr;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.closePath();ctx.fill();ctx.strokeStyle='#c99b52';ctx.lineWidth=5;ctx.stroke();const g=ctx.createRadialGradient(-r*.3,-r*.4,2,0,0,r);g.addColorStop(0,'#dfb86c');g.addColorStop(.6,'#86602d');g.addColorStop(1,'#382616');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r-5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#f1d49c';ctx.lineWidth=1;ctx.stroke();for(let i=0;i<6;i++){const a=i*Math.PI/3;ctx.strokeStyle='#392716';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(Math.cos(a)*12,Math.sin(a)*12);ctx.lineTo(Math.cos(a)*(r-11),Math.sin(a)*(r-11));ctx.stroke()}brassRivet(0,0,7);ctx.restore()}
+function gear(x,y,r,teeth,rotation){ctx.save();ctx.translate(x,y);ctx.rotate(rotation);ctx.shadowColor='rgba(0,0,0,.65)';ctx.shadowBlur=9;ctx.shadowOffsetX=4;ctx.shadowOffsetY=7;ctx.fillStyle='#291e13';ctx.beginPath();for(let i=0;i<teeth*4;i++){const a=i*Math.PI*2/(teeth*4),rr=i%4===0||i%4===3?r+7:r;const px=Math.cos(a)*rr,py=Math.sin(a)*rr;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.closePath();ctx.fill();ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;ctx.strokeStyle='#c99b52';ctx.lineWidth=5;ctx.stroke();const g=ctx.createRadialGradient(-r*.3,-r*.4,2,0,0,r);g.addColorStop(0,'#dfb86c');g.addColorStop(.22,'#fff0b2');g.addColorStop(.35,'#b78b43');g.addColorStop(.6,'#86602d');g.addColorStop(.82,'#b08b4b');g.addColorStop(1,'#382616');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r-5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#f1d49c';ctx.lineWidth=1;ctx.stroke();for(let i=0;i<6;i++){const a=i*Math.PI/3;ctx.strokeStyle='#392716';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(Math.cos(a)*12,Math.sin(a)*12);ctx.lineTo(Math.cos(a)*(r-11),Math.sin(a)*(r-11));ctx.stroke()}brassRivet(0,0,7);ctx.restore()}
 function rotatingCam(x,y,angle,lift){
  // Eccentric cam mounted on the driven shaft, with a small follower roller.
  ctx.save();ctx.translate(x,y);ctx.rotate(angle);
@@ -1377,7 +1377,24 @@ function rotatingCam(x,y,angle,lift){
  ctx.fillStyle='#c3c9c7';ctx.strokeStyle='#49351e';ctx.lineWidth=2;
  ctx.beginPath();ctx.arc(x+13,y-13-lift,5,0,Math.PI*2);ctx.fill();ctx.stroke();
 }
-function woodBeam(x,y,w,h){const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,'#8d5b31');g.addColorStop(.35,'#54331d');g.addColorStop(.7,'#704625');g.addColorStop(1,'#24170f');ctx.fillStyle=g;roundedRect(x,y,w,h,5);ctx.fill();ctx.strokeStyle='#bc8a4b';ctx.lineWidth=2;ctx.stroke();ctx.strokeStyle='#d7a16a33';ctx.lineWidth=1;for(let i=7;i<h;i+=12){ctx.beginPath();ctx.moveTo(x+4,y+i);ctx.bezierCurveTo(x+w*.3,y+i-4,x+w*.7,y+i+5,x+w-4,y+i);ctx.stroke()}}
+function woodBeam(x,y,w,h){
+ ctx.save();const vertical=h>w;
+ const g=ctx.createLinearGradient(x,y,vertical?x+w:x,vertical?y:y+h);
+ for(const [at,color] of [[0,'#a27146'],[.08,'#80502e'],[.26,'#59351f'],[.55,'#75492b'],[.85,'#452919'],[1,'#21160f']])g.addColorStop(at,color);
+ ctx.fillStyle=g;roundedRect(x,y,w,h,5);ctx.fill();
+ ctx.save();roundedRect(x+2,y+2,w-4,h-4,4);ctx.clip();
+ // Fine, deterministic grain follows the long axis of each timber.
+ const across=vertical?w:h,length=vertical?h:w;
+ for(let i=3;i<across;i+=3){
+  ctx.strokeStyle=i%2?'rgba(234,177,112,.14)':'rgba(21,10,5,.23)';ctx.lineWidth=i%4===0?1.2:.65;
+  const wave=Math.sin(i*1.7+x*.03+y*.02)*2.2;
+  ctx.beginPath();if(vertical){ctx.moveTo(x+i,y);ctx.bezierCurveTo(x+i+wave,y+length*.3,x+i-wave,y+length*.7,x+i,y+h);}else{ctx.moveTo(x,y+i);ctx.bezierCurveTo(x+length*.3,y+i+wave,x+length*.7,y+i-wave,x+w,y+i);}ctx.stroke();
+ }
+ ctx.restore();
+ ctx.strokeStyle='#25170e';ctx.lineWidth=2;roundedRect(x,y,w,h,5);ctx.stroke();
+ ctx.strokeStyle='rgba(255,213,156,.43)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(x+4,y+h-5);ctx.lineTo(x+4,y+4);ctx.lineTo(x+w-5,y+4);ctx.stroke();
+ ctx.strokeStyle='rgba(0,0,0,.48)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+5,y+h-3);ctx.lineTo(x+w-3,y+h-3);ctx.lineTo(x+w-3,y+5);ctx.stroke();ctx.restore();
+}
 function drawBrassGuide(m){
  const g=guideGeometry(m);
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
