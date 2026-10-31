@@ -19,7 +19,7 @@
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="1050" aria-label="Mechanical marble piano and violin with bass drum, twin-stick snare and brass cymbal, all within one hardwood machine"></canvas><div class="plaque" id="song-plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot" id="song-description">Für Elise: complete opening A section, with the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included; high E6 sounds at its true pitch but uses the E5 paddle visually.</p><p class="foot">Choose from seven songs above. Below the violin are a visible bass drum, twin-stick snare, and brass cymbal with cam-driven beaters. They perform automatically only when a song calls for drums; no drum button is needed. Für Elise, Amazing Grace, The Entertainer and America the Beautiful stay quiet, while Battle Hymn and Joy to the World have gentle percussion, and the original Swing Machine has a lively big-band drum arrangement. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
+<p class="foot" id="song-description">Für Elise: complete opening A section, with the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included; high E6 sounds at its true pitch but uses the E5 paddle visually.</p><p class="foot">Choose from seven songs above. Below the violin are a visible bass drum, twin-stick snare, and brass cymbal with cam-driven beaters. They perform automatically only when a song calls for drums; no drum button is needed. Für Elise, Amazing Grace, The Entertainer and America the Beautiful stay quiet, while Battle Hymn and Joy to the World have gentle percussion, and the original Swing Machine has a lively big-band drum arrangement. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The recessed walnut cabinet, bolted iron corner braces, bearing mounts, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
 <p class="foot">Für Elise score: OpenScore (CC0). Battle Hymn of the Republic: public-domain tune traditionally attributed to William Steffe, arranged for Marble Melodies from historical melody notation (<a style="color:#f5d18a" href="https://www.loc.gov/collections/patriotic-melodies/articles-and-essays/battle-hymn-of-the-republic/" target="_blank" rel="noopener">Library of Congress history</a>). Joy to the World: the traditional public-domain ANTIOCH tune, transposed from a historical transcription (<a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fabc%2Fsession%2FSudburyAncients%2Fxmas%2FJoy_To_the_World-D-20-2%2F0000" target="_blank" rel="noopener">John Chambers ABC archive</a>), with original piano accompaniment. Amazing Grace: traditional public-domain NEW BRITAIN melody (<a style="color:#f5d18a" href="https://hymnary.org/tune/new_britain" target="_blank" rel="noopener">Hymnary</a>), with a fresh accompaniment for this machine. America the Beautiful: Samuel A. Ward’s public-domain MATERNA tune, composed in 1882, adapted in C major from the 1927 historical songbook transcription (<a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fbook%2FEverydaySongBook%2F115_America_the_Beautiful%2F0000" target="_blank" rel="noopener">John Chambers’s historical ABC notation</a>; <a style="color:#f5d18a" href="https://www.hymnary.org/tune/materna_ward" target="_blank" rel="noopener">Hymnary tune details</a>). The original piano accompaniment was written for this app. The Entertainer: Scott Joplin’s original 1902 public-domain rag, using the opening and 16-bar A strain adapted from the historic score (<a style="color:#f5d18a" href="https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=263" target="_blank" rel="noopener">Mutopia Project original-edition transcription</a>). The accompaniment here is simplified for the mechanical piano, not a modern copyrighted recording or arrangement. The original Swing Machine melody and arrangement were written specifically for Marble Melodies and do not reproduce Sing, Sing, Sing. Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
@@ -1475,9 +1475,49 @@ function drawDrumModule(now){
  ctx.restore();
 }
 
+// Cabinet depth and fixed bearing mounts; all motion retains the musical clock.
+function cabinetBackdrop(){
+ ctx.save();
+ // Recessed walnut panels with a warm light falling from the upper left.
+ for(const [y,h] of [[118,401],[633,180],[846,164]]){
+  const g=ctx.createLinearGradient(70,y,1050,y+h);
+  g.addColorStop(0,'#59402b');g.addColorStop(.45,'#30241b');g.addColorStop(1,'#171411');
+  ctx.fillStyle=g;ctx.fillRect(72,y,976,h);
+  ctx.strokeStyle='#100d0b';ctx.lineWidth=9;ctx.strokeRect(77,y+5,966,h-10);
+  ctx.strokeStyle='#a37a4855';ctx.lineWidth=2;ctx.strokeRect(82,y+10,956,h-20);
+  for(let x=94;x<1040;x+=39){ctx.strokeStyle='#e6b47c09';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y+14);ctx.bezierCurveTo(x-8,y+h*.3,x+9,y+h*.7,x-3,y+h-14);ctx.stroke()}
+ }
+ // Full-height posts, inset edges, and substantial cabinet feet.
+ for(const x of [17,1068]){
+  ctx.shadowColor='#0009';ctx.shadowBlur=12;ctx.shadowOffsetX=5;
+  woodBeam(x,82,35,932);ctx.shadowColor='transparent';
+  ctx.strokeStyle='#d8ad7055';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+7,95);ctx.lineTo(x+7,999);ctx.stroke();
+  woodBeam(x-7,1008,50,31);
+ }
+ woodBeam(17,75,1086,17);
+ // Bolted iron gussets brace the upper chassis and chamber dividers.
+ for(const x of [73,1047])for(const y of [120,556,634,846]){
+  const dir=x<500?1:-1;
+  ctx.fillStyle='#30322f';ctx.strokeStyle='#a89b7d';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+dir*41,y);ctx.lineTo(x,y+34);ctx.closePath();ctx.fill();ctx.stroke();
+  for(const [dx,dy] of [[7,7],[27,6],[7,23]]){
+   const bx=x+dir*dx,by=y+dy;
+   ctx.fillStyle='#a69a7c';ctx.beginPath();ctx.arc(bx,by,3,0,Math.PI*2);ctx.fill();
+   ctx.strokeStyle='#37352d';ctx.beginPath();ctx.moveTo(bx-2,by+1);ctx.lineTo(bx+2,by-1);ctx.stroke();
+  }
+ }
+ // Bearing pedestals anchor the existing gears to the backboard.
+ for(const [x,y] of [[172,214],[255,217],[940,213],[858,215]]){
+  ctx.fillStyle='#171914';ctx.strokeStyle='#9d8d68';ctx.lineWidth=2;
+  ctx.beginPath();ctx.roundRect(x-22,y-20,44,58,5);ctx.fill();ctx.stroke();
+  for(const dx of [-15,15])brassRivet(x+dx,y+29,3);
+ }
+ ctx.restore();
+}
 function draw(){frame=requestAnimationFrame(draw);ctx.clearRect(0,0,W,H);
 const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#49301e');bg.addColorStop(1,'#24160f');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 for(let i=0;i<25;i++){ctx.strokeStyle='rgba(237,176,97,.045)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,i*42);ctx.bezierCurveTo(250,i*42+20,850,i*42-20,W,i*42);ctx.stroke()}
+cabinetBackdrop();
 // Workshop name appears in the page header; keep the machine face uncluttered.
 // Carved hardwood chassis and brass corner hardware.
 woodBeam(43,95,29,931);woodBeam(1048,95,29,931);woodBeam(62,525,997,28);woodBeam(62,91,997,25);
