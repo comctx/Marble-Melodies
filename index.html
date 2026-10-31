@@ -643,7 +643,7 @@ function buildWeWishYou(){
  ['E4:2 D4:2 C4:2','C'],['G4:4 G4:2','C'],
  ['A4:2 G4:2 F4:2','F'],['C5:2 C4:2 C4:1 C4:1','A#'],
  ['D4:2 G4:2 E4:2','C'],['F4:4 C4:2','F']];
- const chords={F:['F3','A3','C4'],A#:['A#2','D3','F3'],Gm:['G3','A#3','D4'],C:['C3','E3','G3']};
+ const chords={F:['F3','A3','C4'],'A#':['A#2','D3','F3'],Gm:['G3','A#3','D4'],C:['C3','E3','G3']};
  const melody=[{name:'C4',midi:midi('C4'),beat:0,len:2}],backing=[],phrases=[];let tick=2;
  for(let pass=0;pass<2;pass++)for(let bar=0;bar<16;bar++){
   let [tokens,chord]=bars[bar];if(pass===1&&bar===15)tokens='F4:6';
