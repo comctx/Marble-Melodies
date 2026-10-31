@@ -106,6 +106,7 @@ const violinOpenStrings=[55,62,69,76];
 function violinStringIndex(m){for(let i=3;i>=0;i--)if(m>=violinOpenStrings[i])return i;return 0;}
 // Four selector ports below the tuned keys, one for each bowed string.
 const violinSelectorX=[350,466,582,698];
+const violinBusY=i=>541+i*5.6;
 const lead=4.0; // Slow, deliberate visual travel before each note; musical tempo unchanged.
 // One audio-clock timeline drives rail travel, paddle contact and key impact.
 const railSpeed=300,feedSeconds=.18,dropSeconds=.36;
@@ -554,24 +555,35 @@ function drawViolinModule(now,active){
 function drawKeyFollowers(active){
  const selected=new Map();
  for(const a of active)if(a)selected.set(visualPitch(a.note.midi),a);
- ctx.save();ctx.lineCap='round';
+ ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+ // Four permanently installed brass bus wires under the return tray.
+ // Notes move a follower; wires NEVER vanish between note events.
+ for(let i=0;i<4;i++){
+  const y=violinBusY(i);
+  ctx.strokeStyle='#302218';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(99,y);ctx.lineTo(974,y);ctx.stroke();
+  ctx.strokeStyle='#a17c4e';ctx.lineWidth=1.6;
+  ctx.beginPath();ctx.moveTo(99,y);ctx.lineTo(974,y);ctx.stroke();
+ }
  for(const m of pitches){
-  const x=xFor(m),start=barYFor(m)+24,a=selected.get(m),pulse=a?Math.exp(-a.age*12):0;
-  // Short brass key plungers disappear behind the return chute.
-  ctx.strokeStyle='#392819';ctx.lineWidth=5;
-  ctx.beginPath();ctx.moveTo(x,start);ctx.lineTo(x,481);ctx.stroke();
-  ctx.strokeStyle=a?'#f5d18c':'#917247';ctx.lineWidth=a?2.6:1.6;
-  ctx.beginPath();ctx.moveTo(x,start-4*pulse);ctx.lineTo(x,479);ctx.stroke();
-  ctx.fillStyle=a?'#ffdf9d':'#a98248';
+  const x=xFor(m),start=barYFor(m)+24,a=selected.get(m);
+  const pulse=a?Math.exp(-a.age*12):0,bus=violinBusY(violinStringIndex(m));
+  // All twenty-five key plungers are permanently attached to their bus.
+  ctx.strokeStyle='#322316';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(x,start);ctx.lineTo(x,bus);ctx.stroke();
+  ctx.strokeStyle='#927145';ctx.lineWidth=1.7;
+  ctx.beginPath();ctx.moveTo(x,start-4*pulse);ctx.lineTo(x,bus);ctx.stroke();
+  ctx.fillStyle=a?'#ffdf9d':'#aa804c';
   ctx.beginPath();ctx.arc(x,start-4*pulse,3.5,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(x,bus,2.2,0,Math.PI*2);ctx.fill();
  }
  ctx.restore();
 }
-// Four mechanical pull-rods transfer key movement to the correct violin bow
-// and finger-stop. Each highlighted rod starts at an actual marble key strike.
+// Four permanently connected pull-rods transmit key movement from the
+// note buses to the violin bow and finger-stop mechanisms.
 function drawViolinLinkages(active){
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
- // Four-way selector gallery, tucked between the return chute and violin bay.
+ // A fixed selector gallery is visible even with the music stopped.
  ctx.fillStyle='#271b13';ctx.strokeStyle='#b98d50';ctx.lineWidth=3;
  ctx.beginPath();ctx.roundRect(304,567,458,43,7);ctx.fill();ctx.stroke();
  ctx.strokeStyle='#e3b573';ctx.lineWidth=3;
@@ -583,40 +595,36 @@ function drawViolinLinkages(active){
   const rowY=624+.89*(78+i*38),bowRestX=75+.865*731;
   const bowX=bowRestX+(a?Math.sin(a.age*15)*28*.865:0);
   const pulse=a?Math.exp(-a.age*10):0,engaged=!!a;
-  // Static four-way bearing: all rods are visible, but only the selected
-  // string's follower moves, so the visual signal is easy to trace.
+  // The fixed feed from each wire bus to the selector cam.
+  ctx.strokeStyle='#312219';ctx.lineWidth=6;
+  ctx.beginPath();ctx.moveTo(sx,violinBusY(i));ctx.lineTo(sx,585);ctx.stroke();
+  ctx.strokeStyle=engaged?'#ddbb80':'#916d42';ctx.lineWidth=2.4;
+  ctx.beginPath();ctx.moveTo(sx,violinBusY(i));ctx.lineTo(sx,585-5*pulse);ctx.stroke();
+  // Each bow has a permanent linkage; only its throw varies with the note.
   ctx.strokeStyle='#33251a';ctx.lineWidth=7;
   ctx.beginPath();ctx.moveTo(sx,585);ctx.lineTo(sx,637+i*6);
   ctx.lineTo(bowRestX-11,rowY-17);ctx.stroke();
   ctx.strokeStyle=engaged?'#f4cb7d':'#916d42';ctx.lineWidth=engaged?3.5:2;
   ctx.beginPath();ctx.moveTo(sx,585-5*pulse);ctx.lineTo(sx,637+i*6);
   ctx.lineTo(bowX-11,rowY-17);ctx.stroke();
-  // The cam at each selector port pulls inward at the moment of impact.
   ctx.save();ctx.translate(sx,586);ctx.rotate(engaged?-pulse*.55:0);
   ctx.fillStyle=engaged?'#b78a43':'#4a3625';ctx.strokeStyle='#e5bb79';ctx.lineWidth=2;
   ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();ctx.stroke();
   ctx.beginPath();ctx.moveTo(-6,0);ctx.lineTo(6,0);ctx.stroke();
   ctx.restore();
-  // A narrow cable from the just-struck key reaches the selector port;
-  // it travels behind the bottom of the marble collection chute.
-  if(a){
-   const x=a.keyX,fromY=barYFor(a.note.midi)+26;
-   ctx.strokeStyle='rgba(25,18,13,.8)';ctx.lineWidth=5;
-   ctx.beginPath();ctx.moveTo(x,fromY);ctx.lineTo(x,550);
-   ctx.quadraticCurveTo(x,565,sx,576);ctx.lineTo(sx,579);ctx.stroke();
-   ctx.strokeStyle='#f2cc7e';ctx.lineWidth=2.5;
-   ctx.beginPath();ctx.moveTo(x,fromY-5*pulse);ctx.lineTo(x,550);
-   ctx.quadraticCurveTo(x,565,sx,576);ctx.lineTo(sx,579-5*pulse);ctx.stroke();
-   ctx.fillStyle='#ffe2a3';ctx.beginPath();ctx.arc(x,fromY-5*pulse,4.5,0,Math.PI*2);ctx.fill();
-   // Pitch selection is mechanical too: a separate fine Bowden cable ends
-   // at the visible fingering stop on the appropriate violin string.
-   const semitones=Math.max(0,a.note.midi-violinOpenStrings[i]);
-   const localFingerX=290+520*(1-Math.pow(2,-semitones/12));
-   const fingerX=75+.865*localFingerX;
-   ctx.strokeStyle='rgba(229,187,118,.65)';ctx.lineWidth=1.5;
-   ctx.beginPath();ctx.moveTo(sx,620);ctx.quadraticCurveTo(fingerX,655,fingerX,rowY-9);ctx.stroke();
-   ctx.fillStyle='#f9d38d';ctx.beginPath();ctx.arc(fingerX,rowY-9,3,0,Math.PI*2);ctx.fill();
-  }
+  // Continuous Bowden sheath goes to the movable finger-stop carriage.
+  // When resting it stays connected to the open-string stop.
+  const semitones=a?Math.max(0,a.note.midi-violinOpenStrings[i]):0;
+  const localFingerX=290+520*(1-Math.pow(2,-semitones/12));
+  const fingerX=75+.865*localFingerX;
+  ctx.strokeStyle='#2a1b12';ctx.lineWidth=4.5;
+  ctx.beginPath();ctx.moveTo(sx,618);
+  ctx.bezierCurveTo(sx+8,645,fingerX-30,652,fingerX,rowY-9);ctx.stroke();
+  ctx.strokeStyle=engaged?'#dfbb7d':'#99754a';ctx.lineWidth=1.65;
+  ctx.beginPath();ctx.moveTo(sx,618);
+  ctx.bezierCurveTo(sx+8,645,fingerX-30,652,fingerX,rowY-9);ctx.stroke();
+  ctx.fillStyle=engaged?'#f9d38d':'#a47b48';
+  ctx.beginPath();ctx.arc(fingerX,rowY-9,3,0,Math.PI*2);ctx.fill();
  }
  ctx.restore();
 }
