@@ -10,7 +10,7 @@
 <header><h1>MARBLE MELODIES</h1><p>Watch the Music Come Alive ✦ Mechanical Music Workshop</p></header>
 <main class="shell">
 <div class="controls">
-<button id="wind">↻ Wind Fully</button><label for="winding">Spring <meter id="winding" min="0" max="100" value="0"></meter></label><button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
+<button id="wind">↻ Wind Fully</button><label for="winding">Spring <meter id="winding" min="0" max="100" value="0"></meter></label><label for="song">Song</label><select id="song" aria-label="Choose a song"><option value="elise" selected>Für Elise</option><option value="hymn">Battle Hymn of the Republic</option></select><button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
 <label for="tempo">Tempo</label><select id="tempo"><option value=".8">Gentle · 80%</option><option value="1" selected>Original · 100%</option><option value="1.2">Brisk · 120%</option></select>
 <label for="sound">Sound</label><select id="sound"><option value="grand" selected>Concert grand (recorded)</option><option value="piano">Electronic piano</option><option value="bell">Bell bars</option><option value="soft">Soft keys</option></select>
 <label for="mechanics">Mechanics</label><select id="mechanics" aria-label="Mechanical sound volume"><option value="0">Off</option><option value="1" selected>Subtle</option><option value="2">More audible</option></select>
@@ -18,13 +18,13 @@
 <label for="reverb">Reverb</label><select id="reverb" aria-label="Music room reverb"><option value="off">Off</option><option value="room" selected>Small Concert Room</option><option value="hall">Concert Hall</option></select>
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
-<div class="stage"><canvas id="scene" width="1120" height="850" aria-label="One tall mechanical marble and violin music machine with twenty-five tuned bars, brass guides, and four bowed violin strings in a shared hardwood cabinet"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot">Complete opening A section of Für Elise, with the engraved repeats and both endings, including the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. The original high E6 note sounds at its true pitch but uses the E5 paddle visually. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
-<p class="foot">Piano score: OpenScore (CC0). Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
+<div class="stage"><canvas id="scene" width="1120" height="850" aria-label="One tall mechanical marble and violin music machine with twenty-five tuned bars, brass guides, and four bowed violin strings in a shared hardwood cabinet"></canvas><div class="plaque" id="song-plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
+<p class="foot" id="song-description">Für Elise: complete opening A section, with the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included; high E6 sounds at its true pitch but uses the E5 paddle visually.</p><p class="foot">Choose either song above. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
+<p class="foot">Für Elise score: OpenScore (CC0). Battle Hymn of the Republic: public-domain tune traditionally attributed to William Steffe, arranged for Marble Melodies from historical melody notation (<a style="color:#f5d18a" href="https://www.loc.gov/collections/patriotic-melodies/articles-and-essays/battle-hymn-of-the-republic/" target="_blank" rel="noopener">Library of Congress history</a>). Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
 const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
-const playBtn=document.getElementById('play'),stopBtn=document.getElementById('stop'),tempoSel=document.getElementById('tempo'),soundSel=document.getElementById('sound'),mechanicsSel=document.getElementById('mechanics'),violinSel=document.getElementById('violin'),reverbSel=document.getElementById('reverb'),statusEl=document.getElementById('status');
+const playBtn=document.getElementById('play'),stopBtn=document.getElementById('stop'),tempoSel=document.getElementById('tempo'),soundSel=document.getElementById('sound'),mechanicsSel=document.getElementById('mechanics'),violinSel=document.getElementById('violin'),reverbSel=document.getElementById('reverb'),songSel=document.getElementById('song'),songPlaque=document.getElementById('song-plaque'),songDescription=document.getElementById('song-description'),statusEl=document.getElementById('status');
 const W=canvas.width,H=canvas.height;
 let springCharge=0,initialCharge=0,crankDragging=false,crankLastAngle=0,manualCrankAngle=0;
 const windBtn=document.getElementById('wind'),windingMeter=document.getElementById('winding');
@@ -69,7 +69,7 @@ const scoreMeasures=[
 ];
 // Perform the two engraved repeat signs with first and second endings.
 const sectionPasses=[[0,1,2,3,4,5,6,7,8],[0,1,2,3,4,5,6,7,9],[10,11,12,13,14,15,16,17,18,19,20,21,22,23],[10,11,12,13,14,15,16,17,18,19,20,21,22,24]];
-const score=[],accompanimentScore=[],phraseEnds=[];
+let score=[],accompanimentScore=[],phraseEnds=[];
 let beats=0;
 for(let pass=0;pass<sectionPasses.length;pass++){
  for(const measure of sectionPasses[pass]){
@@ -90,6 +90,76 @@ for(let pass=0;pass<sectionPasses.length;pass++){
  }
  phraseEnds.push(score.length);
 }
+// Battle Hymn of the Republic (public-domain traditional Steffe melody).
+// One full verse and "Glory, Glory" refrain, transposed from D into C for
+// the existing C4–C6 marble keyboard. Eighth-note units follow the historic
+// 6/8 tune, as found in the public traditional-melody ABC notation.
+// This accompaniment was freshly created for Marble Melodies; it uses no
+// modern recording or protected arrangement.
+function buildBattleHymn(){
+ const bars=[
+ // One verse, 16 measures.
+ ['G4:2 G4:1 G4:2 F4:1','C'],
+ ['E4:2 G4:1 C5:2 D5:1','C'],
+ ['E5:2 E5:1 E5:2 D5:1','C'],
+ ['C5:3 C5:2 B4:1','C'],
+ ['A4:2 A4:1 A4:2 B4:1','F'],
+ ['C5:2 B4:1 C5:2 A4:1','F'],
+ ['G4:2 A4:1 G4:2 E4:1','G'],
+ ['G4:3 G4:2 G4:1','C'],
+ ['G4:2 G4:1 G4:2 F4:1','C'],
+ ['E4:2 G4:1 C5:2 D5:1','C'],
+ ['E5:2 E5:1 E5:2 D5:1','C'],
+ ['C5:2 R:1 C5:3','C'],
+ ['D5:3 D5:3','G'],
+ ['C5:3 B4:3','G'],
+ ['C5:6','C'],
+ ['C5:2 R:1 R:3','C'],
+ // Full refrain, 16 measures.
+ ['G4:3 G4:2 F4:1','C'],
+ ['E4:2 G4:1 C5:2 D5:1','C'],
+ ['E5:6','C'],
+ ['C5:3 C5:2 R:1','C'],
+ ['A4:3 A4:2 B4:1','F'],
+ ['C5:2 B4:1 C5:2 A4:1','F'],
+ ['G4:6','C'],
+ ['E4:3 E4:2 R:1','C'],
+ ['G4:3 G4:2 F4:1','C'],
+ ['E4:2 G4:1 C5:2 D5:1','C'],
+ ['E5:6','C'],
+ ['C5:2 R:1 C5:3','C'],
+ ['D5:3 D5:3','G'],
+ ['C5:3 B4:3','G'],
+ ['C5:6','C'],
+ ['C5:2 R:1 R:3','C']
+ ];
+ const chords={C:['C3','G3','E4'],F:['F3','C4','A3'],G:['G2','D3','B3']};
+ const melody=[],backing=[],phrases=[];
+ // A one-eighth pickup is part of the historical tune.
+ melody.push({name:'G4',midi:midi('G4'),beat:0,len:1});
+ let tick=1;
+ for(let bar=0;bar<bars.length;bar++){
+  const [tokens,chord]=bars[bar],notes=chords[chord];
+  let offset=0;
+  for(const token of tokens.split(' ')){
+   const [name,duration]=token.split(':'),len=Number(duration);
+   if(name!=='R')melody.push({name,midi:midi(name),beat:tick+offset,len});
+   offset+=len;
+  }
+  if(offset!==6)throw Error('Battle Hymn bar '+(bar+1)+' has wrong length');
+  // Gentle bass pulse in the verse, rising piano arpeggio in the refrain.
+  const pattern=bar<16?
+   [[notes[0],0,3],[notes[1],3,3]]:
+   [[notes[0],0,2],[notes[1],2,2],[notes[2],4,2]];
+  for(const [name,at,len] of pattern)
+   backing.push({name,midi:midi(name),beat:tick+at,len});
+  tick+=6;
+  if((bar+1)%8===0)phrases.push(melody.length);
+ }
+ return {score:melody,accompanimentScore:backing,phraseEnds:phrases,beats:tick};
+}
+const furEliseSong={score,accompanimentScore,phraseEnds,beats};
+const battleHymnSong=buildBattleHymn();
 // A full two-octave chromatic keyboard: 25 physical notes, C4 through C6.
 // One original E6 accent is kept at its true audio pitch and represented by
 // the E5 action in the physical two-octave mechanism.
@@ -107,11 +177,28 @@ const violinOpenStrings=[55,62,69,76];
 function violinStringIndex(m){for(let i=3;i>=0;i--)if(m>=violinOpenStrings[i])return i;return 0;}
 // Each bowed string can sustain one note at a time. Precompute the next
 // strike on that string so a previous bow releases before the new impact.
-const nextViolinNoteIndex=score.map((n,i)=>{
- const string=violinStringIndex(n.midi);
- for(let j=i+1;j<score.length;j++)if(violinStringIndex(score[j].midi)===string)return j;
- return -1;
-});
+function buildNextViolinNoteIndex(){
+ return score.map((n,i)=>{
+  const string=violinStringIndex(n.midi);
+  for(let j=i+1;j<score.length;j++)
+   if(violinStringIndex(score[j].midi)===string)return j;
+  return -1;
+ });
+}
+let nextViolinNoteIndex=buildNextViolinNoteIndex();
+function selectSong(){
+ const hymn=songSel.value==='hymn';
+ const selected=hymn?battleHymnSong:furEliseSong;
+ score=selected.score;accompanimentScore=selected.accompanimentScore;
+ phraseEnds=selected.phraseEnds;beats=selected.beats;
+ nextViolinNoteIndex=buildNextViolinNoteIndex();
+ playBtn.textContent=hymn?'▶ Play Battle Hymn':'▶ Play Für Elise';
+ songPlaque.textContent=hymn?'BATTLE HYMN OF THE REPUBLIC • 1862':'FÜR ELISE • L. VAN BEETHOVEN';
+ songDescription.textContent=hymn?
+  'Battle Hymn of the Republic: one full verse and the Glory, Glory refrain, arranged for the marble piano and four-string mechanical violin. Historic public-domain melody with original piano accompaniment.':
+  'Für Elise: complete opening A section, with both repeats and endings, right-hand melody and quieter left-hand accompaniment. Later B and C sections are not included; high E6 uses the E5 paddle visually.';
+ if(!playing)statusEl.textContent='Ready to perform '+(hymn?'Battle Hymn of the Republic':'Für Elise');
+}
 function violinVoiceShape(n,index){
  const raw=Math.max(.12,n.len*secondsPerUnit*.85);
  const desired=Math.min(.9,Math.max(.14,raw*.98));
@@ -556,10 +643,11 @@ async function play(){
  pumpAudio();
  playbackScheduler=setInterval(pumpAudio,AUDIO_PUMP_MS);
  statusEl.textContent=mode==='grand'?'Playing recorded concert grand…':
-  mode==='piano'?'Playing electronic piano…':'Playing Für Elise…';
+  mode==='piano'?'Playing electronic piano…':'Playing '+(songSel.value==='hymn'?'Battle Hymn of the Republic':'Für Elise')+'…';
  playbackEndTimer=setTimeout(()=>{if(id===session)stop()},(lead+duration+1)*1000);
 }
 playBtn.addEventListener('click',play);stopBtn.addEventListener('click',stop);
+songSel.addEventListener('change',()=>{if(playing)stop();selectSong();});
 tempoSel.addEventListener('change',()=>{if(playing)stop()});
 violinSel.addEventListener('change',()=>{activeViolinMode=violinSel.value;if(playing)stop()});
 function roundedRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
@@ -1294,6 +1382,7 @@ ctx.restore();
  for(const x of [57,1063])brassRivet(x,829,7);
  // Playback status is already displayed in the accessible controls above.
 }
+selectSong();
 draw();
 </script>
 </body></html>
