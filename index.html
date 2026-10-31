@@ -443,64 +443,121 @@ function violinSound(m,start,shape,level){
    MECHANICAL_BUS_LEVEL*Number(mechanicsSel.value),audio.currentTime,.015);
  }
  mechanicsSel.addEventListener('change',setMechanicsVolume);
- function scheduleMechanicalSounds(){
-  mechanicsBus=audio.createGain();
-  mechanicsBus.gain.value=MECHANICAL_BUS_LEVEL*Number(mechanicsSel.value);
-  mechanicsBus.connect(master);
-  // A paddle clicks at the exact first instant of its animated swing.
-  for(const n of score)mechanicalClick(startedAt+noteTiming(n).contactAt,'paddle');
-  // Bucket clicks recur at their physical wheel-passing rate, independent
-  // of musical tempo, matching the illustrated lift's 38px/s chain.
-  const bucketPitch=(2*(510-24)+2*28)/16;
-  const interval=bucketPitch/38;
-  for(let t=0;t<lead+duration;t+=interval)mechanicalClick(startedAt+t,'lift');
+ // Audio notes are created in small upcoming windows rather than allocating
+// the full performance on the main thread when the user presses Play.
+// The audio clock remains the source of truth for every marble and bow.
+let playbackScheduler=null,playbackEndTimer=null;
+const AUDIO_LOOKAHEAD=2.4,AUDIO_PUMP_MS=85;
+function stop(){
+ session++;playing=false;
+ if(playbackScheduler!==null){clearInterval(playbackScheduler);playbackScheduler=null}
+ if(playbackEndTimer!==null){clearTimeout(playbackEndTimer);playbackEndTimer=null}
+ if(master&&audio){
+  const old=master;
+  master=audio.createGain();master.gain.value=.4;master.connect(audio.destination);
+  old.gain.cancelScheduledValues(audio.currentTime);
+  old.gain.setTargetAtTime(0,audio.currentTime,.008);
+  setTimeout(()=>{try{old.disconnect()}catch{}},150);
  }
-
-function stop(){session++;playing=false;if(master&&audio){const old=master;master=audio.createGain();master.gain.value=.4;master.connect(audio.destination);old.gain.cancelScheduledValues(audio.currentTime);old.gain.setTargetAtTime(0,audio.currentTime,.008);setTimeout(()=>{try{old.disconnect()}catch{}},150)}instrumentBus=null;reverbConvolver=null;reverbWet=null;scheduled=[];playBtn.disabled=false;stopBtn.disabled=true;statusEl.textContent='Ready to perform'}
-async function play(){if(playing)return;if(springCharge<1){statusEl.textContent='Wind the mainspring first (turn crank or Wind Fully)';return}try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
-const id=++session;playing=true;playBtn.disabled=true;stopBtn.disabled=false;secondsPerUnit=.24/Number(tempoSel.value);duration=beats*secondsPerUnit;startedAt=audio.currentTime+.16;initialCharge=springCharge;
-let mode=soundSel.value;
-activeViolinMode=violinSel.value;
-let violinAvailable=true;
-if(mode==='grand'){
- statusEl.textContent='Loading concert grand recordings…';
- try{await loadGrand()}catch(e){console.warn('Grand samples unavailable',e);mode='piano';statusEl.textContent='Samples unavailable; using electronic piano';}
- if(id!==session)return;
- // Begin the audio clock only after the samples have loaded.
- startedAt=audio.currentTime+.16;
+ instrumentBus=null;reverbConvolver=null;reverbWet=null;
+ scheduled=[];playBtn.disabled=false;stopBtn.disabled=true;
+ statusEl.textContent='Ready to perform';
 }
-prepareInstrumentAudio();
-for(let i=0;i<score.length;i++){
- const n=score[i];if(id!==session)return;
- // Each phrase gently swells to its expressive high point, then relaxes.
- const phraseIndex=phraseEnds.findIndex(end=>i<end);
- const phraseStart=phraseIndex===0?0:phraseEnds[phraseIndex-1];
- const position=(i-phraseStart)/Math.max(1,phraseEnds[phraseIndex]-phraseStart-1);
- const swell=Math.pow(Math.sin(Math.PI*position),1.2);
- const expression=.69+.57*swell;
- const onset=startedAt+noteTiming(n).hitAt;
- const noteLength=Math.max(.12,n.len*secondsPerUnit*.85);
- if(activeViolinMode!=='lead')noteSound(n.midi,onset,noteLength,mode,expression);
- if(activeViolinMode!=='off'&&violinAvailable){
-  try{
-   violinSound(n.midi,onset,violinVoiceShape(n,i),(activeViolinMode==='lead'?.145:.068)*expression);
-  }catch(error){
-   // Even if a browser cannot render the violin, NEVER silence the duet
-   // or leave violin-lead mode without a melody.
-   console.warn('Violin audio unavailable; retaining piano playback',error);
-   violinAvailable=false;
-   if(activeViolinMode==='lead')noteSound(n.midi,onset,noteLength,mode,expression);
+function buildAudioEvents(){
+ const events=[];
+ // Marble notes and the matching paddle clicks use the established times.
+ for(let i=0;i<score.length;i++){
+  const note=score[i],q=noteTiming(note);
+  const phraseIndex=phraseEnds.findIndex(end=>i<end);
+  const phraseStart=phraseIndex===0?0:phraseEnds[phraseIndex-1];
+  const position=(i-phraseStart)/Math.max(1,phraseEnds[phraseIndex]-phraseStart-1);
+  const swell=Math.pow(Math.sin(Math.PI*position),1.2);
+  events.push({at:q.hitAt,kind:'melody',note,index:i,expression:.69+.57*swell});
+  events.push({at:q.contactAt,kind:'paddle'});
+ }
+ for(const note of accompanimentScore){
+  events.push({at:lead+note.beat*secondsPerUnit,kind:'accompaniment',note});
+ }
+ // Mechanical lift clicks still follow bucket-chain rotation, not tempo.
+ const bucketPitch=(2*(510-24)+2*28)/16;
+ const interval=bucketPitch/38;
+ for(let t=0;t<lead+duration;t+=interval)events.push({at:t,kind:'lift'});
+ events.sort((a,b)=>a.at-b.at);
+ return events;
+}
+async function play(){
+ if(playing)return;
+ if(springCharge<1){statusEl.textContent='Wind the mainspring first (turn crank or Wind Fully)';return}
+ try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
+ const id=++session;
+ playing=true;playBtn.disabled=true;stopBtn.disabled=false;
+ secondsPerUnit=.24/Number(tempoSel.value);
+ duration=beats*secondsPerUnit;initialCharge=springCharge;
+ let mode=soundSel.value,violinAvailable=true;
+ activeViolinMode=violinSel.value;
+ if(mode==='grand'){
+  statusEl.textContent='Loading concert grand recordings…';
+  try{await loadGrand()}catch(error){
+   console.warn('Grand samples unavailable',error);
+   mode='piano';statusEl.textContent='Samples unavailable; using electronic piano';
+  }
+  if(id!==session)return;
+ }
+ // Leave Web Audio a little more initialization headroom. The original
+ // marble travel lead remains four seconds and all notes stay on the beat.
+ startedAt=audio.currentTime+.40;
+ prepareInstrumentAudio();
+ mechanicsBus=audio.createGain();
+ mechanicsBus.gain.value=MECHANICAL_BUS_LEVEL*Number(mechanicsSel.value);
+ mechanicsBus.connect(master);
+ const events=buildAudioEvents();
+ let nextEvent=0;
+ function pumpAudio(){
+  if(id!==session||!playing)return;
+  const cutoff=audio.currentTime+AUDIO_LOOKAHEAD-startedAt;
+  let count=0;
+  // Spread node creation over ticks instead of freezing the whole page.
+  while(nextEvent<events.length&&events[nextEvent].at<=cutoff&&count<32){
+   const event=events[nextEvent++];
+   const start=startedAt+event.at;
+   // A suspended tab must not burst-play a backlog of expired notes.
+   if(start<audio.currentTime-.11)continue;
+   try{
+    if(event.kind==='paddle'||event.kind==='lift'){
+     mechanicalClick(start,event.kind);
+    }else if(event.kind==='accompaniment'){
+     const n=event.note;
+     noteSound(n.midi,start,Math.max(.13,n.len*secondsPerUnit*.80),mode,.37);
+    }else{
+     const n=event.note,i=event.index,expression=event.expression;
+     const noteLength=Math.max(.12,n.len*secondsPerUnit*.85);
+     if(activeViolinMode!=='lead'||!violinAvailable){
+      noteSound(n.midi,start,noteLength,mode,expression);
+     }
+     if(activeViolinMode!=='off'&&violinAvailable){
+      try{
+       violinSound(n.midi,start,violinVoiceShape(n,i),
+        (activeViolinMode==='lead'?.145:.068)*expression);
+      }catch(error){
+       console.warn('Violin unavailable; playing piano instead',error);
+       violinAvailable=false;
+       if(activeViolinMode==='lead')noteSound(n.midi,start,noteLength,mode,expression);
+       statusEl.textContent='Violin unavailable — playing piano instead';
+      }
+     }
+    }
+   }catch(error){
+    console.error('Audio event skipped',event.kind,error);
+   }
+   count++;
   }
  }
-}
-// The left hand is intentionally quieter, and doesn't release extra marbles.
-for(const n of accompanimentScore){
- if(id!==session)return;
- noteSound(n.midi,startedAt+lead+n.beat*secondsPerUnit,Math.max(.13,n.len*secondsPerUnit*.80),mode,.37);
-}
-scheduleMechanicalSounds();
-statusEl.textContent=!violinAvailable?'Violin unavailable — playing piano instead':mode==='grand'?'Playing recorded concert grand…':mode==='piano'?'Playing electronic piano…':'Playing Für Elise…';
-setTimeout(()=>{if(id===session)stop()},(lead+duration+1)*1000);
+ // At startup only the first few events are queued, not the entire piece.
+ pumpAudio();
+ playbackScheduler=setInterval(pumpAudio,AUDIO_PUMP_MS);
+ statusEl.textContent=mode==='grand'?'Playing recorded concert grand…':
+  mode==='piano'?'Playing electronic piano…':'Playing Für Elise…';
+ playbackEndTimer=setTimeout(()=>{if(id===session)stop()},(lead+duration+1)*1000);
 }
 playBtn.addEventListener('click',play);stopBtn.addEventListener('click',stop);
 tempoSel.addEventListener('change',()=>{if(playing)stop()});
