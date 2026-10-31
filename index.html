@@ -15,15 +15,16 @@
 <label for="sound">Sound</label><select id="sound"><option value="grand" selected>Concert grand (recorded)</option><option value="piano">Electronic piano</option><option value="bell">Bell bars</option><option value="soft">Soft keys</option></select>
 <label for="mechanics">Mechanics</label><select id="mechanics" aria-label="Mechanical sound volume"><option value="0">Off</option><option value="1" selected>Subtle</option><option value="2">More audible</option></select>
 <label for="violin">Violin</label><select id="violin" aria-label="Violin instrument"><option value="off">Off</option><option value="duet" selected>Soft duet</option><option value="lead">Violin lead</option></select>
+<label for="reverb">Reverb</label><select id="reverb" aria-label="Music room reverb"><option value="off">Off</option><option value="room" selected>Small Concert Room</option><option value="hall">Concert Hall</option></select>
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="850" aria-label="One tall mechanical marble and violin music machine with twenty-five tuned bars, brass guides, and four bowed violin strings in a shared hardwood cabinet"></canvas><div class="plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot">Complete opening A section of Für Elise, with the engraved repeats and both endings, including the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. The original high E6 note sounds at its true pitch but uses the E5 paddle visually. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Tap Play to enable sound.</p>
+<p class="foot">Complete opening A section of Für Elise, with the engraved repeats and both endings, including the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. The original high E6 note sounds at its true pitch but uses the E5 paddle visually. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
 <p class="foot">Piano score: OpenScore (CC0). Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
 const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
-const playBtn=document.getElementById('play'),stopBtn=document.getElementById('stop'),tempoSel=document.getElementById('tempo'),soundSel=document.getElementById('sound'),mechanicsSel=document.getElementById('mechanics'),violinSel=document.getElementById('violin'),statusEl=document.getElementById('status');
+const playBtn=document.getElementById('play'),stopBtn=document.getElementById('stop'),tempoSel=document.getElementById('tempo'),soundSel=document.getElementById('sound'),mechanicsSel=document.getElementById('mechanics'),violinSel=document.getElementById('violin'),reverbSel=document.getElementById('reverb'),statusEl=document.getElementById('status');
 const W=canvas.width,H=canvas.height;
 let springCharge=0,initialCharge=0,crankDragging=false,crankLastAngle=0,manualCrankAngle=0;
 const windBtn=document.getElementById('wind'),windingMeter=document.getElementById('winding');
@@ -194,17 +195,58 @@ async function loadGrand(){
  })().catch(e=>{grandLoading=null;throw e});
  return grandLoading;
 }
-// Warm the recorded grand without changing the timing of the marble strikes.
-let pianoRoom=null,pianoRoomMaster=null;
-function getPianoRoom(){
- if(pianoRoom && pianoRoomMaster===master)return pianoRoom;
- const delay=audio.createDelay(.5),feedback=audio.createGain(),damping=audio.createBiquadFilter(),wet=audio.createGain();
- delay.delayTime.value=.085;feedback.gain.value=.18;
- damping.type='lowpass';damping.frequency.value=2600;wet.gain.value=.11;
- delay.connect(damping);damping.connect(feedback);feedback.connect(delay);
- delay.connect(wet);wet.connect(master);
- pianoRoom=delay;pianoRoomMaster=master;return delay;
+// Music-only acoustic room effect. Piano and violin share this bus, while
+// the paddle and elevator mechanics remain on the dry master bus.
+let instrumentBus=null,reverbConvolver=null,reverbWet=null;
+const impulseCache=new Map();
+function roomImpulse(mode){
+ if(impulseCache.has(mode))return impulseCache.get(mode);
+ const hall=mode==='hall',seconds=hall?2.25:1.05,sr=audio.sampleRate;
+ const buffer=audio.createBuffer(2,Math.ceil(seconds*sr),sr);
+ const predelay=hall?.025:.009,decay=hall?3.2:6.5;
+ for(let ch=0;ch<2;ch++){
+  const data=buffer.getChannelData(ch);let filtered=0,energy=0;
+  for(let i=0;i<data.length;i++){
+   const t=i/sr-predelay;if(t<0)continue;
+   const random=Math.random()*2-1;
+   filtered=.56*filtered+.44*random;
+   const value=filtered*Math.exp(-decay*t);
+   data[i]=value;energy+=value*value;
+  }
+  const norm=1/Math.sqrt(Math.max(.001,energy));
+  for(let i=0;i<data.length;i++)data[i]*=norm;
+ }
+ impulseCache.set(mode,buffer);return buffer;
 }
+function updateReverb(){
+ if(!audio||!reverbConvolver||!reverbWet)return;
+ const mode=reverbSel.value;
+ try{
+  if(mode!=='off')reverbConvolver.buffer=roomImpulse(mode);
+  // Keep the direct instrument attack intact, add only modest ambience.
+  reverbWet.gain.setTargetAtTime(mode==='room'?.18:mode==='hall'?.28:0,audio.currentTime,.06);
+ }catch(err){
+  console.warn('Room ambience unavailable; playing dry',err);
+  reverbWet.gain.setTargetAtTime(0,audio.currentTime,.02);
+ }
+}
+function prepareInstrumentAudio(){
+ // Stop replaces the master bus; therefore build a fresh instrument path
+ // every performance so old reverb tails do not bleed into a new song.
+ instrumentBus=audio.createGain();instrumentBus.connect(master);
+ reverbConvolver=null;reverbWet=null;
+ try{
+  reverbConvolver=audio.createConvolver();reverbConvolver.normalize=false;
+  reverbWet=audio.createGain();reverbWet.gain.value=0;
+  instrumentBus.connect(reverbConvolver);
+  reverbConvolver.connect(reverbWet);reverbWet.connect(master);
+  updateReverb();
+ }catch(err){
+  console.warn('Reverb not supported; original dry sound retained',err);
+  reverbConvolver=null;reverbWet=null;
+ }
+}
+reverbSel.addEventListener('change',updateReverb);
 function grandSound(m,start,dur,expression=1){
  const sample=grandSamples.reduce((a,b)=>Math.abs(a.m-m)<=Math.abs(b.m-m)?a:b);
  const src=audio.createBufferSource(),gain=audio.createGain();
@@ -222,13 +264,13 @@ function grandSound(m,start,dur,expression=1){
  gain.gain.exponentialRampToValueAtTime(.20*expression,releaseStart);
  gain.gain.exponentialRampToValueAtTime(.00001,end);
  src.connect(warmth);warmth.connect(presence);presence.connect(gain);
- gain.connect(master);gain.connect(getPianoRoom());
+ gain.connect(instrumentBus);
  src.start(start);src.stop(end+.03);
  scheduled.push(gain);
 }
 function pianoSound(m,start,dur,expression=1){
  const base=hz(m),length=Math.min(3.2,Math.max(.55,dur*2.7));
- const voice=audio.createGain();voice.connect(master);
+ const voice=audio.createGain();voice.connect(instrumentBus);
  voice.gain.setValueAtTime(.00001,start);
  voice.gain.exponentialRampToValueAtTime(.19*expression,start+.004);
  voice.gain.exponentialRampToValueAtTime(.105*expression,start+.065);
@@ -248,12 +290,12 @@ function pianoSound(m,start,dur,expression=1){
  const noise=audio.createBufferSource(),low=audio.createBiquadFilter(),ng=audio.createGain();
  noise.buffer=buf;low.type='lowpass';low.frequency.value=2400;
  ng.gain.setValueAtTime(.018*expression,start);ng.gain.exponentialRampToValueAtTime(.00001,start+nLen);
- noise.connect(low);low.connect(ng);ng.connect(master);noise.start(start);noise.stop(start+nLen);
+ noise.connect(low);low.connect(ng);ng.connect(instrumentBus);noise.start(start);noise.stop(start+nLen);
  scheduled.push(voice);
 }
 function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(m,start,dur,expression);return}if(mode==='piano'){pianoSound(m,start,dur,expression);return}
  const fundamental=hz(m);
- const envelope=audio.createGain();envelope.connect(master);
+ const envelope=audio.createGain();envelope.connect(instrumentBus);
  const isBell=mode==='bell';
  const strike=(.16+Math.min(.11,dur*.07))*expression;
  const release=isBell?Math.min(3.1,Math.max(.9,dur*2.5)):Math.min(1.8,Math.max(.35,dur*1.4));
@@ -279,7 +321,7 @@ function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(
  noise.buffer=buffer;filter.type='highpass';filter.frequency.value=1400;
  clickGain.gain.setValueAtTime((isBell?.035:.018)*expression,start);
  clickGain.gain.exponentialRampToValueAtTime(.00001,start+clickLen);
- noise.connect(filter);filter.connect(clickGain);clickGain.connect(master);
+ noise.connect(filter);filter.connect(clickGain);clickGain.connect(instrumentBus);
  noise.start(start);noise.stop(start+clickLen);
  scheduled.push(envelope);
 }
@@ -307,7 +349,7 @@ function violinSound(m,start,noteLength,level){
  warmth.frequency.setValueAtTime(cutoff*.68,start);
  warmth.frequency.linearRampToValueAtTime(cutoff,start+attack+.06);
  warmth.frequency.linearRampToValueAtTime(cutoff*.85,end);
- warmth.connect(envelope);envelope.connect(master);
+ warmth.connect(envelope);envelope.connect(instrumentBus);
  envelope.gain.setValueAtTime(.00001,start);
  envelope.gain.linearRampToValueAtTime(level*.77,start+attack);
  envelope.gain.linearRampToValueAtTime(level,start+attack+.067);
@@ -342,7 +384,7 @@ function violinSound(m,start,noteLength,level){
  noiseGain.gain.linearRampToValueAtTime(level*.032,start+attack);
  noiseGain.gain.setValueAtTime(level*.023,holdEnd);
  noiseGain.gain.exponentialRampToValueAtTime(.00001,end);
- friction.connect(noiseFilter);noiseFilter.connect(noiseGain);noiseGain.connect(master);
+ friction.connect(noiseFilter);noiseFilter.connect(noiseGain);noiseGain.connect(instrumentBus);
  friction.start(start);friction.stop(end+.015);
  scheduled.push(envelope);
 }
@@ -398,7 +440,7 @@ function violinSound(m,start,noteLength,level){
   for(let t=0;t<lead+duration;t+=interval)mechanicalClick(startedAt+t,'lift');
  }
 
-function stop(){session++;playing=false;if(master&&audio){const old=master;master=audio.createGain();master.gain.value=.4;master.connect(audio.destination);old.gain.cancelScheduledValues(audio.currentTime);old.gain.setTargetAtTime(0,audio.currentTime,.008);setTimeout(()=>{try{old.disconnect()}catch{}},150)}scheduled=[];playBtn.disabled=false;stopBtn.disabled=true;statusEl.textContent='Ready to perform'}
+function stop(){session++;playing=false;if(master&&audio){const old=master;master=audio.createGain();master.gain.value=.4;master.connect(audio.destination);old.gain.cancelScheduledValues(audio.currentTime);old.gain.setTargetAtTime(0,audio.currentTime,.008);setTimeout(()=>{try{old.disconnect()}catch{}},150)}instrumentBus=null;reverbConvolver=null;reverbWet=null;scheduled=[];playBtn.disabled=false;stopBtn.disabled=true;statusEl.textContent='Ready to perform'}
 async function play(){if(playing)return;if(springCharge<1){statusEl.textContent='Wind the mainspring first (turn crank or Wind Fully)';return}try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
 const id=++session;playing=true;playBtn.disabled=true;stopBtn.disabled=false;secondsPerUnit=.24/Number(tempoSel.value);duration=beats*secondsPerUnit;startedAt=audio.currentTime+.16;initialCharge=springCharge;
 let mode=soundSel.value;
@@ -411,6 +453,7 @@ if(mode==='grand'){
  // Begin the audio clock only after the samples have loaded.
  startedAt=audio.currentTime+.16;
 }
+prepareInstrumentAudio();
 for(let i=0;i<score.length;i++){
  const n=score[i];if(id!==session)return;
  // Each phrase gently swells to its expressive high point, then relaxes.
