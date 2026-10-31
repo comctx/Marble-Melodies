@@ -762,38 +762,50 @@ function getDrumNoise(){
  for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
  return drumNoise;
 }
+// Acoustic emphasis for small speakers: the bass beater contains an audible
+// midrange knock, the snare has two crisp noise bands, and the cymbal has
+// both a broad shimmer and metallic partials. All are locally synthesized.
+// Each hit is still created from the SAME song-clock event as its moving
+// beater/stick/hammer; there are no prerecorded or copyrighted samples.
+function drumNoiseHit(start,length,level,type,freq,q=.7){
+ const src=audio.createBufferSource(),filter=audio.createBiquadFilter(),gain=audio.createGain();
+ src.buffer=getDrumNoise();
+ filter.type=type;filter.frequency.value=freq;if(type==='bandpass')filter.Q.value=q;
+ gain.gain.setValueAtTime(.00001,start);
+ gain.gain.linearRampToValueAtTime(Math.max(.00002,level),start+.003);
+ gain.gain.exponentialRampToValueAtTime(.00001,start+length);
+ src.connect(filter);filter.connect(gain);gain.connect(drumBus);
+ src.start(start);src.stop(start+length+.012);
+}
+function drumPitchHit(start,from,to,length,level,type='sine'){
+ const osc=audio.createOscillator(),gain=audio.createGain();
+ osc.type=type;
+ osc.frequency.setValueAtTime(from,start);
+ osc.frequency.exponentialRampToValueAtTime(to,start+Math.min(length-.01,.115));
+ gain.gain.setValueAtTime(.00001,start);
+ gain.gain.linearRampToValueAtTime(level,start+.004);
+ gain.gain.exponentialRampToValueAtTime(.00001,start+length);
+ osc.connect(gain);gain.connect(drumBus);
+ osc.start(start);osc.stop(start+length+.012);
+}
 function drumSound(kind,start,velocity){
  if(!drumBus)return;
- const volume=Math.max(.08,Math.min(1,velocity));
+ const v=Math.max(.08,Math.min(1,velocity));
  if(kind==='bass'){
-  const osc=audio.createOscillator(),gain=audio.createGain();
-  osc.type='sine';osc.frequency.setValueAtTime(145,start);
-  osc.frequency.exponentialRampToValueAtTime(54,start+.12);
-  gain.gain.setValueAtTime(.00001,start);
-  gain.gain.linearRampToValueAtTime(.38*volume,start+.006);
-  gain.gain.exponentialRampToValueAtTime(.00001,start+.28);
-  osc.connect(gain);gain.connect(drumBus);
-  osc.start(start);osc.stop(start+.29);
- }else{
-  const cymbal=kind==='cymbal',length=cymbal?.51:.14;
-  const noise=audio.createBufferSource(),filter=audio.createBiquadFilter(),gain=audio.createGain();
-  noise.buffer=getDrumNoise();
-  filter.type=cymbal?'highpass':'bandpass';filter.frequency.value=cymbal?4500:1900;
-  if(!cymbal)filter.Q.value=.8;
-  gain.gain.setValueAtTime(.00001,start);
-  gain.gain.linearRampToValueAtTime(volume*(cymbal?.085:.17),start+.003);
-  gain.gain.exponentialRampToValueAtTime(.00001,start+length);
-  noise.connect(filter);filter.connect(gain);gain.connect(drumBus);
-  noise.start(start);noise.stop(start+length+.01);
-  if(!cymbal){
-   const osc=audio.createOscillator(),body=audio.createGain();
-   osc.type='sine';osc.frequency.value=185;
-   body.gain.setValueAtTime(.00001,start);
-   body.gain.linearRampToValueAtTime(volume*.062,start+.003);
-   body.gain.exponentialRampToValueAtTime(.00001,start+.09);
-   osc.connect(body);body.connect(drumBus);
-   osc.start(start);osc.stop(start+.10);
-  }
+  // Body thud plus beater click, audible even on mobile/desktop speakers.
+  drumPitchHit(start,161,62,.30,v*.61);
+  drumPitchHit(start,230,125,.105,v*.18,'triangle');
+  drumNoiseHit(start,.035,v*.23,'bandpass',1050,.75);
+ }else if(kind==='snare'){
+  // Twin-stick crack: short rattle, broad snare wires, and drumhead.
+  drumNoiseHit(start,.165,v*.47,'highpass',1050);
+  drumNoiseHit(start,.105,v*.27,'bandpass',2250,.64);
+  drumPitchHit(start,205,170,.11,v*.12);
+ }else if(kind==='cymbal'){
+  // Broad audible upper-mid shimmer, not just inaudible high-frequency hiss.
+  drumNoiseHit(start,.63,v*.32,'highpass',2150);
+  drumNoiseHit(start,.42,v*.20,'bandpass',3850,.50);
+  drumPitchHit(start,1080,915,.29,v*.045,'triangle');
  }
 }
 
@@ -905,7 +917,7 @@ async function play(){
  mechanicsBus=audio.createGain();
  mechanicsBus.gain.value=MECHANICAL_BUS_LEVEL*Number(mechanicsSel.value);
  mechanicsBus.connect(master);
- drumBus=audio.createGain();drumBus.gain.value=songSel.value==='swing'?.61:.40;drumBus.connect(master);
+ drumBus=audio.createGain();drumBus.gain.value=songSel.value==='swing'?.94:.40;drumBus.connect(master);
  const events=buildAudioEvents();
  let nextEvent=0;
  function pumpAudio(){
@@ -925,7 +937,7 @@ async function play(){
      drumSound(event.drum,start,event.velocity);
     }else if(event.kind==='accompaniment'){
      const n=event.note;
-     noteSound(n.midi,start,Math.max(.13,n.len*secondsPerUnit*.80),mode,.37);
+     noteSound(n.midi,start,Math.max(.13,n.len*secondsPerUnit*.80),mode,songSel.value==='swing'?.27:.37);
     }else{
      const n=event.note,i=event.index,expression=event.expression;
      const noteLength=Math.max(.12,n.len*secondsPerUnit*.85);
