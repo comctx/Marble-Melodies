@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Marble Melodies — Watch the Music Come Alive</title>
 <style>
-:root{color-scheme:dark;--gold:#d6ad62;--ink:#100f14}*{box-sizing:border-box}body{margin:0;font:16px system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(ellipse at 50% 0%,#34291f,#100f14 65%);color:#f8ecd5}header{text-align:center;padding:24px 12px 8px}h1{font:clamp(30px,5vw,55px) Georgia,serif;margin:0;color:#f5d18a;letter-spacing:.05em}header p{margin:6px;color:#c9bda7}.shell{width:min(1150px,96vw);margin:auto}.controls{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:14px auto;padding:12px;border:1px solid #6c512d;background:#211b1a;border-radius:14px}button,select{background:linear-gradient(#6d4b2a,#372718);color:#fff2d7;border:1px solid #c7a268;border-radius:9px;padding:11px 17px;font-weight:650;cursor:pointer}button:hover{filter:brightness(1.17)}button:focus-visible,select:focus-visible{outline:3px solid #f6ce73}button:disabled{opacity:.5;cursor:default}label{font-size:14px;color:#e4d2b2}select{padding:10px}#status{min-width:170px;text-align:center;color:#f5d18a;font-size:14px}.stage{position:relative;overflow:hidden;border:12px ridge #84562d;border-radius:20px;background:linear-gradient(115deg,#3d281b,#5b3b23 45%,#302016);box-shadow:0 25px 50px #000a,inset 0 0 35px #0009}.stage:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 34px,#ffffff05 35px 36px);z-index:1}canvas{width:100%;height:auto;aspect-ratio:1120/850;display:block;position:relative;z-index:2}.plaque{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#25170d;border:2px solid #bc9251;border-radius:6px;padding:5px 15px;color:#e3bf7c;font:12px Georgia,serif;letter-spacing:.13em;white-space:nowrap;z-index:3}.foot{text-align:center;color:#b5a995;font-size:13px;margin:15px auto 25px;max-width:850px;line-height:1.5}@media(max-width:620px){.stage{border-width:6px}.controls{gap:8px}button{padding:10px 13px}.plaque{font-size:9px}}
+:root{color-scheme:dark;--gold:#d6ad62;--ink:#100f14}*{box-sizing:border-box}body{margin:0;font:16px system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(ellipse at 50% 0%,#34291f,#100f14 65%);color:#f8ecd5}header{text-align:center;padding:24px 12px 8px}h1{font:clamp(30px,5vw,55px) Georgia,serif;margin:0;color:#f5d18a;letter-spacing:.05em}header p{margin:6px;color:#c9bda7}.shell{width:min(1150px,96vw);margin:auto}.controls{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:14px auto;padding:12px;border:1px solid #6c512d;background:#211b1a;border-radius:14px}button,select{background:linear-gradient(#6d4b2a,#372718);color:#fff2d7;border:1px solid #c7a268;border-radius:9px;padding:11px 17px;font-weight:650;cursor:pointer}button:hover{filter:brightness(1.17)}button:focus-visible,select:focus-visible{outline:3px solid #f6ce73}button:disabled{opacity:.5;cursor:default}label{font-size:14px;color:#e4d2b2}select{padding:10px}#status{min-width:170px;text-align:center;color:#f5d18a;font-size:14px}.stage{position:relative;overflow:hidden;border:12px ridge #84562d;border-radius:20px;background:linear-gradient(115deg,#3d281b,#5b3b23 45%,#302016);box-shadow:0 25px 50px #000a,inset 0 0 35px #0009}.stage:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 34px,#ffffff05 35px 36px);z-index:1}canvas{width:100%;height:auto;aspect-ratio:1120/1050;display:block;position:relative;z-index:2}.plaque{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#25170d;border:2px solid #bc9251;border-radius:6px;padding:5px 15px;color:#e3bf7c;font:12px Georgia,serif;letter-spacing:.13em;white-space:nowrap;z-index:3}.foot{text-align:center;color:#b5a995;font-size:13px;margin:15px auto 25px;max-width:850px;line-height:1.5}@media(max-width:620px){.stage{border-width:6px}.controls{gap:8px}button{padding:10px 13px}.plaque{font-size:9px}}
 </style></head>
 <body>
 <header><h1>MARBLE MELODIES</h1><p>Watch the Music Come Alive ✦ Mechanical Music Workshop</p></header>
@@ -18,8 +18,8 @@
 <label for="reverb">Reverb</label><select id="reverb" aria-label="Music room reverb"><option value="off">Off</option><option value="room" selected>Small Concert Room</option><option value="hall">Concert Hall</option></select>
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
-<div class="stage"><canvas id="scene" width="1120" height="850" aria-label="One tall mechanical marble and violin music machine with twenty-five tuned bars, brass guides, and four bowed violin strings in a shared hardwood cabinet"></canvas><div class="plaque" id="song-plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot" id="song-description">Für Elise: complete opening A section, with the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included; high E6 sounds at its true pitch but uses the E5 paddle visually.</p><p class="foot">Choose from four songs above. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
+<div class="stage"><canvas id="scene" width="1120" height="1050" aria-label="Mechanical marble piano and violin with bass drum, twin-stick snare and brass cymbal, all within one hardwood machine"></canvas><div class="plaque" id="song-plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
+<p class="foot" id="song-description">Für Elise: complete opening A section, with the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included; high E6 sounds at its true pitch but uses the E5 paddle visually.</p><p class="foot">Choose from four songs above. Below the violin are a visible bass drum, twin-stick snare, and brass cymbal with cam-driven beaters. They perform automatically only when a song calls for drums; no drum button is needed. Für Elise and Amazing Grace stay quiet, while Battle Hymn and Joy to the World have gentle percussion. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
 <p class="foot">Für Elise score: OpenScore (CC0). Battle Hymn of the Republic: public-domain tune traditionally attributed to William Steffe, arranged for Marble Melodies from historical melody notation (<a style="color:#f5d18a" href="https://www.loc.gov/collections/patriotic-melodies/articles-and-essays/battle-hymn-of-the-republic/" target="_blank" rel="noopener">Library of Congress history</a>). Joy to the World: the traditional public-domain ANTIOCH tune, transposed from a historical transcription (<a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fabc%2Fsession%2FSudburyAncients%2Fxmas%2FJoy_To_the_World-D-20-2%2F0000" target="_blank" rel="noopener">John Chambers ABC archive</a>), with original piano accompaniment. Amazing Grace: traditional public-domain NEW BRITAIN melody (<a style="color:#f5d18a" href="https://hymnary.org/tune/new_britain" target="_blank" rel="noopener">Hymnary</a>), with a fresh accompaniment for this machine. Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
@@ -296,6 +296,30 @@ function buildNextViolinNoteIndex(){
  });
 }
 let nextViolinNoteIndex=buildNextViolinNoteIndex();
+// Original percussion accompaniments, independent of melody and violin.
+// Every drum stays installed; quiet songs intentionally contain no strikes.
+function buildDrumPattern(kind){
+ const rhythm=[];
+ const add=(beat,drum,velocity)=>rhythm.push({beat,drum,velocity});
+ if(kind==='hymn'){
+  for(let bar=0;bar<32;bar++){
+   const beat=1+bar*6;
+   add(beat,'bass',bar>=16?.72:.56);
+   add(beat+3,'snare',bar>=16?.66:.48);
+   if(bar>=16&&bar%2===1)add(beat+5,'snare',.25);
+   if([0,16,24,31].includes(bar))add(beat,'cymbal',bar===16?.62:.40);
+  }
+ }else if(kind==='joy'){
+  for(let bar=0;bar<40;bar++){
+   const beat=bar*4;
+   add(beat,'bass',bar>=20?.65:.47);
+   add(beat+2,'snare',bar>=20?.53:.40);
+   if(bar%5===0)add(beat,'cymbal',bar===20?.55:.35);
+  }
+ }
+ return rhythm.sort((a,b)=>a.beat-b.beat);
+}
+let drumPattern=[];
 function selectedSongTitle(){
  return songSel.value==='joy'?'Joy to the World':
   songSel.value==='grace'?'Amazing Grace':
@@ -309,6 +333,7 @@ function selectSong(){
  score=chosen.score;accompanimentScore=chosen.accompanimentScore;
  phraseEnds=chosen.phraseEnds;beats=chosen.beats;
  nextViolinNoteIndex=buildNextViolinNoteIndex();
+ drumPattern=buildDrumPattern(kind);
  playBtn.textContent=kind==='joy'?'▶ Play Joy to the World':
   kind==='grace'?'▶ Play Amazing Grace':
   kind==='hymn'?'▶ Play Battle Hymn':'▶ Play Für Elise';
@@ -617,7 +642,52 @@ function violinSound(m,start,shape,level){
  scheduled.push(envelope);
 }
 
- // Quiet, local Web Audio mechanical effects; no downloaded sound files.
+ // Locally synthesized acoustic drums; clean/dry master routing.
+let drumBus=null,drumNoise=null;
+function getDrumNoise(){
+ if(drumNoise)return drumNoise;
+ const len=Math.ceil(audio.sampleRate*.68);
+ drumNoise=audio.createBuffer(1,len,audio.sampleRate);
+ const data=drumNoise.getChannelData(0);
+ for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
+ return drumNoise;
+}
+function drumSound(kind,start,velocity){
+ if(!drumBus)return;
+ const volume=Math.max(.08,Math.min(1,velocity));
+ if(kind==='bass'){
+  const osc=audio.createOscillator(),gain=audio.createGain();
+  osc.type='sine';osc.frequency.setValueAtTime(145,start);
+  osc.frequency.exponentialRampToValueAtTime(54,start+.12);
+  gain.gain.setValueAtTime(.00001,start);
+  gain.gain.linearRampToValueAtTime(.38*volume,start+.006);
+  gain.gain.exponentialRampToValueAtTime(.00001,start+.28);
+  osc.connect(gain);gain.connect(drumBus);
+  osc.start(start);osc.stop(start+.29);
+ }else{
+  const cymbal=kind==='cymbal',length=cymbal?.51:.14;
+  const noise=audio.createBufferSource(),filter=audio.createBiquadFilter(),gain=audio.createGain();
+  noise.buffer=getDrumNoise();
+  filter.type=cymbal?'highpass':'bandpass';filter.frequency.value=cymbal?4500:1900;
+  if(!cymbal)filter.Q.value=.8;
+  gain.gain.setValueAtTime(.00001,start);
+  gain.gain.linearRampToValueAtTime(volume*(cymbal?.085:.17),start+.003);
+  gain.gain.exponentialRampToValueAtTime(.00001,start+length);
+  noise.connect(filter);filter.connect(gain);gain.connect(drumBus);
+  noise.start(start);noise.stop(start+length+.01);
+  if(!cymbal){
+   const osc=audio.createOscillator(),body=audio.createGain();
+   osc.type='sine';osc.frequency.value=185;
+   body.gain.setValueAtTime(.00001,start);
+   body.gain.linearRampToValueAtTime(volume*.062,start+.003);
+   body.gain.exponentialRampToValueAtTime(.00001,start+.09);
+   osc.connect(body);body.connect(drumBus);
+   osc.start(start);osc.stop(start+.10);
+  }
+ }
+}
+
+// Quiet, local Web Audio mechanical effects; no downloaded sound files.
  // Scheduled on the SAME audio clock as the paddle animation and piano.
  let mechanicsBus=null,mechanicalNoise=null;
  const MECHANICAL_BUS_LEVEL=.16;
@@ -671,7 +741,7 @@ function stop(){
   old.gain.setTargetAtTime(0,audio.currentTime,.008);
   setTimeout(()=>{try{old.disconnect()}catch{}},150);
  }
- instrumentBus=null;reverbConvolver=null;reverbWet=null;
+ instrumentBus=null;reverbConvolver=null;reverbWet=null;drumBus=null;
  scheduled=[];playBtn.disabled=false;stopBtn.disabled=true;
  statusEl.textContent='Ready to perform';
 }
@@ -689,6 +759,9 @@ function buildAudioEvents(){
  }
  for(const note of accompanimentScore){
   events.push({at:lead+note.beat*secondsPerUnit,kind:'accompaniment',note});
+ }
+ for(const hit of drumPattern){
+  events.push({at:lead+hit.beat*secondsPerUnit,kind:'drum',drum:hit.drum,velocity:hit.velocity});
  }
  // Mechanical lift clicks still follow bucket-chain rotation, not tempo.
  const bucketPitch=(2*(510-24)+2*28)/16;
@@ -722,6 +795,7 @@ async function play(){
  mechanicsBus=audio.createGain();
  mechanicsBus.gain.value=MECHANICAL_BUS_LEVEL*Number(mechanicsSel.value);
  mechanicsBus.connect(master);
+ drumBus=audio.createGain();drumBus.gain.value=.40;drumBus.connect(master);
  const events=buildAudioEvents();
  let nextEvent=0;
  function pumpAudio(){
@@ -737,6 +811,8 @@ async function play(){
    try{
     if(event.kind==='paddle'||event.kind==='lift'){
      mechanicalClick(start,event.kind);
+    }else if(event.kind==='drum'){
+     drumSound(event.drum,start,event.velocity);
     }else if(event.kind==='accompaniment'){
      const n=event.note;
      noteSound(n.midi,start,Math.max(.13,n.len*secondsPerUnit*.80),mode,.37);
@@ -1004,12 +1080,115 @@ function drawViolinLinkages(active){
  ctx.restore();
 }
 
+// Physical percussion is a new contiguous lower bay under the violin.
+function drumMotion(kind,now){
+ if(!playing||!audio)return 0;
+ let motion=0;
+ for(const hit of drumPattern){
+  if(hit.drum!==kind)continue;
+  const age=now-(lead+hit.beat*secondsPerUnit);
+  if(age<-.11||age>.29)continue;
+  const amount=age<0?(age+.11)/.11:Math.exp(-age*17);
+  motion=Math.max(motion,Math.max(0,amount)*hit.velocity);
+ }
+ return motion;
+}
+function drawDrumModule(now){
+ const bass=drumMotion('bass',now),snare=drumMotion('snare',now),cymbal=drumMotion('cymbal',now);
+ ctx.save();
+ const w=ctx.createLinearGradient(0,846,0,1013);
+ w.addColorStop(0,'#402919');w.addColorStop(1,'#211711');
+ ctx.fillStyle=w;ctx.fillRect(74,843,970,171);
+ ctx.strokeStyle='#a47b47';ctx.lineWidth=2;ctx.strokeRect(86,849,943,158);
+ ctx.textAlign='left';ctx.font='bold 17px Georgia,serif';ctx.fillStyle='#e2be80';
+ ctx.fillText('THE PERCUSSION WORKSHOP',99,870);
+ ctx.textAlign='right';ctx.font='11px Georgia,serif';ctx.fillStyle='#c9ab7d';
+ ctx.fillText('SYNCHRONIZED SPRING-DRIVEN INSTRUMENTS',1014,869);
+ // Permanently connected drive shaft and eccentric cams.
+ ctx.strokeStyle='#402d1d';ctx.lineWidth=11;ctx.beginPath();
+ ctx.moveTo(174,989);ctx.lineTo(980,989);ctx.stroke();
+ ctx.strokeStyle='#c59a56';ctx.lineWidth=4;ctx.beginPath();
+ ctx.moveTo(174,989);ctx.lineTo(980,989);ctx.stroke();
+ ctx.strokeStyle='#a67a47';ctx.lineWidth=4;ctx.beginPath();
+ ctx.moveTo(984,678);ctx.lineTo(1016,704);ctx.lineTo(1016,978);ctx.lineTo(980,989);ctx.stroke();
+ for(const [x,a] of [[369,bass],[569,snare],[937,cymbal]]){
+  ctx.strokeStyle='#9f7b4c';ctx.lineWidth=3;ctx.beginPath();
+  ctx.moveTo(x,985);ctx.lineTo(x,893+7*a);ctx.stroke();
+  ctx.save();ctx.translate(x,989);ctx.rotate(playing?now*2.4+a*.6:0);
+  ctx.fillStyle='#704a28';ctx.strokeStyle='#edcc8c';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.ellipse(0,0,13,9,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#efd49b';ctx.beginPath();ctx.arc(4,0,3,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+ }
+ // Bass drum: deep wooden shell, circular tensioned skin, beater arm.
+ const bx=247,by=927;
+ ctx.fillStyle='#683d21';ctx.strokeStyle='#ca9555';ctx.lineWidth=9;
+ ctx.beginPath();ctx.ellipse(bx+8,by+5,58,55,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ const skin=ctx.createRadialGradient(bx-15,by-20,3,bx,by,53);
+ skin.addColorStop(0,'#fff5df');skin.addColorStop(.7,'#e2cfaa');skin.addColorStop(1,'#a38a63');
+ ctx.fillStyle=skin;ctx.lineWidth=4;ctx.strokeStyle='#edcf9d';
+ ctx.beginPath();ctx.arc(bx,by,47,0,Math.PI*2);ctx.fill();ctx.stroke();
+ for(let j=0;j<10;j++){
+  const angle=j*Math.PI/5;
+  brassRivet(bx+Math.cos(angle)*52,by+Math.sin(angle)*52,2.5);
+ }
+ const tipX=324-27*bass,tipY=904+11*bass;
+ ctx.lineWidth=5;ctx.strokeStyle='#d5ac76';ctx.beginPath();
+ ctx.moveTo(374,878);ctx.lineTo(tipX,tipY);ctx.stroke();
+ ctx.fillStyle='#e6d4b2';ctx.strokeStyle='#b38c5b';ctx.lineWidth=2;
+ ctx.beginPath();ctx.arc(tipX,tipY,11,0,Math.PI*2);ctx.fill();ctx.stroke();
+ brassRivet(374,878,5);
+ ctx.fillStyle='#e6c892';ctx.textAlign='center';ctx.font='12px Georgia,serif';
+ ctx.fillText('BASS DRUM',247,1000);
+ // Snare drum: stretched top membrane, brass cylinder and TWO sticks.
+ const sx=569,sy=928;
+ ctx.fillStyle='#a87a43';ctx.strokeStyle='#e4b777';ctx.lineWidth=3;
+ ctx.fillRect(sx-60,sy,120,30);ctx.strokeRect(sx-60,sy,120,30);
+ for(let x=517;x<=625;x+=18){
+  ctx.strokeStyle='#f1d19a';ctx.lineWidth=2;ctx.beginPath();
+  ctx.moveTo(x,sy+3);ctx.lineTo(x,sy+27);ctx.stroke();
+ }
+ ctx.fillStyle='#eee1c1';ctx.strokeStyle='#dfbd89';
+ ctx.beginPath();ctx.ellipse(sx,sy,62,18,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ for(const side of [-1,1]){
+  const pivot=sx+side*108,tip=sx+side*(35-16*snare);
+  ctx.strokeStyle='#d8b27d';ctx.lineWidth=5;ctx.beginPath();
+  ctx.moveTo(pivot,878);ctx.lineTo(tip,904+18*snare);ctx.stroke();
+  ctx.fillStyle='#f7dda4';ctx.beginPath();
+  ctx.arc(tip,904+18*snare,4,0,Math.PI*2);ctx.fill();
+  brassRivet(pivot,878,4);
+ }
+ ctx.fillStyle='#e6c892';ctx.fillText('TWIN-STICK SNARE',sx,1000);
+ // Hammer-struck brass cymbal with an active resonating rim.
+ const cx=841,cy=921;
+ ctx.strokeStyle='#c59b5d';ctx.lineWidth=5;ctx.beginPath();
+ ctx.moveTo(cx,cy);ctx.lineTo(cx,982);ctx.stroke();
+ ctx.strokeStyle='#724a25';ctx.lineWidth=8;ctx.beginPath();
+ ctx.moveTo(cx-29,983);ctx.lineTo(cx+29,983);ctx.stroke();
+ const wobble=cymbal*Math.sin(now*45)*3;
+ const g=ctx.createLinearGradient(cx-75,cy,cx+75,cy);
+ g.addColorStop(0,'#86551e');g.addColorStop(.35,'#dcb467');
+ g.addColorStop(.6,'#ffe4a0');g.addColorStop(1,'#976524');
+ ctx.fillStyle=g;ctx.strokeStyle='#f9cd79';ctx.lineWidth=3;
+ ctx.beginPath();ctx.ellipse(cx,cy+wobble,75,19,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ ctx.strokeStyle='#aa7c3e';ctx.lineWidth=2;ctx.beginPath();
+ ctx.ellipse(cx,cy+wobble,44,10,0,0,Math.PI*2);ctx.stroke();
+ brassRivet(cx,cy+wobble-5,4);
+ const mx=931-35*cymbal,my=883+29*cymbal;
+ ctx.strokeStyle='#d5ae72';ctx.lineWidth=5;ctx.beginPath();
+ ctx.moveTo(969,869);ctx.lineTo(mx,my);ctx.stroke();
+ ctx.fillStyle='#ecdbb4';ctx.beginPath();ctx.arc(mx,my,9,0,Math.PI*2);ctx.fill();
+ brassRivet(969,869,5);
+ ctx.fillStyle='#e6c892';ctx.fillText('BRASS CYMBAL',cx,1000);
+ ctx.restore();
+}
+
 function draw(){frame=requestAnimationFrame(draw);ctx.clearRect(0,0,W,H);
 const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#49301e');bg.addColorStop(1,'#24160f');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-for(let i=0;i<16;i++){ctx.strokeStyle='rgba(237,176,97,.045)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,i*42);ctx.bezierCurveTo(250,i*42+20,850,i*42-20,W,i*42);ctx.stroke()}
+for(let i=0;i<25;i++){ctx.strokeStyle='rgba(237,176,97,.045)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,i*42);ctx.bezierCurveTo(250,i*42+20,850,i*42-20,W,i*42);ctx.stroke()}
 // Workshop name appears in the page header; keep the machine face uncluttered.
 // Carved hardwood chassis and brass corner hardware.
-woodBeam(43,95,29,729);woodBeam(1048,95,29,729);woodBeam(62,525,997,28);woodBeam(62,91,997,25);
+woodBeam(43,95,29,931);woodBeam(1048,95,29,931);woodBeam(62,525,997,28);woodBeam(62,91,997,25);
 for(const x of [57,1063])for(const y of [106,540])brassRivet(x,y,7);
 // An ornamental, music-clock-inspired drive train: rotation follows the audio clock.
 const driveTime=playing&&audio?Math.max(0,audio.currentTime-startedAt):0;
@@ -1505,6 +1684,9 @@ ctx.restore();
  woodBeam(62,617,997,13);
  woodBeam(62,817,997,25);
  for(const x of [57,1063])brassRivet(x,829,7);
+ drawDrumModule(driveTime);
+ woodBeam(62,1013,997,27);
+ for(const x of [57,1063])brassRivet(x,1025,7);
  // Playback status is already displayed in the accessible controls above.
 }
 selectSong();
