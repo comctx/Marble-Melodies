@@ -10,7 +10,7 @@
 <header><h1>MARBLE MELODIES</h1><p>Watch the Music Come Alive ✦ Mechanical Music Workshop</p></header>
 <main class="shell">
 <div class="controls">
-<button id="wind">↻ Wind Fully</button><label for="winding">Spring <meter id="winding" min="0" max="100" value="0"></meter></label><label for="song">Song</label><select id="song" aria-label="Choose a song"><option value="elise" selected>Für Elise</option><option value="hymn">Battle Hymn of the Republic</option><option value="grace">Amazing Grace</option><option value="joy">Joy to the World</option><option value="swing">Swing Machine (Original Jazz)</option><option value="entertainer">The Entertainer — Scott Joplin</option></select><button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
+<button id="wind">↻ Wind Fully</button><label for="winding">Spring <meter id="winding" min="0" max="100" value="0"></meter></label><label for="song">Song</label><select id="song" aria-label="Choose a song"><option value="elise" selected>Für Elise</option><option value="hymn">Battle Hymn of the Republic</option><option value="grace">Amazing Grace</option><option value="joy">Joy to the World</option><option value="swing">Swing Machine (Original Jazz)</option><option value="entertainer">The Entertainer — Scott Joplin</option><option value="america">America the Beautiful</option></select><button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
 <label for="tempo">Tempo</label><select id="tempo"><option value=".8">Gentle · 80%</option><option value="1" selected>Original · 100%</option><option value="1.2">Brisk · 120%</option></select>
 <label for="sound">Sound</label><select id="sound"><option value="grand" selected>Concert grand (recorded)</option><option value="piano">Electronic piano</option><option value="bell">Bell bars</option><option value="soft">Soft keys</option></select>
 <label for="mechanics">Mechanics</label><select id="mechanics" aria-label="Mechanical sound volume"><option value="0">Off</option><option value="1" selected>Subtle</option><option value="2">More audible</option></select>
@@ -19,8 +19,8 @@
 <span id="status" role="status" aria-live="polite">Ready to perform</span>
 </div>
 <div class="stage"><canvas id="scene" width="1120" height="1050" aria-label="Mechanical marble piano and violin with bass drum, twin-stick snare and brass cymbal, all within one hardwood machine"></canvas><div class="plaque" id="song-plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot" id="song-description">Für Elise: complete opening A section, with the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included; high E6 sounds at its true pitch but uses the E5 paddle visually.</p><p class="foot">Choose from six songs above. Below the violin are a visible bass drum, twin-stick snare, and brass cymbal with cam-driven beaters. They perform automatically only when a song calls for drums; no drum button is needed. Für Elise and Amazing Grace stay quiet, while Battle Hymn and Joy to the World have gentle percussion, and the original Swing Machine has a lively big-band drum arrangement. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
-<p class="foot">Für Elise score: OpenScore (CC0). Battle Hymn of the Republic: public-domain tune traditionally attributed to William Steffe, arranged for Marble Melodies from historical melody notation (<a style="color:#f5d18a" href="https://www.loc.gov/collections/patriotic-melodies/articles-and-essays/battle-hymn-of-the-republic/" target="_blank" rel="noopener">Library of Congress history</a>). Joy to the World: the traditional public-domain ANTIOCH tune, transposed from a historical transcription (<a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fabc%2Fsession%2FSudburyAncients%2Fxmas%2FJoy_To_the_World-D-20-2%2F0000" target="_blank" rel="noopener">John Chambers ABC archive</a>), with original piano accompaniment. Amazing Grace: traditional public-domain NEW BRITAIN melody (<a style="color:#f5d18a" href="https://hymnary.org/tune/new_britain" target="_blank" rel="noopener">Hymnary</a>), with a fresh accompaniment for this machine. The Entertainer: Scott Joplin’s original 1902 public-domain rag, using the opening and 16-bar A strain adapted from the historic score (<a style="color:#f5d18a" href="https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=263" target="_blank" rel="noopener">Mutopia Project original-edition transcription</a>). The accompaniment here is simplified for the mechanical piano, not a modern copyrighted recording or arrangement. The original Swing Machine melody and arrangement were written specifically for Marble Melodies and do not reproduce Sing, Sing, Sing. Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
+<p class="foot" id="song-description">Für Elise: complete opening A section, with the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included; high E6 sounds at its true pitch but uses the E5 paddle visually.</p><p class="foot">Choose from seven songs above. Below the violin are a visible bass drum, twin-stick snare, and brass cymbal with cam-driven beaters. They perform automatically only when a song calls for drums; no drum button is needed. Für Elise, Amazing Grace, The Entertainer and America the Beautiful stay quiet, while Battle Hymn and Joy to the World have gentle percussion, and the original Swing Machine has a lively big-band drum arrangement. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The hardwood frame, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
+<p class="foot">Für Elise score: OpenScore (CC0). Battle Hymn of the Republic: public-domain tune traditionally attributed to William Steffe, arranged for Marble Melodies from historical melody notation (<a style="color:#f5d18a" href="https://www.loc.gov/collections/patriotic-melodies/articles-and-essays/battle-hymn-of-the-republic/" target="_blank" rel="noopener">Library of Congress history</a>). Joy to the World: the traditional public-domain ANTIOCH tune, transposed from a historical transcription (<a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fabc%2Fsession%2FSudburyAncients%2Fxmas%2FJoy_To_the_World-D-20-2%2F0000" target="_blank" rel="noopener">John Chambers ABC archive</a>), with original piano accompaniment. Amazing Grace: traditional public-domain NEW BRITAIN melody (<a style="color:#f5d18a" href="https://hymnary.org/tune/new_britain" target="_blank" rel="noopener">Hymnary</a>), with a fresh accompaniment for this machine. America the Beautiful: Samuel A. Ward’s public-domain MATERNA tune, composed in 1882, adapted in C major from the 1927 historical songbook transcription (<a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fbook%2FEverydaySongBook%2F115_America_the_Beautiful%2F0000" target="_blank" rel="noopener">John Chambers’s historical ABC notation</a>; <a style="color:#f5d18a" href="https://www.hymnary.org/tune/materna_ward" target="_blank" rel="noopener">Hymnary tune details</a>). The original piano accompaniment was written for this app. The Entertainer: Scott Joplin’s original 1902 public-domain rag, using the opening and 16-bar A strain adapted from the historic score (<a style="color:#f5d18a" href="https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=263" target="_blank" rel="noopener">Mutopia Project original-edition transcription</a>). The accompaniment here is simplified for the mechanical piano, not a modern copyrighted recording or arrangement. The original Swing Machine melody and arrangement were written specifically for Marble Melodies and do not reproduce Sing, Sing, Sing. Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
 <script>
 "use strict";
 const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
@@ -439,6 +439,77 @@ function buildEntertainer(){
 }
 const entertainerSong=buildEntertainer();
 
+// AMERICA THE BEAUTIFUL — MATERNA (Samuel Augustus Ward, 1882).
+// The public-domain 4/4 tune, transcribed from the 1927 Everyday Song Book
+// original historical notation, in its C-major form.
+// https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fbook%2FEverydaySongBook%2F115_America_the_Beautiful%2F0000
+// ABC: G | G>E EG | G>D DE | FG AB | G3 G | G>E EG | G>D Dd |
+// ^cd eA | d3 G | e>e dc | c>B Bc | dB AG | c3 c |
+// c>A Ac | c>G GG | Ac Gd | c3
+// Each duration unit is one quarter note; > means dotted quarter
+// followed by eighth note. One full 16-bar verse is played twice.
+// The complete familiar melody includes the closing "shining sea".
+// Accompaniment is a new, simple hymn setting rather than a recording.
+function buildAmericaTheBeautiful(){
+ const bars=[
+  ['G4:1.5 E4:.5 E4:1 G4:1','C'],
+  ['G4:1.5 D4:.5 D4:1 E4:1','G7'],
+  ['F4:1 G4:1 A4:1 B4:1','F'],
+  ['G4:3 G4:1','C'],
+  ['G4:1.5 E4:.5 E4:1 G4:1','C'],
+  ['G4:1.5 D4:.5 D4:1 D5:1','G7'],
+  ['C#5:1 D5:1 E5:1 A4:1','A7'],
+  ['D5:3 G4:1','Dm'],
+  ['E5:1.5 E5:.5 D5:1 C5:1','C'],
+  ['C5:1.5 B4:.5 B4:1 C5:1','G7'],
+  ['D5:1 B4:1 A4:1 G4:1','G7'],
+  ['C5:3 C5:1','C'],
+  ['C5:1.5 A4:.5 A4:1 C5:1','F'],
+  ['C5:1.5 G4:.5 G4:1 G4:1','C'],
+  ['A4:1 C5:1 G4:1 D5:1','G7'],
+  ['C5:3','C']
+ ];
+ const harmony={
+  C:['C3','G3','E4'], G7:['G2','D3','B3'],
+  F:['F2','C3','A3'], A7:['A2','E3','C#4'],
+  Dm:['D3','A3','F4']
+ };
+ const melody=[],backing=[],phrases=[];
+ let tick=0;
+ for(let verse=0;verse<2;verse++){
+  // Fourth-beat pickup: "O..." begins before the first full measure.
+  melody.push({name:'G4',midi:midi('G4'),beat:tick,len:.9});
+  tick+=1;
+  for(let bar=0;bar<bars.length;bar++){
+   const [notes,chordName]=bars[bar],chord=harmony[chordName];
+   let position=0;
+   for(const token of notes.split(' ')){
+    const [name,s]=token.split(':'),len=Number(s);
+    if(!(len>0))throw Error('Invalid MATERNA melody note');
+    if(name!=='R')melody.push({name,midi:midi(name),beat:tick+position,len});
+    position+=len;
+   }
+   const expected=bar===15?3:4;
+   if(position!==expected)throw Error('Invalid MATERNA measure '+(bar+1));
+   // A new original hymn piano setting: a soft bass pulse, with an
+   // open fifth and third gently filling the remainder of the measure.
+   // The second instrumental verse uses a slightly richer arpeggio.
+   const pattern=verse===0?
+    [[chord[0],0,1.8],[chord[1],2,1.7]]:
+    [[chord[0],0,1.7],[chord[1],1.6,1.45],[chord[2],3,bar===15?.75:.90]];
+   for(const [name,offset,len] of pattern){
+    if(offset<expected)
+     backing.push({name,midi:midi(name),beat:tick+offset,len:Math.min(len,expected-offset)});
+   }
+   tick+=expected;
+   if(bar===3||bar===7||bar===11||bar===15)phrases.push(melody.length);
+  }
+ }
+ return {score:melody,accompanimentScore:backing,phraseEnds:phrases,beats:tick};
+}
+const americaBeautifulSong=buildAmericaTheBeautiful();
+
+
 
 
 
@@ -512,7 +583,8 @@ function buildDrumPattern(kind){
 }
 let drumPattern=[];
 function selectedSongTitle(){
- return songSel.value==='entertainer'?'The Entertainer':
+ return songSel.value==='america'?'America the Beautiful':
+  songSel.value==='entertainer'?'The Entertainer':
   songSel.value==='swing'?'Swing Machine':
   songSel.value==='joy'?'Joy to the World':
   songSel.value==='grace'?'Amazing Grace':
@@ -520,7 +592,8 @@ function selectedSongTitle(){
 }
 function selectSong(){
  const kind=songSel.value;
- const chosen=kind==='entertainer'?entertainerSong:
+ const chosen=kind==='america'?americaBeautifulSong:
+  kind==='entertainer'?entertainerSong:
   kind==='swing'?swingMachineSong:
   kind==='joy'?joyToTheWorldSong:
   kind==='grace'?amazingGraceSong:
@@ -529,17 +602,21 @@ function selectSong(){
  phraseEnds=chosen.phraseEnds;beats=chosen.beats;
  nextViolinNoteIndex=buildNextViolinNoteIndex();
  drumPattern=buildDrumPattern(kind);
- playBtn.textContent=kind==='entertainer'?'▶ Play The Entertainer':
+ playBtn.textContent=kind==='america'?'▶ Play America the Beautiful':
+  kind==='entertainer'?'▶ Play The Entertainer':
   kind==='swing'?'▶ Play Swing Machine':
   kind==='joy'?'▶ Play Joy to the World':
   kind==='grace'?'▶ Play Amazing Grace':
   kind==='hymn'?'▶ Play Battle Hymn':'▶ Play Für Elise';
- songPlaque.textContent=kind==='entertainer'?'THE ENTERTAINER • SCOTT JOPLIN • 1902':
+ songPlaque.textContent=kind==='america'?'AMERICA THE BEAUTIFUL • S. A. WARD • 1882':
+  kind==='entertainer'?'THE ENTERTAINER • SCOTT JOPLIN • 1902':
   kind==='swing'?'SWING MACHINE • ORIGINAL BIG-BAND JAZZ':
   kind==='joy'?'JOY TO THE WORLD • ANTIOCH':
   kind==='grace'?'AMAZING GRACE • NEW BRITAIN':
   kind==='hymn'?'BATTLE HYMN OF THE REPUBLIC • 1862':'FÜR ELISE • L. VAN BEETHOVEN';
- songDescription.textContent=kind==='entertainer'?
+ songDescription.textContent=kind==='america'?
+  'America the Beautiful: two instrumental verses of the complete public-domain MATERNA melody by Samuel A. Ward (1882), in 4/4 time with a gentle original piano accompaniment. The famous tune plays from O beautiful for spacious skies through from sea to shining sea. The drums remain quiet and the mechanical violin is optional.':
+  kind==='entertainer'?
   'The Entertainer by Scott Joplin (1902): the recognizable four-bar introduction and complete opening sixteen-bar ragtime A section played twice with a closing ending. The piano accompaniment alternates bass notes and chords in classic ragtime style. This is an excerpt, not the full four-part work, and the percussion stays silent.':
   kind==='swing'?
   'Swing Machine: an original big-band swing instrumental. A snappy percussion introduction leads into a bluesy marble-piano theme, a contrasting middle section, jazz variations and a full-band finale. Bass drum, twin snare and brass cymbal all play; it does not borrow a copyrighted melody.':
@@ -991,7 +1068,7 @@ async function play(){
  try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
  const id=++session;
  playing=true;playBtn.disabled=true;stopBtn.disabled=false;
- secondsPerUnit=(songSel.value==='grace'?.34:songSel.value==='joy'?.23:songSel.value==='swing'?.265:songSel.value==='entertainer'?.17:.24)/Number(tempoSel.value);
+ secondsPerUnit=(songSel.value==='grace'?.34:songSel.value==='joy'?.23:songSel.value==='swing'?.265:songSel.value==='entertainer'?.17:songSel.value==='america'?.56:.24)/Number(tempoSel.value);
  duration=beats*secondsPerUnit;initialCharge=springCharge;
  let mode=soundSel.value,violinAvailable=true;
  activeViolinMode=violinSel.value;
