@@ -284,91 +284,67 @@ function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(
  scheduled.push(envelope);
 }
 
-// Bowed-string synthesis with a warm, band-limited harmonic spectrum,
-// breathy bow friction and a gradual attack. It avoids the old raw sawtooth
-// buzz, while remaining offline and synchronized to each marble impact.
-const violinWaveCache=new Map();
+// Browser-compatible bowed-string sound: basic oscillators rather than a
+// custom PeriodicWave, which can fail on some audio implementations.
+// A warm fundamental, soft harmonics and bow-friction bed evoke violin tone.
 let violinFrictionBuffer=null;
-function violinWave(m){
- if(violinWaveCache.has(m))return violinWaveCache.get(m);
- const fundamental=hz(m);
- const partials=Math.min(32,Math.max(2,Math.floor(10000/fundamental)));
- const real=new Float32Array(partials+1),imag=new Float32Array(partials+1);
- for(let h=1;h<=partials;h++){
-  const f=fundamental*h;
-  // A dark string spectrum with gentle resonances from the wooden body.
-  const body=.72
-   +.26*Math.exp(-Math.pow((f-520)/460,2))
-   +.37*Math.exp(-Math.pow((f-1620)/890,2))
-   +.12*Math.exp(-Math.pow((f-2850)/1040,2));
-  imag[h]=body*Math.pow(h,-1.24)*Math.exp(-f/10500);
- }
- const wave=audio.createPeriodicWave(real,imag);
- violinWaveCache.set(m,wave);
- return wave;
-}
 function violinFriction(){
  if(violinFrictionBuffer)return violinFrictionBuffer;
- const length=Math.ceil(audio.sampleRate*.27);
- violinFrictionBuffer=audio.createBuffer(1,length,audio.sampleRate);
- const samples=violinFrictionBuffer.getChannelData(0);
- for(let i=0;i<samples.length;i++)samples[i]=(Math.random()*2-1)*.7;
+ const len=Math.ceil(audio.sampleRate*.28);
+ violinFrictionBuffer=audio.createBuffer(1,len,audio.sampleRate);
+ const values=violinFrictionBuffer.getChannelData(0);
+ for(let i=0;i<values.length;i++)values[i]=(Math.random()*2-1)*.35;
  return violinFrictionBuffer;
 }
 function violinSound(m,start,noteLength,level){
- const sustain=Math.min(1.55,Math.max(.19,noteLength*1.06));
- const attack=Math.min(.064,Math.max(.035,sustain*.27));
- const release=.13,end=start+sustain+release;
- const output=audio.createGain(),warmth=audio.createBiquadFilter();
- const body=audio.createBiquadFilter();
- const brightness=Math.min(4800,Math.max(2350,1400+hz(m)*1.7));
- warmth.type='lowpass';warmth.Q.value=.58;
- warmth.frequency.setValueAtTime(brightness*.60,start);
- warmth.frequency.linearRampToValueAtTime(brightness,start+attack+.065);
- warmth.frequency.exponentialRampToValueAtTime(brightness*.84,end);
- body.type='peaking';body.frequency.value=1150;body.Q.value=.95;body.gain.value=2.2;
- body.connect(warmth);warmth.connect(output);output.connect(master);
- output.gain.setValueAtTime(.00001,start);
- output.gain.linearRampToValueAtTime(level*.80,start+attack);
- output.gain.linearRampToValueAtTime(level,start+attack+.055);
- output.gain.linearRampToValueAtTime(level*.82,start+sustain);
- output.gain.exponentialRampToValueAtTime(.00001,end);
- // Vibrato develops only after the bow has started moving. Short notes
- // remain relatively straight; long notes gain gentle expressive movement.
- const vibrato=audio.createOscillator(),depth=audio.createGain();
- vibrato.type='sine';vibrato.frequency.value=5.15;
- const vibratoDelay=Math.min(.18,sustain*.60);
- depth.gain.setValueAtTime(0,start);
- depth.gain.setValueAtTime(0,start+vibratoDelay);
- depth.gain.linearRampToValueAtTime(5.4,start+vibratoDelay+.08);
- depth.gain.linearRampToValueAtTime(2.7,end);
- vibrato.connect(depth);
- const wave=violinWave(m);
- for(const [cents,mix] of [[-1.5,.82],[2.6,.18]]){
-  const osc=audio.createOscillator(),volume=audio.createGain();
-  osc.setPeriodicWave(wave);
-  osc.frequency.setValueAtTime(hz(m)*1.0007,start);
-  osc.frequency.exponentialRampToValueAtTime(hz(m),start+.075);
-  osc.detune.value=cents;
-  depth.connect(osc.detune);
-  volume.gain.value=mix;
-  osc.connect(volume);volume.connect(body);
-  osc.start(start);osc.stop(end+.015);
+ const sustain=Math.min(1.3,Math.max(.19,noteLength*1.02));
+ const attack=Math.min(.057,Math.max(.027,sustain*.20));
+ const holdEnd=Math.max(start+attack+.08,start+sustain);
+ const end=holdEnd+.13,base=hz(m);
+ const envelope=audio.createGain(),warmth=audio.createBiquadFilter();
+ warmth.type='lowpass';warmth.Q.value=.54;
+ const cutoff=Math.min(4500,Math.max(1550,base*3.3));
+ warmth.frequency.setValueAtTime(cutoff*.68,start);
+ warmth.frequency.linearRampToValueAtTime(cutoff,start+attack+.06);
+ warmth.frequency.linearRampToValueAtTime(cutoff*.85,end);
+ warmth.connect(envelope);envelope.connect(master);
+ envelope.gain.setValueAtTime(.00001,start);
+ envelope.gain.linearRampToValueAtTime(level*.77,start+attack);
+ envelope.gain.linearRampToValueAtTime(level,start+attack+.067);
+ envelope.gain.setValueAtTime(level*.9,holdEnd);
+ envelope.gain.exponentialRampToValueAtTime(.00001,end);
+ // Two regular oscillators are supported in all Web Audio browsers. This
+ // also makes the duet much lighter than the previous custom wave model.
+ const fundamental=audio.createOscillator(),body=audio.createOscillator();
+ fundamental.type='triangle';fundamental.frequency.setValueAtTime(base,start);
+ body.type='sine';body.frequency.setValueAtTime(base*2,start);
+ const bodyGain=audio.createGain();bodyGain.gain.value=.14;
+ fundamental.connect(warmth);body.connect(bodyGain);bodyGain.connect(warmth);
+ // Short notes stay steady. Long bowed notes gain a delayed gentle vibrato.
+ if(sustain>.27){
+  const vibrato=audio.createOscillator(),vibratoGain=audio.createGain();
+  vibrato.frequency.value=5.1;
+  vibratoGain.gain.setValueAtTime(0,start);
+  vibratoGain.gain.setValueAtTime(0,start+Math.min(.11,sustain*.32));
+  vibratoGain.gain.linearRampToValueAtTime(3.9,start+Math.min(.18,sustain*.56));
+  vibrato.connect(vibratoGain);
+  vibratoGain.connect(fundamental.detune);vibratoGain.connect(body.detune);
+  vibrato.start(start);vibrato.stop(end+.015);
  }
- vibrato.start(start);vibrato.stop(end+.015);
- // Extremely quiet bow/rosin friction follows the same envelope, instead
- // of a loud synthesized attack click at every marble strike.
+ fundamental.start(start);body.start(start);
+ fundamental.stop(end+.015);body.stop(end+.015);
+ // Very quiet filtered bow friction, without a harsh click at each note.
  const friction=audio.createBufferSource(),noiseFilter=audio.createBiquadFilter();
  const noiseGain=audio.createGain();
  friction.buffer=violinFriction();friction.loop=true;
- noiseFilter.type='bandpass';noiseFilter.frequency.value=1850;noiseFilter.Q.value=.65;
+ noiseFilter.type='bandpass';noiseFilter.frequency.value=1550;noiseFilter.Q.value=.9;
  noiseGain.gain.setValueAtTime(.00001,start);
- noiseGain.gain.linearRampToValueAtTime(level*.065,start+attack);
- noiseGain.gain.linearRampToValueAtTime(level*.038,start+sustain);
+ noiseGain.gain.linearRampToValueAtTime(level*.032,start+attack);
+ noiseGain.gain.setValueAtTime(level*.023,holdEnd);
  noiseGain.gain.exponentialRampToValueAtTime(.00001,end);
  friction.connect(noiseFilter);noiseFilter.connect(noiseGain);noiseGain.connect(master);
  friction.start(start);friction.stop(end+.015);
- scheduled.push(output);
+ scheduled.push(envelope);
 }
 
  // Quiet, local Web Audio mechanical effects; no downloaded sound files.
@@ -427,6 +403,7 @@ async function play(){if(playing)return;if(springCharge<1){statusEl.textContent=
 const id=++session;playing=true;playBtn.disabled=true;stopBtn.disabled=false;secondsPerUnit=.24/Number(tempoSel.value);duration=beats*secondsPerUnit;startedAt=audio.currentTime+.16;initialCharge=springCharge;
 let mode=soundSel.value;
 activeViolinMode=violinSel.value;
+let violinAvailable=true;
 if(mode==='grand'){
  statusEl.textContent='Loading concert grand recordings…';
  try{await loadGrand()}catch(e){console.warn('Grand samples unavailable',e);mode='piano';statusEl.textContent='Samples unavailable; using electronic piano';}
@@ -445,7 +422,17 @@ for(let i=0;i<score.length;i++){
  const onset=startedAt+noteTiming(n).hitAt;
  const noteLength=Math.max(.12,n.len*secondsPerUnit*.85);
  if(activeViolinMode!=='lead')noteSound(n.midi,onset,noteLength,mode,expression);
- if(activeViolinMode!=='off')violinSound(n.midi,onset,noteLength,(activeViolinMode==='lead'?.17:.072)*expression);
+ if(activeViolinMode!=='off'&&violinAvailable){
+  try{
+   violinSound(n.midi,onset,noteLength,(activeViolinMode==='lead'?.17:.072)*expression);
+  }catch(error){
+   // Even if a browser cannot render the violin, NEVER silence the duet
+   // or leave violin-lead mode without a melody.
+   console.warn('Violin audio unavailable; retaining piano playback',error);
+   violinAvailable=false;
+   if(activeViolinMode==='lead')noteSound(n.midi,onset,noteLength,mode,expression);
+  }
+ }
 }
 // The left hand is intentionally quieter, and doesn't release extra marbles.
 for(const n of accompanimentScore){
@@ -453,7 +440,7 @@ for(const n of accompanimentScore){
  noteSound(n.midi,startedAt+lead+n.beat*secondsPerUnit,Math.max(.13,n.len*secondsPerUnit*.80),mode,.37);
 }
 scheduleMechanicalSounds();
-statusEl.textContent=mode==='grand'?'Playing recorded concert grand…':mode==='piano'?'Playing electronic piano…':'Playing Für Elise…';
+statusEl.textContent=!violinAvailable?'Violin unavailable — playing piano instead':mode==='grand'?'Playing recorded concert grand…':mode==='piano'?'Playing electronic piano…':'Playing Für Elise…';
 setTimeout(()=>{if(id===session)stop()},(lead+duration+1)*1000);
 }
 playBtn.addEventListener('click',play);stopBtn.addEventListener('click',stop);
