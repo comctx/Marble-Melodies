@@ -2314,10 +2314,16 @@ ctx.restore();
 // and music-clock actuation. Geometry is image-based rather than a 3D model.
 const machineSelect=document.getElementById('machine-type');
 const spiralImage=new Image();
-let spiralReady=false,spiralFailed=false;
+let spiralReady=false,spiralFailed=false,spiralCleanImage=null;
 const spiralCameras={full:{x:0,y:0,w:1024,h:1536},piano:{x:260,y:540,w:590,h:350},violin:{x:260,y:175,w:530,h:390},drums:{x:275,y:860,w:650,h:450}};
 function isSpiral(){return machineSelect.value==='spiral'}
-spiralImage.onload=()=>{spiralReady=true;spiralFailed=false};
+spiralImage.onload=()=>{
+ spiralReady=true;spiralFailed=false;
+ try{prepareSpiralCleanImage();}catch(error){
+  console.warn('Using original Spiral Orchestra art',error);
+  spiralCleanImage=null;
+ }
+};
 spiralImage.onerror=()=>{spiralFailed=true;document.getElementById('machine-note').textContent='The Spiral Orchestra artwork could not load. Refresh the page or select Original workshop.'};
 spiralImage.src='assets/spiral-orchestra.webp';
 function updateMachine(){
@@ -2327,7 +2333,7 @@ function updateMachine(){
  canvas.setAttribute('aria-label',spiral?'Spiral Orchestra: animated chimes, paddle mallets, drum beaters, cymbal, gears and circulating marbles':'Mechanical marble piano and violin with bass drum, twin-stick snare and brass cymbal');
  document.querySelector('.stage').classList.toggle('spiral-stage',spiral);
  for(const option of viewSelect.options){if(option.value==='piano')option.textContent=spiral?'Marimba close-up':'Piano close-up';if(option.value==='violin')option.textContent=spiral?'Chimes close-up':'Violin close-up';}
- document.getElementById('machine-note').textContent=spiral?'The Spiral Orchestra · Moving chimes, paddle mallets, alternating snare sticks, bass beater, cymbal and drive gears follow the music. Photographic cabinetry stays rigid while its attached mechanisms swing.':'The original mechanical piano, violin and percussion workshop.';
+ document.getElementById('machine-note').textContent=spiral?'The Spiral Orchestra · Large steel marbles continuously circulate through the glass spirals and the working brass bucket elevator. Chimes, mallets, drums and gears remain synchronized.':'The original mechanical piano, violin and percussion workshop.';
  setMachineView('full');
  document.getElementById('original-notes').hidden=spiral;
  if(spiral)statusEl.textContent='Spiral Orchestra · Wind Fully, then Play';
@@ -2398,6 +2404,103 @@ function spiralInstrumentState(now){
  for(let i=0;i<12;i++)sway[i]=Math.tanh(sway[i]);
  return {pulse,sway,bass:spiralDrumStroke('bass',now),left:spiralDrumStroke('snare',now,0),right:spiralDrumStroke('snare',now,1),cymbal:drumResonance('cymbal',now),cymbalStroke:spiralDrumStroke('cymbal',now),gear:playing?now:0};
 }
+// Erase the unmoving silver balls embedded in the photograph once at load.
+// Inpaint along each rail's tangent, sampling intact glass and brass a little
+// farther along the same rail. Use the source image for EVERY sample, never
+// nearby already-retouched pixels, so no marble gets cloned into another hole.
+const spiralPhotoMarbles=[
+ // Main visible glass run and curved right-hand turnaround.
+ [542,92,14,1,.19],[737,172,14,.79,.62],[808,265,14,-.28,.96],
+ // Frontward glass run passing the brass chimes and wooden bars.
+ [121,481,13,1,.26],[313,516,14,1,.22],
+ [682,668,14,.95,.31],[717,691,13,.64,.76],
+ // Lower winding glass runs and return toward the lift.
+ [503,859,12,1,.22],[404,889,12,1,.4],
+ [510,951,12,.9,.4],[541,1021,12,-.6,.8],
+ [286,1126,12,1,.3],[462,1237,12,.96,.26]
+];
+function prepareSpiralCleanImage(){
+ const w=1024,h=1536,off=document.createElement('canvas');
+ off.width=w;off.height=h;
+ const outCtx=off.getContext('2d',{willReadFrequently:true});
+ if(!outCtx)throw Error('No 2D image context');
+ outCtx.drawImage(spiralImage,0,0,w,h);
+ const original=outCtx.getImageData(0,0,w,h);
+ const result=outCtx.createImageData(w,h),src=original.data,dst=result.data;
+ dst.set(src);
+ const clip=(v,min,max)=>Math.max(min,Math.min(max,v));
+ for(const [cx,cy,r,vx,vy] of spiralPhotoMarbles){
+  const len=Math.hypot(vx,vy),tx=vx/len,ty=vy/len;
+  for(let y=Math.floor(cy-r-4);y<=Math.ceil(cy+r+4);y++){
+   if(y<0||y>=h)continue;
+   for(let x=Math.floor(cx-r-4);x<=Math.ceil(cx+r+4);x++){
+    if(x<0||x>=w)continue;
+    const dx=x-cx,dy=y-cy,dist=Math.hypot(dx,dy);
+    if(dist>r+3)continue;
+    const parallel=dx*tx+dy*ty,perp=-dx*ty+dy*tx;
+    // Keep the pixel's perpendicular offset so glass rails stay straight.
+    const travel=r+6;
+    const ax=clip(Math.round(cx+(-travel)*tx-perp*ty),0,w-1);
+    const ay=clip(Math.round(cy+(-travel)*ty+perp*tx),0,h-1);
+    const bx=clip(Math.round(cx+travel*tx-perp*ty),0,w-1);
+    const by=clip(Math.round(cy+travel*ty+perp*tx),0,h-1);
+    const u=clip(.5+parallel/(travel*2),0,1);
+    const alpha=clip((r+3-dist)/4,0,1);
+    const dest=(y*w+x)*4,ia=(ay*w+ax)*4,ib=(by*w+bx)*4;
+    for(let ch=0;ch<3;ch++){
+     const fill=src[ia+ch]*(1-u)+src[ib+ch]*u;
+     dst[dest+ch]=Math.round(src[dest+ch]*(1-alpha)+fill*alpha);
+    }
+   }
+  }
+ }
+ outCtx.putImageData(result,0,0);
+ spiralCleanImage=off;
+}
+// A true moving chain of open brass carriers replaces the photographed
+// immobile cup stack. Both its timing and the traveling balls use the same
+// marble-drive clock; every carrier has an actual shaft, cup and shadow.
+function drawSpiralElevator(now){
+ const x=297,top=109,bottom=1293;
+ ctx.save();
+ const deep=ctx.createLinearGradient(277,0,323,0);
+ deep.addColorStop(0,'#392518');deep.addColorStop(.19,'#6f4523');
+ deep.addColorStop(.45,'#201a14');deep.addColorStop(.76,'#4c321d');
+ deep.addColorStop(1,'#b78f57');
+ ctx.fillStyle=deep;
+ ctx.fillRect(280,top,39,bottom-top);
+ ctx.strokeStyle='#edcf96';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(283,top);ctx.lineTo(283,bottom);ctx.moveTo(317,top);ctx.lineTo(317,bottom);ctx.stroke();
+ // Inside the glass, the drive chain slides up continuously.
+ ctx.strokeStyle='#291e16';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,bottom);ctx.stroke();
+ ctx.strokeStyle='#c59a5f';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-1,top);ctx.lineTo(x-1,bottom);ctx.stroke();
+ ctx.beginPath();ctx.rect(285,top,31,bottom-top);ctx.clip();
+ const cupPitch=80,phase=(now*72)%cupPitch;
+ for(let y=bottom-phase;y>top-24;y-=cupPitch){
+  const g=ctx.createLinearGradient(x-15,y,x+15,y);
+  g.addColorStop(0,'#5c3d23');g.addColorStop(.25,'#c99c5c');
+  g.addColorStop(.62,'#fae0a4');g.addColorStop(1,'#634126');
+  ctx.fillStyle=g;ctx.strokeStyle='#38281d';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(x-13,y-8);ctx.lineTo(x-13,y+4);
+  ctx.quadraticCurveTo(x,y+19,x+13,y+4);ctx.lineTo(x+13,y-8);
+  ctx.stroke();ctx.fill();
+  ctx.strokeStyle='#f1cc8f';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(x-13,y-7);ctx.quadraticCurveTo(x,y-1,x+13,y-7);ctx.stroke();
+  ctx.fillStyle='#2a2118';ctx.beginPath();ctx.arc(x,y-11,3.5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#e7c48b';ctx.beginPath();ctx.arc(x,y-11,2,0,Math.PI*2);ctx.fill();
+ }
+ ctx.restore();
+ // Translucent glass edges and mounting clamps, without clouding the marbles.
+ ctx.save();ctx.strokeStyle='rgba(216,244,240,.32)';ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(286,top);ctx.lineTo(286,bottom);ctx.moveTo(315,top);ctx.lineTo(315,bottom);ctx.stroke();
+ for(const y of [top+12,top+391,top+778,bottom-10]){
+  ctx.fillStyle='#8e6638';ctx.fillRect(279,y-5,41,9);
+  ctx.fillStyle='#f4d296';ctx.fillRect(279,y-4,41,2);
+  spiralBearing(x,y,3);
+ }
+ ctx.restore();
+}
+
 // Dedicated hinged overlays. The underlying photo is NEVER deformed:
 // glass, wood, steel chimes and rails remain rigid while small parts move.
 function spiralBearing(x,y,r=5){
@@ -2459,7 +2562,8 @@ function spiralArticulatedMotion(state){
  ctx.restore();
 }
 function drawSpiralArtwork(now){
- ctx.drawImage(spiralImage,0,0,1024,1536);
+ ctx.drawImage(spiralCleanImage||spiralImage,0,0,1024,1536);
+ drawSpiralElevator(now);
  spiralArticulatedMotion(spiralInstrumentState(now));
 }
 
@@ -2470,11 +2574,15 @@ function drawSpiral(){
  const now=playing&&audio?Math.max(0,audio.currentTime-startedAt):0;
  drawSpiralArtwork(now);
  if(playing&&audio)setSpring(initialCharge*(1-Math.min(1,now/Math.max(1,lead+duration))));
- // Ten circulating steel marbles, one optional ruby, move at the same speed
- // and remain equally spaced. The photograph's original marbles stay static.
- if(playing)for(let i=0;i<10;i++){
-  const p=spiralAtDistance(now*94+i*spiralRoute.total/10);
-  if(p.visible)marble(p.x,p.y,p.lift?6:7,i===0);
+ // One shared set of sixteen large polished steel marbles, with a ruby
+ // tracer, circles through the transparent rails and left elevator.
+ // Unlike the old small overlay balls, these match the photographed size.
+ // Spacing stays constant along the complete loop, including the lift.
+ const marbleCount=16,travel=now*72;
+ for(let i=0;i<marbleCount;i++){
+  const p=spiralAtDistance(travel+i*spiralRoute.total/marbleCount);
+  if(!p.visible)continue;
+  marble(p.x,p.y,p.lift?10:11,i===0);
  }
  // Restrained light on the actual photographed instrument surfaces follows
  // the note onset; this does not claim the image is a fully rigged 3D model.
