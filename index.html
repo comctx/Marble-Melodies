@@ -2359,7 +2359,9 @@ const spiralRoute=(()=>{const samples=[];let total=0,last=null;for(let i=0;i<=26
 function spiralAtDistance(distance){
  const d=((distance%spiralRoute.total)+spiralRoute.total)%spiralRoute.total;let lo=0,hi=spiralRoute.samples.length-1;
  while(lo<hi){const mid=(lo+hi)>>1;if(spiralRoute.samples[mid].d<d)lo=mid+1;else hi=mid;}
- return spiralRoute.samples[lo];
+ const b=spiralRoute.samples[lo],a=spiralRoute.samples[Math.max(0,lo-1)];
+ const t=b.d>a.d?(d-a.d)/(b.d-a.d):0;
+ return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,visible:b.visible,lift:b.lift};
 }
 function spiralPulse(x,y,rx,ry,amount){
  if(amount<=0)return;
@@ -2371,35 +2373,51 @@ function spiralPulse(x,y,rx,ry,amount){
 const spiralParts=[];
 for(let i=0;i<12;i++){
  const x=373+i*29;
- spiralParts.push({box:[x-12,237,26,245+(i%3)*27],pivot:[x,237],kind:'sway',slot:i,scale:.025,shape:'swing'});
+ spiralParts.push({box:[x-12,237,26,245+(i%3)*27],pivot:[x,237],kind:'sway',slot:i,scale:.009,shape:'swing'});
 }
 // Three visible chime striker arms: brass pivots remain attached to the frame.
-for(const [i,x,y,w,h,px,py,scale] of [[0,368,317,95,72,392,367,.30],[4,479,330,89,81,495,385,.30],[8,587,338,96,86,609,395,.30]])
+for(const [i,x,y,w,h,px,py,scale] of [[0,368,317,95,72,392,367,.12],[4,479,330,89,81,495,385,.12],[8,587,338,96,86,609,395,.12]])
  spiralParts.push({box:[x,y,w,h],pivot:[px,py],kind:'pulse',slot:i,scale,shape:'turn'});
 // Six mallet/paddle assemblies above the wooden stair bars.
 for(const [i,x,y] of [[0,455,574],[2,522,609],[4,589,651],[6,670,693],[8,713,727],[10,751,741]])
- spiralParts.push({box:[x-31,y-22,68,88],pivot:[x+7,y+58],kind:'pair',slot:i,scale:27,shape:'drop'});
+ spiralParts.push({box:[x-31,y-22,68,88],pivot:[x+7,y+58],kind:'pair',slot:i,scale:-.14,shape:'turn'});
 spiralParts.push(
- {box:[356,1038,91,94],pivot:[387,1106],kind:'bass',scale:.95,shape:'turn'},
- {box:[623,975,94,78],pivot:[653,1048],kind:'left',scale:1.10,shape:'turn'},
- {box:[660,963,91,88],pivot:[714,1043],kind:'right',scale:-1.05,shape:'turn'},
- {box:[662,875,248,82],pivot:[786,916],kind:'cymbal',scale:.075,shape:'turn'},
- {box:[841,936,66,72],pivot:[876,974],kind:'cymbalStroke',scale:-.3,shape:'turn'},
+ {box:[356,1038,91,94],pivot:[387,1106],kind:'bass',scale:.19,shape:'turn'},
+ {box:[623,975,94,78],pivot:[653,1048],kind:'left',scale:.24,shape:'turn'},
+ {box:[660,963,91,88],pivot:[714,1043],kind:'right',scale:-.24,shape:'turn'},
+ {box:[662,875,248,82],pivot:[786,916],kind:'cymbal',scale:.018,shape:'turn'},
+ {box:[841,936,66,72],pivot:[876,974],kind:'cymbalStroke',scale:-.12,shape:'turn'},
  {box:[256,6,96,96],pivot:[304,54],kind:'gear',scale:.60,shape:'gear'},
  {box:[561,1163,79,80],pivot:[601,1203],kind:'gear',scale:-.78,shape:'gear'}
 );
+// Smooth cam rise, contact at age zero, and a slower spring return.
+// Both ends have zero velocity, so parts settle without a visible snap.
+function spiralStroke(age,attack=.14,release=.24){
+ const smooth=t=>t*t*(3-2*t);
+ if(age < -attack || age > release)return 0;
+ return age<0?smooth((age+attack)/attack):1-smooth(age/release);
+}
+function spiralDrumStroke(kind,now,side=null){
+ let value=0,index=0;
+ for(const hit of drumPattern){
+  if(hit.drum!==kind)continue;
+  const hand=index++%2;if(side!==null&&hand!==side)continue;
+  const age=now-(lead+hit.beat*secondsPerUnit);
+  value=Math.max(value,spiralStroke(age,.10,kind==='bass'?.27:.18));
+ }
+ return value;
+}
 function spiralInstrumentState(now){
  const pulse=new Float32Array(12),sway=new Float32Array(12);
  if(playing)for(const note of score){
   const age=now-(lead+note.beat*secondsPerUnit);
-  if(age<-.12)break;if(age>1.15)continue;
+  if(age<-.14)break;if(age>1.6)continue;
   const slot=((note.midi-60)%12+12)%12;
-  const stroke=age<0?Math.pow(Math.max(0,(age+.12)/.12),2):Math.exp(-age*18);
-  pulse[slot]=Math.max(pulse[slot],stroke);
-  if(age>=0)sway[slot]+=Math.sin(age*25)*Math.exp(-age*4.5);
+  pulse[slot]=Math.max(pulse[slot],spiralStroke(age));
+  if(age>=0)sway[slot]+=Math.sin(age*14)*Math.exp(-age*3.8)*(1-Math.exp(-age*35));
  }
- for(let i=0;i<12;i++)sway[i]=Math.max(-1,Math.min(1,sway[i]));
- return {pulse,sway,bass:drumMotion('bass',now),left:drumMotion('snare',now,0),right:drumMotion('snare',now,1),cymbal:drumResonance('cymbal',now),cymbalStroke:drumMotion('cymbal',now),gear:playing?now:0};
+ for(let i=0;i<12;i++)sway[i]=Math.tanh(sway[i]);
+ return {pulse,sway,bass:spiralDrumStroke('bass',now),left:spiralDrumStroke('snare',now,0),right:spiralDrumStroke('snare',now,1),cymbal:drumResonance('cymbal',now),cymbalStroke:spiralDrumStroke('cymbal',now),gear:playing?now:0};
 }
 function spiralPartValue(part,state){return (part.kind==='pulse'?Math.max(state.pulse[part.slot],state.pulse[(part.slot+1)%12],state.pulse[(part.slot+2)%12],state.pulse[(part.slot+3)%12]):part.kind==='sway'?state.sway[part.slot]:part.kind==='pair'?Math.max(state.pulse[part.slot],state.pulse[part.slot+1]):state[part.kind])*part.scale;}
 let spiralRenderer=null,spiralRendererTried=false;
@@ -2407,7 +2425,7 @@ function createSpiralRenderer(){
  spiralRendererTried=true;
  const surface=document.createElement('canvas');surface.width=1024;surface.height=1536;
  let gl;
- try{gl=surface.getContext('webgl',{alpha:false,antialias:false,preserveDrawingBuffer:true,depth:false,stencil:false,powerPreference:'low-power'});if(!gl)return null;
+ try{gl=surface.getContext('webgl',{alpha:false,antialias:false,preserveDrawingBuffer:false,depth:false,stencil:false,powerPreference:'low-power'});if(!gl)return null;
  const channel=i=>`uPulse[${Math.floor(i/4)}].${'xyzw'[i%4]}`;
  const values=spiralParts.map(part=>{
   if(part.kind==='pulse')return `max(max(${channel(part.slot)},${channel((part.slot+1)%12)}),max(${channel((part.slot+2)%12)},${channel((part.slot+3)%12)}))`;
@@ -2420,14 +2438,14 @@ function createSpiralRenderer(){
  const vs='attribute vec2 aPosition;varying vec2 vUV;void main(){vUV=(aPosition+1.0)*0.5;gl_Position=vec4(aPosition,0.0,1.0);}';
  const fragment=`precision highp float;
  varying vec2 vUV;uniform sampler2D uImage;uniform vec4 uPulse[3];uniform vec4 uSway[3];uniform vec4 uDrums;uniform float uTime;uniform float uCymbalStroke;
- float windowWeight(vec2 p,vec4 box){vec2 q=(p-box.xy)/box.zw;vec2 edge=smoothstep(vec2(0.0),vec2(.16),q)*smoothstep(vec2(0.0),vec2(.16),1.0-q);return edge.x*edge.y;}
+ float windowWeight(vec2 p,vec4 box){vec2 q=(p-box.xy)/box.zw;vec2 edge=smoothstep(vec2(0.0),vec2(.08),q)*smoothstep(vec2(0.0),vec2(.08),1.0-q);return edge.x*edge.y;}
  vec2 warp(vec2 p,vec4 box,vec2 pivot,float value,float shape){
   if(abs(value)<.00001||p.x<box.x||p.y<box.y||p.x>box.x+box.z||p.y>box.y+box.w)return p;
   float weight=windowWeight(p,box);vec2 d=p-pivot;
   if(shape>2.5){weight=1.0-smoothstep(.73,1.0,length(d/(box.zw*.5)));}
   if(shape>.5&&shape<1.5){float head=1.0-smoothstep(box.y+box.w*.48,box.y+box.w,p.y);return p-vec2(0.0,value*weight*head);}
   if(shape>1.5&&shape<2.5){float hang=clamp((p.y-pivot.y)/box.w,0.0,1.0);return p-vec2(value*box.w*hang*weight,0.0);}
-  float angle=-value*weight;float c=cos(angle),s=sin(angle);return pivot+vec2(c*d.x-s*d.y,s*d.x+c*d.y);
+  float angle=-value;float c=cos(angle),s=sin(angle);return mix(p,pivot+vec2(c*d.x-s*d.y,s*d.x+c*d.y),weight);
  }
  void main(){vec2 p=vec2(vUV.x*1024.0,(1.0-vUV.y)*1536.0);${warps}gl_FragColor=texture2D(uImage,vec2(p.x/1024.0,p.y/1536.0));}`;
  function shader(type,source){const sh=gl.createShader(type);gl.shaderSource(sh,source);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(sh));return sh;}
@@ -2448,12 +2466,12 @@ function spiralMeshPoint(x,y,part,value){
  const [bx,by,w,h]=part.box;
  const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
  const qx=(x-bx)/w,qy=(y-by)/h;
- let weight=smooth(qx/.16)*smooth((1-qx)/.16)*smooth(qy/.16)*smooth((1-qy)/.16);
+ let weight=smooth(qx/.08)*smooth((1-qx)/.08)*smooth(qy/.08)*smooth((1-qy)/.08);
  const dx=x-part.pivot[0],dy=y-part.pivot[1];
  if(part.shape==='gear')weight=1-smooth((Math.hypot(dx/(w*.5),dy/(h*.5))-.73)/.27);
  if(part.shape==='drop'){const head=1-smooth((y-(by+h*.48))/(h*.52));return [x,y+value*weight*head];}
  if(part.shape==='swing')return [x+value*h*Math.max(0,Math.min(1,(y-part.pivot[1])/h))*weight,y];
- const a=value*weight,c=Math.cos(a),s=Math.sin(a);return [part.pivot[0]+c*dx-s*dy,part.pivot[1]+s*dx+c*dy];
+ const a=value,c=Math.cos(a),s=Math.sin(a);return [x+(c*dx-s*dy-dx)*weight,y+(s*dx+c*dy-dy)*weight];
 }
 function spiralTextureTriangle(source,dest){
  const [s0,s1,s2]=source,[d0,d1,d2]=dest;
@@ -2464,7 +2482,7 @@ function spiralTextureTriangle(source,dest){
 }
 function drawSpiralCanvasMotion(state){
  for(const part of spiralParts){const value=spiralPartValue(part,state);if(Math.abs(value)<.001)continue;
- const [x,y,w,h]=part.box,nx=Math.ceil(w/16),ny=Math.ceil(h/16);
+ const [x,y,w,h]=part.box,nx=Math.ceil(w/10),ny=Math.ceil(h/10);
  for(let iy=0;iy<ny;iy++)for(let ix=0;ix<nx;ix++){
   const source=[[x+ix*w/nx,y+iy*h/ny],[x+(ix+1)*w/nx,y+iy*h/ny],[x+ix*w/nx,y+(iy+1)*h/ny],[x+(ix+1)*w/nx,y+(iy+1)*h/ny]];
   const dest=source.map(p=>spiralMeshPoint(...p,part,value));
