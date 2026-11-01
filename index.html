@@ -2409,15 +2409,15 @@ function spiralInstrumentState(now){
 // farther along the same rail. Use the source image for EVERY sample, never
 // nearby already-retouched pixels, so no marble gets cloned into another hole.
 const spiralPhotoMarbles=[
- // Main visible glass run and curved right-hand turnaround.
- [542,92,14,1,.19],[737,172,14,.79,.62],[808,265,14,-.28,.96],
- // Frontward glass run passing the brass chimes and wooden bars.
- [121,481,13,1,.26],[313,516,14,1,.22],
- [682,668,14,.95,.31],[717,691,13,.64,.76],
- // Lower winding glass runs and return toward the lift.
- [503,859,12,1,.22],[404,889,12,1,.4],
- [510,951,12,.9,.4],[541,1021,12,-.6,.8],
- [286,1126,12,1,.3],[462,1237,12,.96,.26]
+ // Upper glass return: two straightaway balls and the right bend.
+ [544,91,13,1,.19],[740,168,14,.75,.62],[804,267,13,-.20,.98],
+ // The middle spiral visible in the user's close-up.
+ [263,475,13,1,.27],[456,510,14,1,.23],
+ [817,598,14,.76,.64],[795,620,13,-.55,.83],
+ // Lower transparent curved runs; keep clear brass brackets intact.
+ [507,849,12,.94,.34],[391,888,12,1,.29],
+ [539,954,12,.88,.48],[600,1020,12,-.63,.78],
+ [247,1112,12,1,.26],[407,1235,12,.96,.26]
 ];
 function prepareSpiralCleanImage(){
  const w=1024,h=1536,off=document.createElement('canvas');
