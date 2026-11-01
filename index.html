@@ -5,10 +5,13 @@
 <title>Marble Melodies — Watch the Music Come Alive</title>
 <style>
 :root{color-scheme:dark;--gold:#d6ad62;--ink:#100f14}*{box-sizing:border-box}body{margin:0;font:16px system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(ellipse at 50% 0%,#34291f,#100f14 65%);color:#f8ecd5}header{text-align:center;padding:24px 12px 8px}h1{font:clamp(30px,5vw,55px) Georgia,serif;margin:0;color:#f5d18a;letter-spacing:.05em}header p{margin:6px;color:#c9bda7}.shell{width:min(1150px,96vw);margin:auto}.controls{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:14px auto;padding:12px;border:1px solid #6c512d;background:#211b1a;border-radius:14px}button,select{background:linear-gradient(#6d4b2a,#372718);color:#fff2d7;border:1px solid #c7a268;border-radius:9px;padding:11px 17px;font-weight:650;cursor:pointer}button:hover{filter:brightness(1.17)}button:focus-visible,select:focus-visible{outline:3px solid #f6ce73}button:disabled{opacity:.5;cursor:default}label{font-size:14px;color:#e4d2b2}select{padding:10px}#status{min-width:170px;text-align:center;color:#f5d18a;font-size:14px}.stage{position:relative;overflow:hidden;border:12px ridge #84562d;border-radius:20px;background:linear-gradient(115deg,#3d281b,#5b3b23 45%,#302016);box-shadow:0 25px 50px #000a,inset 0 0 35px #0009}.stage:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 34px,#ffffff05 35px 36px);z-index:1}canvas{width:100%;height:auto;aspect-ratio:1120/1050;display:block;position:relative;z-index:2}.plaque{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#25170d;border:2px solid #bc9251;border-radius:6px;padding:5px 15px;color:#e3bf7c;font:12px Georgia,serif;letter-spacing:.13em;white-space:nowrap;z-index:3}.foot{text-align:center;color:#b5a995;font-size:13px;margin:15px auto 25px;max-width:850px;line-height:1.5}@media(max-width:620px){.stage{border-width:6px}.controls{gap:8px}button{padding:10px 13px}.plaque{font-size:9px}}
+.machine-choice{margin-bottom:10px}.machine-choice select{min-width:220px}.spiral-stage{width:min(100%,780px);margin:0 auto;background:#21170e;border-color:#75502f}.spiral-stage:before{display:none}.spiral-stage .plaque{display:none}.machine-note{margin:10px auto 16px;max-width:740px;text-align:center;color:#d3b98b;font-size:13px;line-height:1.5}#scene{touch-action:pan-y}@media(max-width:620px){.spiral-stage{border-width:3px;border-radius:12px}.machine-choice select{min-width:0;width:100%}}
 </style></head>
 <body>
 <header><h1>MARBLE MELODIES</h1><p>Watch the Music Come Alive ✦ Mechanical Music Workshop</p></header>
 <main class="shell">
+<div class="controls machine-choice"><label for="machine-type">Choose your machine</label><select id="machine-type"><option value="spiral" selected>The Spiral Orchestra</option><option value="original">Original workshop</option></select></div>
+<p id="machine-note" class="machine-note" role="status"></p>
 <div class="controls">
 <button id="wind">↻ Wind Fully</button><label for="winding">Spring <meter id="winding" min="0" max="100" value="0"></meter></label><label for="song">Song</label><select id="song" aria-label="Choose a song"><option value="william" selected>William Tell — Galloping Finale</option><option value="elise">Für Elise</option><option value="hymn">Battle Hymn of the Republic</option><option value="grace">Amazing Grace</option><option value="joy">Joy to the World</option><option value="swing">Swing Machine (Original Jazz)</option><option value="entertainer">The Entertainer — Scott Joplin</option><option value="america">America the Beautiful</option><option value="country">My Country, ’Tis of Thee</option><option value="cancan">Can-Can — Jacques Offenbach</option><option value="deck">Deck the Halls</option><option value="jingle">Jingle Bells</option><option value="saints">When the Saints Go Marching In</option><option value="wish">We Wish You a Merry Christmas</option></select><button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
 <label for="tempo">Tempo</label><select id="tempo"><option value=".8">Gentle · 80%</option><option value="1" selected>Original · 100%</option><option value="1.2">Brisk · 120%</option></select>
@@ -20,7 +23,7 @@
 </div>
 <div class="controls" aria-label="Machine views"><label for="machine-view">View</label><select id="machine-view"><option value="full">Whole machine</option><option value="piano">Piano close-up</option><option value="violin">Violin close-up</option><option value="drums">Drums close-up</option></select><button id="follow-marble" aria-pressed="true">● Ruby marble: On</button><span id="view-hint" role="status" style="font-size:13px;color:#e4d2b2">Tap an instrument to look closer. Follow the ruby marble from the hopper.</span></div>
 <div class="stage"><canvas id="scene" width="1120" height="1050" aria-label="Mechanical marble piano and violin with bass drum, twin-stick snare and brass cymbal, all within one hardwood machine"></canvas><div class="plaque" id="song-plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot" id="song-description">Für Elise: complete opening A section, with the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included; high E6 sounds at its true pitch but uses the E5 paddle visually.</p><p class="foot">Choose from fourteen songs above. Below the violin are a visible bass drum, twin-stick snare, and brass cymbal with cam-driven beaters. The walnut bass drum has a felt beater and tension rods; the wood-shell snare alternates its sticks; the lathed bronze cymbal flexes and settles after each strike. All contacts follow the audio clock. They perform automatically only when a song calls for drums; no drum button is needed. Für Elise, Amazing Grace, The Entertainer, America the Beautiful and My Country, ’Tis of Thee stay quiet, while Can-Can has lively dance percussion, Battle Hymn, Joy to the World, Deck the Halls, Jingle Bells and We Wish You a Merry Christmas have gentle percussion, and the original Swing Machine has a lively big-band drum arrangement. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The recessed walnut cabinet, bolted iron corner braces, bearing mounts, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
+<p class="foot" id="song-description">Für Elise: complete opening A section, with the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included; high E6 sounds at its true pitch but uses the E5 paddle visually.</p><p id="original-notes" class="foot">Choose from fourteen songs above. Below the violin are a visible bass drum, twin-stick snare, and brass cymbal with cam-driven beaters. The walnut bass drum has a felt beater and tension rods; the wood-shell snare alternates its sticks; the lathed bronze cymbal flexes and settles after each strike. All contacts follow the audio clock. They perform automatically only when a song calls for drums; no drum button is needed. Für Elise, Amazing Grace, The Entertainer, America the Beautiful and My Country, ’Tis of Thee stay quiet, while Can-Can has lively dance percussion, Battle Hymn, Joy to the World, Deck the Halls, Jingle Bells and We Wish You a Merry Christmas have gentle percussion, and the original Swing Machine has a lively big-band drum arrangement. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The recessed walnut cabinet, bolted iron corner braces, bearing mounts, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
 <p class="foot">We Wish You a Merry Christmas: traditional English carol melody, with original piano and percussion accompaniment for Marble Melodies. Jingle Bells: James Lord Pierpont’s 1857 melody, familiar chorus, with original piano and percussion accompaniment for Marble Melodies. Deck the Halls: traditional NOS GALAN melody, transposed to D major from <a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fabc%2Fmirror%2Fback.numachi.com%2FDeck_the_Halls%2F0000" target="_blank" rel="noopener">John Chambers’s ABC collection / Digital Tradition</a>, with original piano and percussion accompaniment. Can-Can: Jacques Offenbach’s public-domain Infernal Galop refrain, using the G-major melody from <a style="color:#f5d18a" href="https://trillian.mit.edu/~jc/music/abc/classical/Offenbach_Jacques/Galop.abc" target="_blank" rel="noopener">John Chambers’s ABC transcription</a>, with original piano and percussion accompaniment for Marble Melodies. My Country, ’Tis of Thee: traditional AMERICA melody, with original piano accompaniment; two complete instrumental verses. Melody transposed from the <a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu/~jc/music/abc/mirror/granis.net/~rlwalker/abc/america/0000" target="_blank" rel="noopener">John Chambers historical ABC collection</a>. <a style="color:#f5d18a" href="https://www.loc.gov/collections/patriotic-melodies/articles-and-essays/my-country-tis-of-thee/" target="_blank" rel="noopener">Library of Congress song history</a>. Für Elise score: OpenScore (CC0). Battle Hymn of the Republic: public-domain tune traditionally attributed to William Steffe, arranged for Marble Melodies from historical melody notation (<a style="color:#f5d18a" href="https://www.loc.gov/collections/patriotic-melodies/articles-and-essays/battle-hymn-of-the-republic/" target="_blank" rel="noopener">Library of Congress history</a>). Joy to the World: the traditional public-domain ANTIOCH tune, transposed from a historical transcription (<a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fabc%2Fsession%2FSudburyAncients%2Fxmas%2FJoy_To_the_World-D-20-2%2F0000" target="_blank" rel="noopener">John Chambers ABC archive</a>), with original piano accompaniment. Amazing Grace: traditional public-domain NEW BRITAIN melody (<a style="color:#f5d18a" href="https://hymnary.org/tune/new_britain" target="_blank" rel="noopener">Hymnary</a>), with a fresh accompaniment for this machine. America the Beautiful: Samuel A. Ward’s public-domain MATERNA tune, composed in 1882, adapted in C major from the 1927 historical songbook transcription (<a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fbook%2FEverydaySongBook%2F115_America_the_Beautiful%2F0000" target="_blank" rel="noopener">John Chambers’s historical ABC notation</a>; <a style="color:#f5d18a" href="https://www.hymnary.org/tune/materna_ward" target="_blank" rel="noopener">Hymnary tune details</a>). The original piano accompaniment was written for this app. The Entertainer: Scott Joplin’s original 1902 public-domain rag, using the opening and 16-bar A strain adapted from the historic score (<a style="color:#f5d18a" href="https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=263" target="_blank" rel="noopener">Mutopia Project original-edition transcription</a>). The accompaniment here is simplified for the mechanical piano, not a modern copyrighted recording or arrangement. The original Swing Machine melody and arrangement were written specifically for Marble Melodies and do not reproduce Sing, Sing, Sing. When the Saints Go Marching In: traditional chorus, transposed from <a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu/~jc/music/abc/session/SAFD/march/When_the_Saints_Go_Marching_In-G-16-2/0000" target="_blank" rel="noopener">John Chambers’s historical ABC transcription</a>, with original accompaniment. Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p><p class="foot">William Tell: Gioachino Rossini’s public-domain 1829 galloping finale theme, transposed to C major; original bass, chord accompaniment, percussion and closing flourish for Marble Melodies. Historical melody reference: <a style="color:#f5d18a" href="https://abc.sourceforge.net/NMD/nmd/reelsu-z.txt" target="_blank" rel="noopener">Nottingham Music Database</a>. No orchestral recording is used.</p></main>
 <script>
 "use strict";
@@ -32,7 +35,7 @@ const windBtn=document.getElementById('wind'),windingMeter=document.getElementBy
 function setSpring(v){springCharge=Math.max(0,Math.min(100,v));windingMeter.value=springCharge;windBtn.textContent=springCharge>=99?'✓ Fully Wound':'↻ Wind Fully'}
 windBtn.addEventListener('click',()=>setSpring(100));
 function crankAngle(e){const r=canvas.getBoundingClientRect(),c=activeCamera(),x=c.x+(e.clientX-r.left)*c.w/r.width,y=c.y+(e.clientY-r.top)*c.h/r.height;return {x,y,a:Math.atan2(y-374,x-1059)}}
-canvas.addEventListener('pointerdown',e=>{const p=crankAngle(e);if(Math.hypot(p.x-1059,p.y-374)>55)return;crankDragging=true;crankLastAngle=p.a;canvas.setPointerCapture(e.pointerId)});
+canvas.addEventListener('pointerdown',e=>{if(isSpiral())return;const p=crankAngle(e);if(Math.hypot(p.x-1059,p.y-374)>55)return;crankDragging=true;crankLastAngle=p.a;canvas.setPointerCapture(e.pointerId)});
 canvas.addEventListener('pointermove',e=>{if(!crankDragging)return;const p=crankAngle(e);let d=p.a-crankLastAngle;d=Math.atan2(Math.sin(d),Math.cos(d));if(d>0){setSpring(springCharge+d*15);manualCrankAngle+=d}crankLastAngle=p.a});
 canvas.addEventListener('pointerup',()=>crankDragging=false);canvas.addEventListener('pointercancel',()=>crankDragging=false);
 const NOTES={C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
@@ -1794,12 +1797,12 @@ let rubyEnabled=true;
 const viewSelect=document.getElementById('machine-view'),rubyButton=document.getElementById('follow-marble');
 const cameraViews={full:{x:0,y:0,w:1120,h:1050},piano:{x:60,y:130,w:1000,h:430},violin:{x:65,y:625,w:990,h:213},drums:{x:65,y:840,w:990,h:200}};
 function rubyReturnAt(){const leg=486,turn=28,pitch=(leg*2+turn*2)/16;return Math.ceil((lead+score[0].beat*secondsPerUnit+2.02)/(pitch/38))*(pitch/38)+(leg+turn+915)/38;}
-function activeCamera(){return cameraViews[viewSelect.value]||cameraViews.full;}
-function setMachineView(value){viewSelect.value=value;const c=activeCamera();canvas.style.aspectRatio=c.w+'/'+c.h;canvas.height=Math.round(W*c.h/c.w);document.getElementById('view-hint').textContent=value==='full'?'Tap an instrument to look closer. Follow the ruby marble from the hopper.':'Close-up view · tap the machine to return to the whole view.';}
+function activeCamera(){const views=isSpiral()?spiralCameras:cameraViews;return views[viewSelect.value]||views.full;}
+function setMachineView(value){viewSelect.value=value;const c=activeCamera();canvas.style.aspectRatio=c.w+'/'+c.h;canvas.height=Math.round(W*c.h/c.w);document.getElementById('view-hint').textContent=value==='full'?(isSpiral()?'Tap the chimes, marimba or drums to look closer.':'Tap an instrument to look closer. Follow the ruby marble from the hopper.'):'Close-up view · tap the machine to return to the whole view.';}
 viewSelect.addEventListener('change',()=>setMachineView(viewSelect.value));
 rubyButton.addEventListener('click',()=>{rubyEnabled=!rubyEnabled;rubyButton.setAttribute('aria-pressed',String(rubyEnabled));rubyButton.textContent='● Ruby marble: '+(rubyEnabled?'On':'Off');});
-canvas.addEventListener('click',event=>{if(viewSelect.value!=='full'){setMachineView('full');return;}const point=crankAngle(event);if(Math.hypot(point.x-1059,point.y-374)<60)return;const bounds=canvas.getBoundingClientRect(),y=(event.clientY-bounds.top)/bounds.height*1050;setMachineView(y>=840?'drums':y>=620?'violin':'piano');});
-function draw(){frame=requestAnimationFrame(draw);ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,W,canvas.height);ctx.save();const camera=activeCamera(),zoom=W/camera.w;ctx.scale(zoom,zoom);ctx.translate(-camera.x,-camera.y);
+canvas.addEventListener('click',event=>{if(viewSelect.value!=='full'){setMachineView('full');return;}if(isSpiral()){const r=canvas.getBoundingClientRect(),y=(event.clientY-r.top)/r.height*1536;setMachineView(y>860?'drums':y>550?'piano':'violin');return;}const point=crankAngle(event);if(Math.hypot(point.x-1059,point.y-374)<60)return;const bounds=canvas.getBoundingClientRect(),y=(event.clientY-bounds.top)/bounds.height*1050;setMachineView(y>=840?'drums':y>=620?'violin':'piano');});
+function draw(){frame=requestAnimationFrame(draw);if(isSpiral()){drawSpiral();return;}ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,W,canvas.height);ctx.save();const camera=activeCamera(),zoom=W/camera.w;ctx.scale(zoom,zoom);ctx.translate(-camera.x,-camera.y);
 const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#49301e');bg.addColorStop(1,'#24160f');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 for(let i=0;i<25;i++){ctx.strokeStyle='rgba(237,176,97,.045)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,i*42);ctx.bezierCurveTo(250,i*42+20,850,i*42-20,W,i*42);ctx.stroke()}
 cabinetBackdrop();
@@ -2307,7 +2310,96 @@ ctx.restore();
  // Playback status is already displayed in the accessible controls above.
  ctx.restore();
 }
+// Photo-based Spiral Orchestra: original concept artwork, animated marble
+// circulation and music-clock highlights. Background hardware is an illustration.
+const machineSelect=document.getElementById('machine-type');
+const spiralImage=new Image();
+let spiralReady=false,spiralFailed=false;
+const spiralCameras={full:{x:0,y:0,w:1024,h:1536},piano:{x:260,y:540,w:590,h:350},violin:{x:260,y:175,w:530,h:390},drums:{x:275,y:860,w:650,h:450}};
+function isSpiral(){return machineSelect.value==='spiral'}
+spiralImage.onload=()=>{spiralReady=true;spiralFailed=false};
+spiralImage.onerror=()=>{spiralFailed=true;document.getElementById('machine-note').textContent='The Spiral Orchestra artwork could not load. Refresh the page or select Original workshop.'};
+spiralImage.src='assets/spiral-orchestra.webp';
+function updateMachine(){
+ if(playing)stop();
+ crankDragging=false;
+ const spiral=isSpiral();
+ canvas.setAttribute('aria-label',spiral?'Spiral Orchestra: photographic concept artwork with animated circulating marbles and music-synchronized instrument highlights':'Mechanical marble piano and violin with bass drum, twin-stick snare and brass cymbal');
+ document.querySelector('.stage').classList.toggle('spiral-stage',spiral);
+ for(const option of viewSelect.options){if(option.value==='piano')option.textContent=spiral?'Marimba close-up':'Piano close-up';if(option.value==='violin')option.textContent=spiral?'Chimes close-up':'Violin close-up';}
+ document.getElementById('machine-note').textContent=spiral?'The Spiral Orchestra · Your concept image brought to life with circulating marbles and musical highlights. The photographed gears and linkages remain part of the illustration.':'The original mechanical piano, violin and percussion workshop.';
+ setMachineView('full');
+ document.getElementById('original-notes').hidden=spiral;
+ if(spiral)statusEl.textContent='Spiral Orchestra · Wind Fully, then Play';
+}
+machineSelect.addEventListener('change',updateMachine);
+// Continuous route follows the projected glass trough. Rear turns are
+// occluded by the tower rather than drawing marbles through the instruments.
+const spiralSegments=[
+ {p:[[412,85],[545,94],[773,146],[790,224]],show:true},
+ {p:[[790,224],[814,295],[532,355],[247,407]],show:false},
+ {p:[[247,407],[143,464],[339,496],[584,561]],show:true},
+ {p:[[584,561],[765,607],[862,632],[751,698]],show:true},
+ {p:[[751,698],[627,735],[342,749],[238,785]],show:false},
+ {p:[[238,785],[138,835],[352,882],[515,933]],show:true},
+ {p:[[515,933],[605,958],[647,975],[617,1008]],show:true},
+ {p:[[617,1008],[501,1049],[313,1059],[256,1093]],show:false},
+ {p:[[256,1093],[164,1140],[318,1206],[494,1243]],show:true},
+ {p:[[494,1243],[522,1246],[510,1250],[482,1254]],show:true},
+ {p:[[482,1254],[398,1255],[315,1238],[294,1191]],show:false},
+ {p:[[294,1191],[293,919],[296,399],[298,102]],show:true},
+ {p:[[298,102],[300,41],[350,30],[405,65]],show:false}
+];
+function spiralPoint(u){
+ const scaled=((u%1+1)%1)*spiralSegments.length,index=Math.min(spiralSegments.length-1,Math.floor(scaled)),t=scaled-index,seg=spiralSegments[index],p=seg.p,v=1-t;
+ return {x:v*v*v*p[0][0]+3*v*v*t*p[1][0]+3*v*t*t*p[2][0]+t*t*t*p[3][0],y:v*v*v*p[0][1]+3*v*v*t*p[1][1]+3*v*t*t*p[2][1]+t*t*t*p[3][1],visible:seg.show,lift:index===11};
+}
+// Arc-length sampling keeps marble speed steady along differently sized turns.
+const spiralRoute=(()=>{const samples=[];let total=0,last=null;for(let i=0;i<=2600;i++){const p=spiralPoint(i/2600===1?1-1e-9:i/2600);if(last)total+=Math.hypot(p.x-last.x,p.y-last.y);samples.push({...p,d:total});last=p;}return {samples,total};})();
+function spiralAtDistance(distance){
+ const d=((distance%spiralRoute.total)+spiralRoute.total)%spiralRoute.total;let lo=0,hi=spiralRoute.samples.length-1;
+ while(lo<hi){const mid=(lo+hi)>>1;if(spiralRoute.samples[mid].d<d)lo=mid+1;else hi=mid;}
+ return spiralRoute.samples[lo];
+}
+function spiralPulse(x,y,rx,ry,amount){
+ if(amount<=0)return;
+ ctx.save();ctx.globalAlpha=Math.min(.65,amount*.6);ctx.strokeStyle='#ffe4a0';ctx.shadowColor='#ffd076';ctx.shadowBlur=10;ctx.lineWidth=2;
+ ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+}
+function drawSpiral(){
+ ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,W,canvas.height);ctx.save();
+ const camera=activeCamera(),zoom=W/camera.w;ctx.scale(zoom,zoom);ctx.translate(-camera.x,-camera.y);
+ if(!spiralReady){ctx.fillStyle='#17100c';ctx.fillRect(0,0,1024,1536);ctx.fillStyle='#e8c88f';ctx.textAlign='center';ctx.font='24px Georgia';ctx.fillText(spiralFailed?'Artwork unavailable · choose Original workshop':'Loading The Spiral Orchestra…',512,650);ctx.restore();return;}
+ ctx.drawImage(spiralImage,0,0,1024,1536);
+ const now=playing&&audio?Math.max(0,audio.currentTime-startedAt):0;
+ if(playing&&audio)setSpring(initialCharge*(1-Math.min(1,now/Math.max(1,lead+duration))));
+ // Ten circulating steel marbles, one optional ruby, move at the same speed
+ // and remain equally spaced. The photograph's original marbles stay static.
+ if(playing)for(let i=0;i<10;i++){
+  const p=spiralAtDistance(now*94+i*spiralRoute.total/10);
+  if(p.visible)marble(p.x,p.y,p.lift?6:7,i===0);
+ }
+ // Restrained light on the actual photographed instrument surfaces follows
+ // the note onset; this does not claim the image is a fully rigged 3D model.
+ if(playing){
+  let count=0;
+  for(const note of score){
+   const age=now-(lead+note.beat*secondsPerUnit);if(age<0)break;if(age>.28)continue;
+   const slot=((note.midi-60)%12+12)%12,amount=Math.exp(-age*12);
+   const x=438+slot*27,y=635+slot*12;
+   spiralPulse(x,y,22,6,amount);
+   if(slot<10)spiralPulse(392+slot*30,332+(slot%3)*12,5,44,amount*.55);
+   if(++count>=5)break;
+  }
+  for(const kind of ['bass','snare','cymbal']){
+   const a=drumMotion(kind,now);if(kind==='bass')spiralPulse(427,1066,52,72,a*.7);else if(kind==='snare')spiralPulse(676,1054,72,15,a*.8);else spiralPulse(786,916,111,22,a*.7);
+  }
+ }
+ ctx.restore();
+}
+
 selectSong();
+updateMachine();
 draw();
 </script>
 </body></html>
