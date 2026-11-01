@@ -719,6 +719,8 @@ function buildWilliamTell(){
   const c=chords[tick===138?'G':'C'];for(let pulse=0;pulse<4;pulse++)for(const name of pulse%2?[c[2],c[3]]:[c[0]])backing.push({name,midi:midi(name),beat:tick+pulse*2,len:1.5});tick+=8;
  }
  phrases.push(melody.length);
+ for(const n of melody)backing.push({name:n.name,midi:n.midi-12,beat:n.beat,len:Math.max(1,n.len*.9),williamBody:true});
+ backing.sort((a,b)=>a.beat-b.beat);
  return {score:melody,accompanimentScore:backing,phraseEnds:phrases,beats:tick};
 }
 const williamTellSong=buildWilliamTell();
@@ -867,7 +869,7 @@ function selectSong(){
   kind==='joy'?'JOY TO THE WORLD • ANTIOCH':
   kind==='grace'?'AMAZING GRACE • NEW BRITAIN':
   kind==='hymn'?'BATTLE HYMN OF THE REPUBLIC • 1862':'FÜR ELISE • L. VAN BEETHOVEN';
- songDescription.textContent=kind==='william'?'William Tell: the famous galloping finale theme, played twice with a fuller second pass and an original closing flourish. Driving bass, snare fills, cymbal accents and optional violin. About 34 seconds at normal speed; an excerpt, not the complete overture.':kind==='saints'?'When the Saints Go Marching In: two lively instrumental choruses in C major, with original piano accompaniment, optional violin, bass drum, snare and cymbal. About 32 seconds.':
+ songDescription.textContent=kind==='william'?'William Tell: the famous galloping finale theme, played twice with a fuller second pass and an original closing flourish. Driving bass, snare fills, cymbal accents and optional violin. About 27 seconds at normal speed, with warm octave reinforcement and deeper bass; an excerpt, not the complete overture.':kind==='saints'?'When the Saints Go Marching In: two lively instrumental choruses in C major, with original piano accompaniment, optional violin, bass drum, snare and cymbal. About 32 seconds.':
  kind==='wish'?'We Wish You a Merry Christmas: the familiar melody and Good tidings section, played twice in F major and lilting 3/4 time, with original piano accompaniment, optional violin and light mechanical drums. About 50 seconds.':
  kind==='jingle'?'Jingle Bells: the complete familiar chorus played twice in C major, with cheerful original piano accompaniment, optional violin and light mechanical percussion. About 61 seconds. The Dashing through the snow verse is not included.':
  kind==='deck'?'Deck the Halls: two complete instrumental verses of the traditional NOS GALAN melody in D major, with bright piano accompaniment, optional violin, and light bass drum, snare and cymbal. About 59 seconds.':
@@ -1027,13 +1029,24 @@ function updateReverb(){
 function prepareInstrumentAudio(){
  // Stop replaces the master bus; therefore build a fresh instrument path
  // every performance so old reverb tails do not bleed into a new song.
- instrumentBus=audio.createGain();instrumentBus.connect(master);
+ instrumentBus=audio.createGain();
+ let musicOutput=master;
+ if(songSel.value==='william'){
+  const body=audio.createBiquadFilter(),soften=audio.createBiquadFilter(),round=audio.createBiquadFilter(),control=audio.createDynamicsCompressor();
+  body.type='lowshelf';body.frequency.value=360;body.gain.value=4;
+  soften.type='highshelf';soften.frequency.value=1900;soften.gain.value=-5;
+  round.type='lowpass';round.frequency.value=5100;round.Q.value=.55;
+  control.threshold.value=-16;control.knee.value=18;control.ratio.value=3;control.attack.value=.012;control.release.value=.19;
+  body.connect(soften);soften.connect(round);round.connect(control);control.connect(master);
+  musicOutput=body;
+ }
+ instrumentBus.connect(musicOutput);
  reverbConvolver=null;reverbWet=null;
  try{
   reverbConvolver=audio.createConvolver();reverbConvolver.normalize=false;
   reverbWet=audio.createGain();reverbWet.gain.value=0;
   instrumentBus.connect(reverbConvolver);
-  reverbConvolver.connect(reverbWet);reverbWet.connect(master);
+  reverbConvolver.connect(reverbWet);reverbWet.connect(musicOutput);
   updateReverb();
  }catch(err){
   console.warn('Reverb not supported; original dry sound retained',err);
@@ -1329,7 +1342,7 @@ async function play(){
  try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
  const id=++session;
  playing=true;playBtn.disabled=true;stopBtn.disabled=false;
- secondsPerUnit=(songSel.value==='william'?.21:songSel.value==='saints'?.24:songSel.value==='wish'?.26:songSel.value==='jingle'?.24:songSel.value==='deck'?.23:songSel.value==='cancan'?.20:songSel.value==='grace'?.34:songSel.value==='joy'?.23:songSel.value==='swing'?.265:songSel.value==='entertainer'?.17:songSel.value==='america'?.56:songSel.value==='country'?.53:.24)/Number(tempoSel.value);
+ secondsPerUnit=(songSel.value==='william'?.165:songSel.value==='saints'?.24:songSel.value==='wish'?.26:songSel.value==='jingle'?.24:songSel.value==='deck'?.23:songSel.value==='cancan'?.20:songSel.value==='grace'?.34:songSel.value==='joy'?.23:songSel.value==='swing'?.265:songSel.value==='entertainer'?.17:songSel.value==='america'?.56:songSel.value==='country'?.53:.24)/Number(tempoSel.value);
  duration=beats*secondsPerUnit;initialCharge=springCharge;
  let mode=soundSel.value,violinAvailable=true;
  activeViolinMode=violinSel.value;
@@ -1348,7 +1361,7 @@ async function play(){
  mechanicsBus=audio.createGain();
  mechanicsBus.gain.value=MECHANICAL_BUS_LEVEL*Number(mechanicsSel.value);
  mechanicsBus.connect(master);
- drumBus=audio.createGain();drumBus.gain.value=songSel.value==='swing'?.94:.40;drumBus.connect(master);
+ drumBus=audio.createGain();drumBus.gain.value=songSel.value==='swing'?.94:songSel.value==='william'?.52:.40;drumBus.connect(master);
  const events=buildAudioEvents();
  let nextEvent=0;
  function pumpAudio(){
@@ -1368,7 +1381,8 @@ async function play(){
      drumSound(event.drum,start,event.velocity);
     }else if(event.kind==='accompaniment'){
      const n=event.note;
-     noteSound(n.midi,start,Math.max(.13,n.len*secondsPerUnit*.80),mode,songSel.value==='swing'?.27:.37);
+     noteSound(n.midi,start,Math.max(.13,n.len*secondsPerUnit*.80),n.williamBody?'piano':mode,
+      songSel.value==='william'?(n.williamBody?.38:.52):songSel.value==='swing'?.27:.37);
     }else{
      const n=event.note,i=event.index,expression=event.expression;
      const noteLength=Math.max(.12,n.len*secondsPerUnit*.85);
