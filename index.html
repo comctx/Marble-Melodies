@@ -2344,9 +2344,9 @@ machineSelect.addEventListener('change',updateMachine);
 const spiralSegments=[
  {p:[[412,85],[545,94],[773,146],[790,224]],show:true},
  {p:[[790,224],[814,295],[532,355],[247,407]],show:false},
- {p:[[247,407],[143,464],[339,496],[584,561]],show:true},
- {p:[[584,561],[765,607],[862,632],[751,698]],show:true},
- {p:[[751,698],[627,735],[342,749],[238,785]],show:false},
+ {p:[[247,407],[143,464],[339,470],[584,541]],show:true},
+ {p:[[584,541],[765,577],[862,612],[751,683]],show:true},
+ {p:[[751,683],[627,720],[342,749],[238,785]],show:false},
  {p:[[238,785],[138,835],[352,882],[515,933]],show:true},
  {p:[[515,933],[605,958],[647,975],[617,1008]],show:true},
  {p:[[617,1008],[501,1049],[313,1059],[256,1093]],show:false},
@@ -2367,7 +2367,8 @@ function spiralAtDistance(distance){
  while(lo<hi){const mid=(lo+hi)>>1;if(spiralRoute.samples[mid].d<d)lo=mid+1;else hi=mid;}
  const b=spiralRoute.samples[lo],a=spiralRoute.samples[Math.max(0,lo-1)];
  const t=b.d>a.d?(d-a.d)/(b.d-a.d):0;
- return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,visible:b.visible,lift:b.lift};
+ const dx=b.x-a.x,dy=b.y-a.y,magnitude=Math.hypot(dx,dy)||1;
+ return {x:a.x+dx*t,y:a.y+dy*t,tx:dx/magnitude,ty:dy/magnitude,visible:b.visible,lift:b.lift};
 }
 function spiralPulse(x,y,rx,ry,amount){
  if(amount<=0)return;
@@ -2572,6 +2573,33 @@ function drawSpiralArtwork(now){
  spiralArticulatedMotion(spiralInstrumentState(now));
 }
 
+// Photographic rail overlay: an accurate marble-sized steel sphere, set
+// into the glass trough, with the near glass lip crossing its lower edge.
+function spiralGlassMarble(p,isRuby){
+ const radius=p.lift?14:15.5;
+ // Cast a small soft shadow against the inner track. These are the only
+ // freely moving marbles; the brass elevator cups are drawn separately.
+ ctx.save();
+ const nx=-(p.ty||0),ny=p.tx||1;
+ ctx.fillStyle='rgba(11,17,20,.23)';
+ ctx.beginPath();ctx.ellipse(p.x+nx*4,p.y+ny*4,radius*.93,radius*.73,Math.atan2(p.ty||0,p.tx||1),0,Math.PI*2);ctx.fill();
+ marble(p.x,p.y,radius,isRuby);
+ if(!p.lift){
+  // Draw front-of-glass reflection over the lower portion of the ball so
+  // the steel appears INSIDE, never floating in front of the glass.
+  ctx.strokeStyle='rgba(226,248,248,.47)';ctx.lineWidth=2.3;ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(p.x-(p.tx||1)*radius*.9+nx*radius*.58,p.y-(p.ty||0)*radius*.9+ny*radius*.58);
+  ctx.lineTo(p.x+(p.tx||1)*radius*.9+nx*radius*.58,p.y+(p.ty||0)*radius*.9+ny*radius*.58);
+  ctx.stroke();
+  ctx.strokeStyle='rgba(96,143,150,.29)';ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(p.x-(p.tx||1)*radius*.75+nx*radius*.85,p.y-(p.ty||0)*radius*.75+ny*radius*.85);
+  ctx.lineTo(p.x+(p.tx||1)*radius*.75+nx*radius*.85,p.y+(p.ty||0)*radius*.75+ny*radius*.85);
+  ctx.stroke();
+ }
+ ctx.restore();
+}
 function drawSpiral(){
  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,W,canvas.height);ctx.save();
  const camera=activeCamera(),zoom=W/camera.w;ctx.scale(zoom,zoom);ctx.translate(-camera.x,-camera.y);
@@ -2579,15 +2607,14 @@ function drawSpiral(){
  const now=playing&&audio?Math.max(0,audio.currentTime-startedAt):0;
  drawSpiralArtwork(now);
  if(playing&&audio)setSpring(initialCharge*(1-Math.min(1,now/Math.max(1,lead+duration))));
- // One shared set of sixteen large polished steel marbles, with a ruby
- // tracer, circles through the transparent rails and left elevator.
- // Unlike the old small overlay balls, these match the photographed size.
- // Spacing stays constant along the complete loop, including the lift.
+ // Sixteen full-sized 31-pixel steel marbles follow the center of the photographed
+ // glass spiral and pass through the cup lift without duplication. The ruby
+ // tracer retains its identity for a whole continuous circuit.
  const marbleCount=16,travel=now*72;
  for(let i=0;i<marbleCount;i++){
   const p=spiralAtDistance(travel+i*spiralRoute.total/marbleCount);
   if(!p.visible)continue;
-  marble(p.x,p.y,p.lift?10:11,i===0);
+  spiralGlassMarble(p,i===0);
  }
  // Restrained light on the actual photographed instrument surfaces follows
  // the note onset; this does not claim the image is a fully rigged 3D model.
