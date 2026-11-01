@@ -2354,7 +2354,7 @@ const spiralSegments=[
  {p:[[494,1243],[522,1246],[510,1250],[482,1254]],show:true},
  {p:[[482,1254],[398,1255],[315,1238],[294,1191]],show:false},
  {p:[[294,1191],[293,919],[296,399],[298,102]],show:true},
- {p:[[298,102],[300,41],[350,30],[405,65]],show:false}
+ {p:[[298,102],[300,41],[350,30],[412,85]],show:false}
 ];
 function spiralPoint(u){
  const scaled=((u%1+1)%1)*spiralSegments.length,index=Math.min(spiralSegments.length-1,Math.floor(scaled)),t=scaled-index,seg=spiralSegments[index],p=seg.p,v=1-t;
