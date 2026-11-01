@@ -10,7 +10,7 @@
 <header><h1>MARBLE MELODIES</h1><p>Watch the Music Come Alive ✦ Mechanical Music Workshop</p></header>
 <main class="shell">
 <div class="controls">
-<button id="wind">↻ Wind Fully</button><label for="winding">Spring <meter id="winding" min="0" max="100" value="0"></meter></label><label for="song">Song</label><select id="song" aria-label="Choose a song"><option value="elise" selected>Für Elise</option><option value="hymn">Battle Hymn of the Republic</option><option value="grace">Amazing Grace</option><option value="joy">Joy to the World</option><option value="swing">Swing Machine (Original Jazz)</option><option value="entertainer">The Entertainer — Scott Joplin</option><option value="america">America the Beautiful</option><option value="country">My Country, ’Tis of Thee</option><option value="cancan">Can-Can — Jacques Offenbach</option><option value="deck">Deck the Halls</option><option value="jingle">Jingle Bells</option><option value="saints">When the Saints Go Marching In</option><option value="wish">We Wish You a Merry Christmas</option></select><button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
+<button id="wind">↻ Wind Fully</button><label for="winding">Spring <meter id="winding" min="0" max="100" value="0"></meter></label><label for="song">Song</label><select id="song" aria-label="Choose a song"><option value="william" selected>William Tell — Galloping Finale</option><option value="elise">Für Elise</option><option value="hymn">Battle Hymn of the Republic</option><option value="grace">Amazing Grace</option><option value="joy">Joy to the World</option><option value="swing">Swing Machine (Original Jazz)</option><option value="entertainer">The Entertainer — Scott Joplin</option><option value="america">America the Beautiful</option><option value="country">My Country, ’Tis of Thee</option><option value="cancan">Can-Can — Jacques Offenbach</option><option value="deck">Deck the Halls</option><option value="jingle">Jingle Bells</option><option value="saints">When the Saints Go Marching In</option><option value="wish">We Wish You a Merry Christmas</option></select><button id="play">▶ Play Für Elise</button><button id="stop" disabled>■ Stop</button>
 <label for="tempo">Tempo</label><select id="tempo"><option value=".8">Gentle · 80%</option><option value="1" selected>Original · 100%</option><option value="1.2">Brisk · 120%</option></select>
 <label for="sound">Sound</label><select id="sound"><option value="grand" selected>Concert grand (recorded)</option><option value="piano">Electronic piano</option><option value="bell">Bell bars</option><option value="soft">Soft keys</option></select>
 <label for="mechanics">Mechanics</label><select id="mechanics" aria-label="Mechanical sound volume"><option value="0">Off</option><option value="1" selected>Subtle</option><option value="2">More audible</option></select>
@@ -20,8 +20,8 @@
 </div>
 <div class="controls" aria-label="Machine views"><label for="machine-view">View</label><select id="machine-view"><option value="full">Whole machine</option><option value="piano">Piano close-up</option><option value="violin">Violin close-up</option><option value="drums">Drums close-up</option></select><button id="follow-marble" aria-pressed="true">● Ruby marble: On</button><span id="view-hint" role="status" style="font-size:13px;color:#e4d2b2">Tap an instrument to look closer. Follow the ruby marble from the hopper.</span></div>
 <div class="stage"><canvas id="scene" width="1120" height="1050" aria-label="Mechanical marble piano and violin with bass drum, twin-stick snare and brass cymbal, all within one hardwood machine"></canvas><div class="plaque" id="song-plaque">FÜR ELISE • L. VAN BEETHOVEN</div></div>
-<p class="foot" id="song-description">Für Elise: complete opening A section, with the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included; high E6 sounds at its true pitch but uses the E5 paddle visually.</p><p class="foot">Choose from thirteen songs above. Below the violin are a visible bass drum, twin-stick snare, and brass cymbal with cam-driven beaters. They perform automatically only when a song calls for drums; no drum button is needed. Für Elise, Amazing Grace, The Entertainer, America the Beautiful and My Country, ’Tis of Thee stay quiet, while Can-Can has lively dance percussion, Battle Hymn, Joy to the World, Deck the Halls, Jingle Bells and We Wish You a Merry Christmas have gentle percussion, and the original Swing Machine has a lively big-band drum arrangement. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The recessed walnut cabinet, bolted iron corner braces, bearing mounts, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
-<p class="foot">We Wish You a Merry Christmas: traditional English carol melody, with original piano and percussion accompaniment for Marble Melodies. Jingle Bells: James Lord Pierpont’s 1857 melody, familiar chorus, with original piano and percussion accompaniment for Marble Melodies. Deck the Halls: traditional NOS GALAN melody, transposed to D major from <a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fabc%2Fmirror%2Fback.numachi.com%2FDeck_the_Halls%2F0000" target="_blank" rel="noopener">John Chambers’s ABC collection / Digital Tradition</a>, with original piano and percussion accompaniment. Can-Can: Jacques Offenbach’s public-domain Infernal Galop refrain, using the G-major melody from <a style="color:#f5d18a" href="https://trillian.mit.edu/~jc/music/abc/classical/Offenbach_Jacques/Galop.abc" target="_blank" rel="noopener">John Chambers’s ABC transcription</a>, with original piano and percussion accompaniment for Marble Melodies. My Country, ’Tis of Thee: traditional AMERICA melody, with original piano accompaniment; two complete instrumental verses. Melody transposed from the <a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu/~jc/music/abc/mirror/granis.net/~rlwalker/abc/america/0000" target="_blank" rel="noopener">John Chambers historical ABC collection</a>. <a style="color:#f5d18a" href="https://www.loc.gov/collections/patriotic-melodies/articles-and-essays/my-country-tis-of-thee/" target="_blank" rel="noopener">Library of Congress song history</a>. Für Elise score: OpenScore (CC0). Battle Hymn of the Republic: public-domain tune traditionally attributed to William Steffe, arranged for Marble Melodies from historical melody notation (<a style="color:#f5d18a" href="https://www.loc.gov/collections/patriotic-melodies/articles-and-essays/battle-hymn-of-the-republic/" target="_blank" rel="noopener">Library of Congress history</a>). Joy to the World: the traditional public-domain ANTIOCH tune, transposed from a historical transcription (<a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fabc%2Fsession%2FSudburyAncients%2Fxmas%2FJoy_To_the_World-D-20-2%2F0000" target="_blank" rel="noopener">John Chambers ABC archive</a>), with original piano accompaniment. Amazing Grace: traditional public-domain NEW BRITAIN melody (<a style="color:#f5d18a" href="https://hymnary.org/tune/new_britain" target="_blank" rel="noopener">Hymnary</a>), with a fresh accompaniment for this machine. America the Beautiful: Samuel A. Ward’s public-domain MATERNA tune, composed in 1882, adapted in C major from the 1927 historical songbook transcription (<a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fbook%2FEverydaySongBook%2F115_America_the_Beautiful%2F0000" target="_blank" rel="noopener">John Chambers’s historical ABC notation</a>; <a style="color:#f5d18a" href="https://www.hymnary.org/tune/materna_ward" target="_blank" rel="noopener">Hymnary tune details</a>). The original piano accompaniment was written for this app. The Entertainer: Scott Joplin’s original 1902 public-domain rag, using the opening and 16-bar A strain adapted from the historic score (<a style="color:#f5d18a" href="https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=263" target="_blank" rel="noopener">Mutopia Project original-edition transcription</a>). The accompaniment here is simplified for the mechanical piano, not a modern copyrighted recording or arrangement. The original Swing Machine melody and arrangement were written specifically for Marble Melodies and do not reproduce Sing, Sing, Sing. When the Saints Go Marching In: traditional chorus, transposed from <a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu/~jc/music/abc/session/SAFD/march/When_the_Saints_Go_Marching_In-G-16-2/0000" target="_blank" rel="noopener">John Chambers’s historical ABC transcription</a>, with original accompaniment. Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p></main>
+<p class="foot" id="song-description">Für Elise: complete opening A section, with the original right-hand notes and quieter left-hand accompaniment. The later B and C sections are not included; high E6 sounds at its true pitch but uses the E5 paddle visually.</p><p class="foot">Choose from fourteen songs above. Below the violin are a visible bass drum, twin-stick snare, and brass cymbal with cam-driven beaters. They perform automatically only when a song calls for drums; no drum button is needed. Für Elise, Amazing Grace, The Entertainer, America the Beautiful and My Country, ’Tis of Thee stay quiet, while Can-Can has lively dance percussion, Battle Hymn, Joy to the World, Deck the Halls, Jingle Bells and We Wish You a Merry Christmas have gentle percussion, and the original Swing Machine has a lively big-band drum arrangement. The machine has 25 chromatic tuned bars from C4 through C6 in two staggered rows. A musical clock drives both the sound and the marbles, so each impact lands on the beat. The recessed walnut cabinet, bolted iron corner braces, bearing mounts, brass gears, exposed piano strings and long upper rail are illustrated mechanisms. Marbles roll along the upper rail, then the timed brass paddles divert each one into its own curved, twin-wire brass guide. The marble remains visible and reaches its tuned bar on the musical beat. The original paddle return springs, eccentric cams, and shared drive shaft remain in place. Rotating eccentric cams, follower rods and return springs illustrate the action; note timing stays locked to the audio. Quiet paddle and elevator clicks use the same musical clock, with adjustable mechanical volume. Inside the lower chamber of the same cabinet, each marble's strike moves a key follower into a four-way brass selector, whose connecting rods operate the appropriate violin bow and finger stop. Both the violin sound and the visible mechanisms use that same exact note-impact clock; the violin's string vibration is simulated. Select Soft duet to layer a gentle violin over the piano, Violin lead to hear bowed-string melody with piano accompaniment, or Off for the original machine. The violin sound is locally synthesized, not a recording. Choose Off, Small Concert Room or Concert Hall reverb for the music while retaining crisp, dry mechanical clicks. Reverb can be adjusted during playback. Tap Play to enable sound.</p>
+<p class="foot">We Wish You a Merry Christmas: traditional English carol melody, with original piano and percussion accompaniment for Marble Melodies. Jingle Bells: James Lord Pierpont’s 1857 melody, familiar chorus, with original piano and percussion accompaniment for Marble Melodies. Deck the Halls: traditional NOS GALAN melody, transposed to D major from <a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fabc%2Fmirror%2Fback.numachi.com%2FDeck_the_Halls%2F0000" target="_blank" rel="noopener">John Chambers’s ABC collection / Digital Tradition</a>, with original piano and percussion accompaniment. Can-Can: Jacques Offenbach’s public-domain Infernal Galop refrain, using the G-major melody from <a style="color:#f5d18a" href="https://trillian.mit.edu/~jc/music/abc/classical/Offenbach_Jacques/Galop.abc" target="_blank" rel="noopener">John Chambers’s ABC transcription</a>, with original piano and percussion accompaniment for Marble Melodies. My Country, ’Tis of Thee: traditional AMERICA melody, with original piano accompaniment; two complete instrumental verses. Melody transposed from the <a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu/~jc/music/abc/mirror/granis.net/~rlwalker/abc/america/0000" target="_blank" rel="noopener">John Chambers historical ABC collection</a>. <a style="color:#f5d18a" href="https://www.loc.gov/collections/patriotic-melodies/articles-and-essays/my-country-tis-of-thee/" target="_blank" rel="noopener">Library of Congress song history</a>. Für Elise score: OpenScore (CC0). Battle Hymn of the Republic: public-domain tune traditionally attributed to William Steffe, arranged for Marble Melodies from historical melody notation (<a style="color:#f5d18a" href="https://www.loc.gov/collections/patriotic-melodies/articles-and-essays/battle-hymn-of-the-republic/" target="_blank" rel="noopener">Library of Congress history</a>). Joy to the World: the traditional public-domain ANTIOCH tune, transposed from a historical transcription (<a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fabc%2Fsession%2FSudburyAncients%2Fxmas%2FJoy_To_the_World-D-20-2%2F0000" target="_blank" rel="noopener">John Chambers ABC archive</a>), with original piano accompaniment. Amazing Grace: traditional public-domain NEW BRITAIN melody (<a style="color:#f5d18a" href="https://hymnary.org/tune/new_britain" target="_blank" rel="noopener">Hymnary</a>), with a fresh accompaniment for this machine. America the Beautiful: Samuel A. Ward’s public-domain MATERNA tune, composed in 1882, adapted in C major from the 1927 historical songbook transcription (<a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fbook%2FEverydaySongBook%2F115_America_the_Beautiful%2F0000" target="_blank" rel="noopener">John Chambers’s historical ABC notation</a>; <a style="color:#f5d18a" href="https://www.hymnary.org/tune/materna_ward" target="_blank" rel="noopener">Hymnary tune details</a>). The original piano accompaniment was written for this app. The Entertainer: Scott Joplin’s original 1902 public-domain rag, using the opening and 16-bar A strain adapted from the historic score (<a style="color:#f5d18a" href="https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=263" target="_blank" rel="noopener">Mutopia Project original-edition transcription</a>). The accompaniment here is simplified for the mechanical piano, not a modern copyrighted recording or arrangement. The original Swing Machine melody and arrangement were written specifically for Marble Melodies and do not reproduce Sing, Sing, Sing. When the Saints Go Marching In: traditional chorus, transposed from <a style="color:#f5d18a" href="https://abcnotation.com/tunePage?a=trillian.mit.edu/~jc/music/abc/session/SAFD/march/When_the_Saints_Go_Marching_In-G-16-2/0000" target="_blank" rel="noopener">John Chambers’s historical ABC transcription</a>, with original accompaniment. Concert grand recordings: Salamander Grand Piano V3 by Alexander Holm (Yamaha C5), licensed under <a style="color:#f5d18a" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Audio hosted by the Tone.js project; selected notes are pitch-shifted to cover the melody. Requires internet access for the initial download.</p><p class="foot">William Tell: Gioachino Rossini’s public-domain 1829 galloping finale theme, transposed to C major; original bass, chord accompaniment, percussion and closing flourish for Marble Melodies. Historical melody reference: <a style="color:#f5d18a" href="https://abc.sourceforge.net/NMD/nmd/reelsu-z.txt" target="_blank" rel="noopener">Nottingham Music Database</a>. No orchestral recording is used.</p></main>
 <script>
 "use strict";
 const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
@@ -686,6 +686,43 @@ const weWishYouSong=buildWeWishYou();
 
 
 
+// Rossini's 1829 public-domain galloping theme, transposed to C.
+// Fresh bass/chord arrangement and percussion; no external recording.
+function buildWilliamTell(){
+ const bars=[
+ ['G4:2 G4:1 G4:1 G4:2 G4:2','C'],
+ ['C5:2 D5:2 E5:2 G4:1 G4:1','C'],
+ ['G4:2 G4:1 G4:1 C5:2 E5:2','C'],
+ ['D5:2 B4:2 G4:2 G4:1 G4:1','G'],
+ ['G4:2 G4:1 G4:1 G4:2 G4:2','C'],
+ ['C5:2 D5:2 E5:2 C5:1 E5:1','C'],
+ ['G5:5 F5:1 E5:1 D5:1','G'],
+ ['C5:2 E5:2 C5:2 G4:1 G4:1','C']];
+ const chords={C:['C3','G3','E4','G4'],G:['G2','D3','F4','B3']};
+ const melody=[],backing=[],phrases=[];let tick=0;
+ for(const name of ['G4','G4']){melody.push({name,midi:midi(name),beat:tick,len:1});tick++;}
+ for(let pass=0;pass<2;pass++)for(let bar=0;bar<bars.length;bar++){
+  let [tokens,chord]=bars[bar];
+  if(pass===1&&bar===7)tokens='C5:2 E5:2 C5:4';
+  let off=0;for(const token of tokens.split(' ')){const [name,d]=token.split(':'),len=Number(d);melody.push({name,midi:midi(name),beat:tick+off,len});off+=len;}
+  if(off!==8)throw Error('Invalid William Tell measure');
+  const c=chords[chord];
+  for(let pulse=0;pulse<4;pulse++){
+   for(const name of pulse%2?[c[2],c[3]]:[c[pulse===0?0:1]])backing.push({name,midi:midi(name),beat:tick+pulse*2,len:1.2});
+   if(pass===1&&pulse%2===0)backing.push({name:c[1],midi:midi(c[1]),beat:tick+pulse*2+1.5,len:.4});
+  }
+  tick+=8;if((bar+1)%4===0)phrases.push(melody.length);
+ }
+ // Original four-bar closing flourish resolves firmly to C.
+ for(const tokens of ['E5:2 F5:2 G5:2 C5:2','D5:2 B4:2 G4:2 D5:2','E5:1 G5:1 E5:1 C5:1 G4:2 B4:2','C5:8']){
+  let off=0;for(const token of tokens.split(' ')){const [name,d]=token.split(':'),len=Number(d);melody.push({name,midi:midi(name),beat:tick+off,len});off+=len;}
+  const c=chords[tick===138?'G':'C'];for(let pulse=0;pulse<4;pulse++)for(const name of pulse%2?[c[2],c[3]]:[c[0]])backing.push({name,midi:midi(name),beat:tick+pulse*2,len:1.5});tick+=8;
+ }
+ phrases.push(melody.length);
+ return {score:melody,accompanimentScore:backing,phraseEnds:phrases,beats:tick};
+}
+const williamTellSong=buildWilliamTell();
+
 const pitches=Array.from({length:25},(_,i)=>60+i);
 const visualPitch=m=>m>84?m-12:m;
 const xFor=m=>110+(visualPitch(m)-60)*35.5;
@@ -714,7 +751,15 @@ let nextViolinNoteIndex=buildNextViolinNoteIndex();
 function buildDrumPattern(kind){
  const rhythm=[];
  const add=(beat,drum,velocity)=>rhythm.push({beat,drum,velocity});
- if(kind==='saints'){
+ if(kind==='william'){
+ for(let bar=0;bar<20;bar++){const at=2+bar*8,boost=bar>=8?1:.8;
+ add(at,'bass',.78*boost);add(at+4,'bass',.65*boost);
+ add(at+2,'snare',.56*boost);add(at+6,'snare',.64*boost);
+ if(bar%4===0)add(at,'cymbal',.50*boost);
+ if(bar%4===3&&bar<19){add(at+7,'snare',.36);add(at+7.5,'snare',.46);}
+ }
+ add(154,'bass',.95);add(154,'snare',.8);add(154,'cymbal',.85);
+ }else if(kind==='saints'){
  for(let pass=0;pass<2;pass++)for(let bar=0;bar<8;bar++){const at=pass*67+3+bar*8;add(at,'bass',.58);add(at+4,'bass',.48);add(at+2,'snare',.42);add(at+6,'snare',.48);if(bar%4===0)add(at,'cymbal',.32);}
  }else if(kind==='wish'){
  for(let bar=0;bar<32;bar++){const at=2+bar*6;add(at,'bass',.40);add(at+2,'snare',.24);add(at+4,'snare',.27);if(bar%8===0)add(at,'cymbal',.24);}
@@ -767,7 +812,7 @@ function buildDrumPattern(kind){
 }
 let drumPattern=[];
 function selectedSongTitle(){
- return songSel.value==='saints'?'When the Saints Go Marching In':
+ return songSel.value==='william'?'William Tell — Galloping Finale':songSel.value==='saints'?'When the Saints Go Marching In':
  songSel.value==='wish'?'We Wish You a Merry Christmas':
  songSel.value==='jingle'?'Jingle Bells':
  songSel.value==='deck'?'Deck the Halls':
@@ -782,7 +827,7 @@ function selectedSongTitle(){
 }
 function selectSong(){
  const kind=songSel.value;
- const chosen=kind==='saints'?saintsSong:
+ const chosen=kind==='william'?williamTellSong:kind==='saints'?saintsSong:
  kind==='wish'?weWishYouSong:
  kind==='jingle'?jingleBellsSong:
  kind==='deck'?deckTheHallsSong:
@@ -798,7 +843,7 @@ function selectSong(){
  phraseEnds=chosen.phraseEnds;beats=chosen.beats;
  nextViolinNoteIndex=buildNextViolinNoteIndex();
  drumPattern=buildDrumPattern(kind);
- playBtn.textContent=kind==='saints'?'▶ Play When the Saints Go Marching In':
+ playBtn.textContent=kind==='william'?'▶ Play William Tell':kind==='saints'?'▶ Play When the Saints Go Marching In':
  kind==='wish'?'▶ Play We Wish You a Merry Christmas':
  kind==='jingle'?'▶ Play Jingle Bells':
  kind==='deck'?'▶ Play Deck the Halls':
@@ -810,7 +855,7 @@ function selectSong(){
   kind==='joy'?'▶ Play Joy to the World':
   kind==='grace'?'▶ Play Amazing Grace':
   kind==='hymn'?'▶ Play Battle Hymn':'▶ Play Für Elise';
- songPlaque.textContent=kind==='saints'?'WHEN THE SAINTS GO MARCHING IN • TRADITIONAL':
+ songPlaque.textContent=kind==='william'?'WILLIAM TELL • ROSSINI • 1829':kind==='saints'?'WHEN THE SAINTS GO MARCHING IN • TRADITIONAL':
  kind==='wish'?'WE WISH YOU A MERRY CHRISTMAS • TRADITIONAL':
  kind==='jingle'?'JINGLE BELLS • JAMES LORD PIERPONT • 1857':
  kind==='deck'?'DECK THE HALLS • TRADITIONAL NOS GALAN':
@@ -822,7 +867,7 @@ function selectSong(){
   kind==='joy'?'JOY TO THE WORLD • ANTIOCH':
   kind==='grace'?'AMAZING GRACE • NEW BRITAIN':
   kind==='hymn'?'BATTLE HYMN OF THE REPUBLIC • 1862':'FÜR ELISE • L. VAN BEETHOVEN';
- songDescription.textContent=kind==='saints'?'When the Saints Go Marching In: two lively instrumental choruses in C major, with original piano accompaniment, optional violin, bass drum, snare and cymbal. About 32 seconds.':
+ songDescription.textContent=kind==='william'?'William Tell: the famous galloping finale theme, played twice with a fuller second pass and an original closing flourish. Driving bass, snare fills, cymbal accents and optional violin. About 34 seconds at normal speed; an excerpt, not the complete overture.':kind==='saints'?'When the Saints Go Marching In: two lively instrumental choruses in C major, with original piano accompaniment, optional violin, bass drum, snare and cymbal. About 32 seconds.':
  kind==='wish'?'We Wish You a Merry Christmas: the familiar melody and Good tidings section, played twice in F major and lilting 3/4 time, with original piano accompaniment, optional violin and light mechanical drums. About 50 seconds.':
  kind==='jingle'?'Jingle Bells: the complete familiar chorus played twice in C major, with cheerful original piano accompaniment, optional violin and light mechanical percussion. About 61 seconds. The Dashing through the snow verse is not included.':
  kind==='deck'?'Deck the Halls: two complete instrumental verses of the traditional NOS GALAN melody in D major, with bright piano accompaniment, optional violin, and light bass drum, snare and cymbal. About 59 seconds.':
@@ -1284,7 +1329,7 @@ async function play(){
  try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
  const id=++session;
  playing=true;playBtn.disabled=true;stopBtn.disabled=false;
- secondsPerUnit=(songSel.value==='saints'?.24:songSel.value==='wish'?.26:songSel.value==='jingle'?.24:songSel.value==='deck'?.23:songSel.value==='cancan'?.20:songSel.value==='grace'?.34:songSel.value==='joy'?.23:songSel.value==='swing'?.265:songSel.value==='entertainer'?.17:songSel.value==='america'?.56:songSel.value==='country'?.53:.24)/Number(tempoSel.value);
+ secondsPerUnit=(songSel.value==='william'?.21:songSel.value==='saints'?.24:songSel.value==='wish'?.26:songSel.value==='jingle'?.24:songSel.value==='deck'?.23:songSel.value==='cancan'?.20:songSel.value==='grace'?.34:songSel.value==='joy'?.23:songSel.value==='swing'?.265:songSel.value==='entertainer'?.17:songSel.value==='america'?.56:songSel.value==='country'?.53:.24)/Number(tempoSel.value);
  duration=beats*secondsPerUnit;initialCharge=springCharge;
  let mode=soundSel.value,violinAvailable=true;
  activeViolinMode=violinSel.value;
