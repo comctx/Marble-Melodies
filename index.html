@@ -2562,7 +2562,7 @@ function prepareSpiralCleanImage(){
 // A true moving chain of open brass carriers replaces the photographed
 // immobile cup stack. Both its timing and the traveling balls use the same
 // marble-drive clock; every carrier has an actual shaft, cup and shadow.
-function drawSpiralElevator(now){
+function drawSpiralElevator(now,marbles){
  const x=297,top=109,bottom=1293;
  ctx.save();
  const deep=ctx.createLinearGradient(277,0,323,0);
@@ -2577,7 +2577,13 @@ function drawSpiralElevator(now){
  ctx.strokeStyle='#291e16';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,bottom);ctx.stroke();
  ctx.strokeStyle='#c59a5f';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-1,top);ctx.lineTo(x-1,bottom);ctx.stroke();
  ctx.beginPath();ctx.rect(272,top,48,bottom-top);ctx.clip();
- const cupPitch=80,phase=(now*72)%cupPitch;
+ // The lift is a distinct depth layer: steel balls ride INSIDE the guide,
+ // behind the brass carrier lips and front glass. They are never rendered
+ // over the finished elevator housing.
+ for(const {point,featured} of marbles){
+  if(point.lift&&point.visible)spiralGlassMarble(point,featured);
+ }
+ const cupPitch=spiralRoute.total/64,phase=(now*72)%cupPitch;
  for(let y=bottom-phase;y>top-24;y-=cupPitch){
   const g=ctx.createLinearGradient(x-15,y,x+15,y);
   g.addColorStop(0,'#5c3d23');g.addColorStop(.25,'#c99c5c');
@@ -2663,9 +2669,17 @@ function spiralArticulatedMotion(state){
  }
  ctx.restore();
 }
-function drawSpiralArtwork(now){
+function drawSpiralArtwork(now,marbles){
  ctx.drawImage(spiralCleanImage||spiralImage,0,0,1024,1536);
- drawSpiralElevator(now);
+ // Rear depth layer: glass-track marbles reach the tower, disappear
+ // BEHIND its opaque housing, and emerge on the other side. Drawing them
+ // before the housing fixes the 'floating in front of elevator' artifact.
+ for(const {point,featured} of marbles){
+  if(point.visible&&!point.lift)spiralGlassMarble(point,featured);
+ }
+ // Foreground lift masks the track crossing and seats lift marbles within
+ // the cups. Its glass edges, brackets and cup lips are painted afterward.
+ drawSpiralElevator(now,marbles);
  spiralArticulatedMotion(spiralInstrumentState(now));
 }
 
@@ -2701,17 +2715,16 @@ function drawSpiral(){
  const camera=activeCamera(),zoom=W/camera.w;ctx.scale(zoom,zoom);ctx.translate(-camera.x,-camera.y);
  if(!spiralReady){ctx.fillStyle='#17100c';ctx.fillRect(0,0,1024,1536);ctx.fillStyle='#e8c88f';ctx.textAlign='center';ctx.font='24px Georgia';ctx.fillText(spiralFailed?'Artwork unavailable · choose Original workshop':'Loading The Spiral Orchestra…',512,650);ctx.restore();return;}
  const now=playing&&audio?Math.max(0,audio.currentTime-startedAt):0;
- drawSpiralArtwork(now);
- if(playing&&audio)setSpring(initialCharge*(1-Math.min(1,now/Math.max(1,lead+duration))));
- // Sixteen full-sized 31-pixel steel marbles follow the center of the photographed
- // glass spiral and pass through the cup lift without duplication. The ruby
- // tracer retains its identity for a whole continuous circuit.
- const marbleCount=16,travel=now*72;
+ // One physical set of sixteen large steel marbles. Collect positions once
+ // from the continuous route; their depth order is resolved in the artwork
+ // renderer without drawing duplicate balls on top of the elevator.
+ const marbleCount=16,travel=now*72,marbles=[];
  for(let i=0;i<marbleCount;i++){
-  const p=spiralAtDistance(travel+i*spiralRoute.total/marbleCount);
-  if(!p.visible)continue;
-  spiralGlassMarble(p,i===0);
+  const point=spiralAtDistance(travel+i*spiralRoute.total/marbleCount);
+  marbles.push({point,featured:i===0});
  }
+ drawSpiralArtwork(now,marbles);
+ if(playing&&audio)setSpring(initialCharge*(1-Math.min(1,now/Math.max(1,lead+duration))));
  // Restrained light on the actual photographed instrument surfaces follows
  // the note onset; this does not claim the image is a fully rigged 3D model.
  if(playing){
