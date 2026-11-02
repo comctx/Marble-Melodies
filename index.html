@@ -806,6 +806,20 @@ function buildDrumPattern(kind){
  for(let pass=0;pass<2;pass++)for(let bar=0;bar<8;bar++){const at=pass*67+3+bar*8;add(at,'bass',.58);add(at+4,'bass',.48);add(at+2,'snare',.42);add(at+6,'snare',.48);if(bar%4===0)add(at,'cymbal',.32);}
  }else if(kind==='wish'){
  for(let bar=0;bar<32;bar++){const at=2+bar*6;add(at,'bass',.40);add(at+2,'snare',.24);add(at+4,'snare',.27);if(bar%8===0)add(at,'cymbal',.24);}
+ }else if(kind==='deckgrand'){
+  // Extra upbeat kick/snare groove, supporting cymbal beats and short fills.
+  for(let b=0;b<4;b++){add(b*2,'bass',.83);if(b%2)add(b*2,'snare',.80);if(b===0||b===3)add(b*2,'cymbal',.58);}
+  for(let bar=0;bar<24;bar++){
+   const at=8+bar*8,v=bar>=16?1:bar>=8?.95:.88;
+   for(const b of [0,2,4,6])add(at+b,'bass',(b%4===0?.97:.70)*v);
+   for(const b of [2,6])add(at+b,'snare',.98*v);
+   if(bar>=8)for(const b of [1.5,5.5])add(at+b,'snare',.29*v);
+   for(const b of [0,4])add(at+b,'cymbal',.30*v);
+   if(bar%2===0)add(at,'cymbal',.59*v);
+   if(bar%4===3)for(let i=0;i<5;i++)add(at+5.1+i*.54,'snare',(.45+i*.10)*v);
+  }
+  for(let i=0;i<12;i++)add(195+i*.38,'snare',Math.min(1,.55+i*.036));
+  add(200,'bass',1);add(200,'snare',1);add(200,'cymbal',1);add(202,'cymbal',.67);
  }else if(kind==='deck'||kind==='jingle'){
  for(let bar=0;bar<32;bar++){const at=bar*8;add(at,'bass',.45);add(at+4,'bass',.38);add(at+2,'snare',.28);add(at+6,'snare',.32);if(bar%8===0)add(at,'cymbal',.27);}
  }else if(kind==='cancan'){
@@ -1406,7 +1420,7 @@ async function play(){
  mechanicsBus=audio.createGain();
  mechanicsBus.gain.value=MECHANICAL_BUS_LEVEL*Number(mechanicsSel.value);
  mechanicsBus.connect(master);
- drumBus=audio.createGain();drumBus.gain.value=songSel.value==='swing'?.94:songSel.value==='william'?.52:.40;drumBus.connect(master);
+ drumBus=audio.createGain();drumBus.gain.value=songSel.value==='deckgrand'?.84:songSel.value==='swing'?.94:songSel.value==='william'?.52:.40;drumBus.connect(master);
  const events=buildAudioEvents();
  let nextEvent=0;
  function pumpAudio(){
@@ -1426,13 +1440,25 @@ async function play(){
      drumSound(event.drum,start,event.velocity);
     }else if(event.kind==='accompaniment'){
      const n=event.note;
-     noteSound(n.midi,start,Math.max(.13,n.len*secondsPerUnit*.80),n.williamBody?'piano':mode,
-      songSel.value==='william'?(n.williamBody?.38:.52):songSel.value==='swing'?.27:.37);
+     // Holiday voices use distinct timbres for brass, bells, strings,
+     // marimba and pulse bass while staying locked to the same clock.
+     const holiday=songSel.value==='deckgrand',voice=n.voice;
+     const timbre=holiday?(voice==='bell'?'bell':voice==='marimba'?'soft':
+      voice==='string'?'soft':voice==='bass'?'piano':voice==='brass'?'piano':mode):
+      n.williamBody?'piano':mode;
+     const volume=holiday?(voice==='bell'?.57:voice==='marimba'?.54:
+      voice==='string'?.31:voice==='bass'?.62:voice==='brass'?.49:.45)*(n.level||.3):
+      songSel.value==='william'?(n.williamBody?.38:.52):
+      songSel.value==='swing'?.27:.37;
+     noteSound(n.midi,start,Math.max(.13,n.len*secondsPerUnit*.80),timbre,volume);
     }else{
      const n=event.note,i=event.index,expression=event.expression;
      const noteLength=Math.max(.12,n.len*secondsPerUnit*.85);
      if(activeViolinMode!=='lead'||!violinAvailable){
       noteSound(n.midi,start,noteLength,mode,expression);
+      // The bright upper chimes reinforce the melody without swallowing it.
+      if(songSel.value==='deckgrand')
+       noteSound(n.midi+12,start+.012,Math.max(.15,noteLength*.68),'bell',expression*.20);
      }
      if(activeViolinMode!=='off'&&violinAvailable){
       try{
