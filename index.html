@@ -1160,6 +1160,32 @@ function pianoSound(m,start,dur,expression=1){
  noise.connect(low);low.connect(ng);ng.connect(instrumentBus);noise.start(start);noise.stop(start+nLen);
  scheduled.push(voice);
 }
+// Lightweight brass and string timbres used only in the new Grand Holiday
+// arrangement: local oscillators, no borrowed recording or soundfont.
+function holidayOrchestraSound(note,start){
+ const string=note.voice==='string',base=hz(note.midi);
+ const len=Math.max(.16,note.len*secondsPerUnit),end=start+len;
+ const filter=audio.createBiquadFilter(),amp=audio.createGain();
+ filter.type='lowpass';filter.Q.value=.65;
+ filter.frequency.value=string?1350:2300;
+ filter.connect(amp);amp.connect(instrumentBus);
+ const target=(string?.034:.063)*Math.max(.08,Math.min(.9,note.level||.2));
+ const rise=string?.07:.014,tail=string?.78:.60;
+ amp.gain.setValueAtTime(.00001,start);
+ amp.gain.linearRampToValueAtTime(target,start+rise);
+ amp.gain.setValueAtTime(target*(string?.82:.69),start+Math.max(rise+.02,len*tail));
+ amp.gain.exponentialRampToValueAtTime(.00001,end);
+ for(let j=0;j<2;j++){
+  const osc=audio.createOscillator(),mix=audio.createGain();
+  osc.type=string?'sawtooth':(j?'triangle':'sawtooth');
+  osc.frequency.value=base*(j+1);
+  osc.detune.value=j?(string?3:1.2):0;
+  mix.gain.value=j?(string?.13:.20):1;
+  osc.connect(mix);mix.connect(filter);
+  osc.start(start);osc.stop(end+.022);
+ }
+ scheduled.push(amp);
+}
 function noteSound(m,start,dur,mode,expression=1){if(mode==='grand'){grandSound(m,start,dur,expression);return}if(mode==='piano'){pianoSound(m,start,dur,expression);return}
  const fundamental=hz(m);
  const envelope=audio.createGain();envelope.connect(instrumentBus);
@@ -1450,7 +1476,8 @@ async function play(){
       voice==='string'?.31:voice==='bass'?.62:voice==='brass'?.49:.45)*(n.level||.3):
       songSel.value==='william'?(n.williamBody?.38:.52):
       songSel.value==='swing'?.27:.37;
-     noteSound(n.midi,start,Math.max(.13,n.len*secondsPerUnit*.80),timbre,volume);
+     if(holiday&&(voice==='brass'||voice==='string'))holidayOrchestraSound(n,start);
+     else noteSound(n.midi,start,Math.max(.13,n.len*secondsPerUnit*.80),timbre,volume);
     }else{
      const n=event.note,i=event.index,expression=event.expression;
      const noteLength=Math.max(.12,n.len*secondsPerUnit*.85);
