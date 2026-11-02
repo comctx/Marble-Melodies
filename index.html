@@ -873,11 +873,11 @@ function buildBlueDanube(){
  const melody=[],backing=[],phrases=[];let tick=0;
  for(let pass=0;pass<2;pass++)for(let bar=0;bar<bars.length;bar++){
   let offset=0;
-  for(const token of bars[bar].split(' ')){const [name,d]=token.split(':'),len=+d;if(name!=='R')melody.push({name,midi:midi(name),beat:tick+offset*2,len:len*2});offset+=len;}
+  for(const token of bars[bar].split(' ')){const [name,d]=token.split(':'),len=+d;if(name!=='R')melody.push({name,midi:midi(name),beat:tick+offset*2,len:len*2,danubeExpression:(pass?.91:.79)+.12*Math.sin(Math.PI*(bar%8)/8)+(offset===0?.04:0)});offset+=len;}
   if(offset!==3)throw Error('Blue Danube bar length '+bar);
   const chord=chords[harmony[bar]];
-  backing.push({name:chord[0],midi:midi(chord[0]),beat:tick,len:1.8});
-  for(const at of [2,4])for(const name of chord.slice(1))backing.push({name,midi:midi(name),beat:tick+at,len:1.5});
+  backing.push({name:chord[0],midi:midi(chord[0]),beat:tick,len:2.3,danubeLevel:pass?.44:.38});
+  for(const at of [2,4])for(const name of chord.slice(1))backing.push({name,midi:midi(name),beat:tick+at,len:1.65,danubeLevel:pass?.27:.23});
   tick+=6;if((bar+1)%8===0)phrases.push(melody.length);
  }
  return {score:melody,accompanimentScore:backing,phraseEnds:phrases,beats:tick};
@@ -1035,7 +1035,7 @@ function selectSong(){
   kind==='joy'?'JOY TO THE WORLD • ANTIOCH':
   kind==='grace'?'AMAZING GRACE • NEW BRITAIN':
   kind==='hymn'?'BATTLE HYMN OF THE REPUBLIC • 1862':'FÜR ELISE • L. VAN BEETHOVEN';
- songDescription.textContent=kind==='danube'?'The Blue Danube: the familiar first waltz theme in C major, played twice with original bass-and-chord piano accompaniment and optional violin. About 81 seconds at normal tempo. This is a theme excerpt, not the complete orchestral work or the London Philharmonic recording.':kind==='william'?'William Tell: the famous galloping finale theme, played twice with a fuller second pass and an original closing flourish. Driving bass, snare fills, cymbal accents and optional violin. About 27 seconds at normal speed, with warm octave reinforcement and deeper bass; an excerpt, not the complete overture.':kind==='saints'?'When the Saints Go Marching In: two lively instrumental choruses in C major, with original piano accompaniment, optional violin, bass drum, snare and cymbal. About 32 seconds.':
+ songDescription.textContent=kind==='danube'?'The Blue Danube: the familiar first waltz theme in C major, played twice with warm concert-piano voicing, gently shaped phrases, a fuller second pass, balanced bass-and-chord accompaniment and optional violin. About 81 seconds at normal tempo. This is a theme excerpt, not the complete orchestral work or the London Philharmonic recording.':kind==='william'?'William Tell: the famous galloping finale theme, played twice with a fuller second pass and an original closing flourish. Driving bass, snare fills, cymbal accents and optional violin. About 27 seconds at normal speed, with warm octave reinforcement and deeper bass; an excerpt, not the complete overture.':kind==='saints'?'When the Saints Go Marching In: two lively instrumental choruses in C major, with original piano accompaniment, optional violin, bass drum, snare and cymbal. About 32 seconds.':
  kind==='wish'?'We Wish You a Merry Christmas: the familiar melody and Good tidings section, played twice in F major and lilting 3/4 time, with original piano accompaniment, optional violin and light mechanical drums. About 50 seconds.':
  kind==='jingle'?'Jingle Bells: the complete familiar chorus played twice in C major, with cheerful original piano accompaniment, optional violin and light mechanical percussion. About 61 seconds. The Dashing through the snow verse is not included.':
  kind==='scarborough'?'Scarborough Fair: original extended 81-second instrumental in E Dorian using the traditional melody twice, a new four-bar bridge, chimes, marimba, gentle violin and percussion and a full quiet ending. The built-in sound is synthesized live and may differ from the separate MP3 preview.':
@@ -1199,7 +1199,14 @@ function prepareInstrumentAudio(){
  // every performance so old reverb tails do not bleed into a new song.
  instrumentBus=audio.createGain();
  let musicOutput=master;
- if(songSel.value==='william'){
+ if(songSel.value==='danube'){
+  // Gentle concert-piano voicing for this waltz; preserve attack detail.
+  const body=audio.createBiquadFilter(),silk=audio.createBiquadFilter(),control=audio.createDynamicsCompressor();
+  body.type='lowshelf';body.frequency.value=280;body.gain.value=2;
+  silk.type='highshelf';silk.frequency.value=3200;silk.gain.value=-2.5;
+  control.threshold.value=-19;control.knee.value=24;control.ratio.value=2;control.attack.value=.025;control.release.value=.26;
+  body.connect(silk);silk.connect(control);control.connect(master);musicOutput=body;
+ }else if(songSel.value==='william'){
   const body=audio.createBiquadFilter(),soften=audio.createBiquadFilter(),round=audio.createBiquadFilter(),control=audio.createDynamicsCompressor();
   body.type='lowshelf';body.frequency.value=360;body.gain.value=4;
   soften.type='highshelf';soften.frequency.value=1900;soften.gain.value=-5;
@@ -1585,13 +1592,14 @@ async function play(){
      const volume=scar?(n.scarLevel||.20)*(n.scarPart==='bass'?.67:n.scarPart==='bell'?.73:n.scarPart==='string'?.38:.60):
       holiday?(voice==='bell'?.57:voice==='marimba'?.54:
       voice==='string'?.31:voice==='bass'?.62:voice==='brass'?.49:.45)*(n.level||.3):
+      songSel.value==='danube'?(n.danubeLevel||.28):
       songSel.value==='william'?(n.williamBody?.38:.52):
       songSel.value==='swing'?.27:.37;
      if(holiday&&(voice==='brass'||voice==='string'))holidayOrchestraSound(n,start);
      else noteSound(n.midi,start,Math.max(.13,n.len*secondsPerUnit*.80),timbre,volume);
     }else{
-     const n=event.note,i=event.index,expression=event.expression;
-     const noteLength=Math.max(.12,n.len*secondsPerUnit*.85);
+     const n=event.note,i=event.index,expression=songSel.value==='danube'?(n.danubeExpression||.85):event.expression;
+     const noteLength=Math.max(.12,n.len*secondsPerUnit*(songSel.value==='danube'?.94:.85));
      if(isSpiral())towerStringsSound(n.midi,start,towerStringsDuration(i),expression);
      if(activeViolinMode!=='lead'||!violinAvailable){
       noteSound(n.midi,start,noteLength,mode,expression);
