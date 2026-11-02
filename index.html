@@ -935,13 +935,16 @@ function buildCharleston(){
  const add=(track,name,beat,len,extra={})=>track.push({name,midi:midi(name),beat,len,...extra});
  for(let pass=0;pass<2;pass++)for(let bar=0;bar<bars.length;bar++){
   const [tokens,chord]=bars[bar];let offset=0;
-  for(const token of tokens.split(' ')){const [name,d]=token.split(':'),len=+d;if(name!=='R')add(melody,name,tick+offset,len,{charlestonExpression:(pass?.94:.82)+(bar%4===0?.08:0)});offset+=len;}
+  for(const token of tokens.split(' ')){const [name,d]=token.split(':'),len=+d;if(name!=='R')add(melody,name,tick+offset,len,{charlestonExpression:(pass?1.04:.94)+(bar%4===0?.10:0)});offset+=len;}
   if(offset!==8)throw Error('Charleston bar length '+bar);
   const c=chords[chord];
-  // Original stride-style backing, with the signature offbeat accent.
-  add(backing,c[0],tick,1.6,{charlestonLevel:.43});
-  add(backing,c[3],tick+4,1.5,{charlestonLevel:.34});
-  for(const at of [3,6])for(const name of c.slice(1,3))add(backing,name,tick+at,1.2,{charlestonLevel:pass?.29:.25});
+  // Bouncing stride bass on beats one/three, crisp chord replies on two/four.
+  add(backing,c[0],tick,1.25,{charlestonLevel:.58});
+  add(backing,c[0],tick+4,1.15,{charlestonLevel:.50});
+  for(const at of [2,6])for(const name of c.slice(1))add(backing,name,tick+at,.78,{charlestonLevel:pass?.34:.30});
+  // Light syncopated answer and a rising pickup into the next measure.
+  add(backing,c[2],tick+3,.55,{charlestonLevel:.24});
+  add(backing,c[3],tick+7,.55,{charlestonLevel:.27});
   tick+=8;if((bar+1)%4===0)phrases.push(melody.length);
  }
  // Original two-bar cadence resolves the excerpt cleanly to B-flat.
@@ -957,8 +960,16 @@ function buildDrumPattern(kind){
  const rhythm=[];
  const add=(beat,drum,velocity)=>rhythm.push({beat,drum,velocity});
  if(kind==='charleston'){
-  for(let bar=0;bar<16;bar++){const at=bar*8;add(at,'bass',.56);add(at+3,'snare',.46);add(at+4,'bass',.40);add(at+6,'snare',.38);if(bar%4===0)add(at,'cymbal',.24);}
-  add(128,'bass',.52);add(131,'snare',.43);add(136,'bass',.65);add(136,'cymbal',.36);
+  for(let bar=0;bar<16;bar++){
+   const at=bar*8;
+   add(at,'bass',.72);add(at+4,'bass',.61);
+   add(at+2,'snare',.65);add(at+6,'snare',.72);
+   for(const t of [0,2,4,6])add(at+t,'cymbal',t===0?.23:.16);
+   add(at+3,'snare',.25);
+   if(bar%4===3){add(at+7,'snare',.36);add(at+7.5,'snare',.46);}
+  }
+  add(128,'bass',.68);add(131,'snare',.64);add(134,'snare',.45);
+  add(135,'snare',.55);add(136,'bass',.88);add(136,'cymbal',.62);
  }else if(kind==='mood'){
   for(let bar=0;bar<24;bar++){const at=bar*8;add(at,'bass',.58);add(at+4,'bass',.47);add(at+2,'snare',.48);add(at+6,'snare',.55);for(const t of [0,2,10/3,4,6,22/3])add(at+t,'cymbal',t===0?.22:.13);if(bar%4===3)add(at+22/3,'snare',.30);}
   for(const at of [192,194,196,198,200]){add(at,'bass',.62);add(at,'snare',.52);}add(200,'cymbal',.48);
@@ -1110,7 +1121,7 @@ function selectSong(){
   kind==='joy'?'JOY TO THE WORLD • ANTIOCH':
   kind==='grace'?'AMAZING GRACE • NEW BRITAIN':
   kind==='hymn'?'BATTLE HYMN OF THE REPUBLIC • 1862':'FÜR ELISE • L. VAN BEETHOVEN';
- songDescription.textContent=kind==='charleston'?'The Charleston: the opening eight-bar refrain from the 1923 score, played twice with original stride-style piano backing, syncopated drums and a short closing cadence. About 29 seconds at normal tempo. A refrain excerpt, not the complete song.':kind==='mood'?'In the Mood: a simplified main-riff study in C with swing rhythm, walking piano bass, jazz chords and mechanical drums. About 41 seconds. This is an adapted excerpt, not the full Glenn Miller arrangement or recording. Composition rights are not cleared for commercial release.':kind==='danube'?'The Blue Danube: the familiar first waltz theme in C major, played twice with warm concert-piano voicing, gently shaped phrases, a fuller second pass, balanced bass-and-chord accompaniment and optional violin. About 81 seconds at normal tempo. This is a theme excerpt, not the complete orchestral work or the London Philharmonic recording.':kind==='william'?'William Tell: the famous galloping finale theme, played twice with a fuller second pass and an original closing flourish. Driving bass, snare fills, cymbal accents and optional violin. About 27 seconds at normal speed, with warm octave reinforcement and deeper bass; an excerpt, not the complete overture.':kind==='saints'?'When the Saints Go Marching In: two lively instrumental choruses in C major, with original piano accompaniment, optional violin, bass drum, snare and cymbal. About 32 seconds.':
+ songDescription.textContent=kind==='charleston'?'The Charleston: the opening eight-bar refrain from the 1923 score, played twice at a lively 196 BPM with bouncing stride bass, punchy piano chords, snare backbeats, cymbal timekeeping and a short closing cadence. About 22 seconds at normal tempo. A refrain excerpt, not the complete song.':kind==='mood'?'In the Mood: a simplified main-riff study in C with swing rhythm, walking piano bass, jazz chords and mechanical drums. About 41 seconds. This is an adapted excerpt, not the full Glenn Miller arrangement or recording. Composition rights are not cleared for commercial release.':kind==='danube'?'The Blue Danube: the familiar first waltz theme in C major, played twice with warm concert-piano voicing, gently shaped phrases, a fuller second pass, balanced bass-and-chord accompaniment and optional violin. About 81 seconds at normal tempo. This is a theme excerpt, not the complete orchestral work or the London Philharmonic recording.':kind==='william'?'William Tell: the famous galloping finale theme, played twice with a fuller second pass and an original closing flourish. Driving bass, snare fills, cymbal accents and optional violin. About 27 seconds at normal speed, with warm octave reinforcement and deeper bass; an excerpt, not the complete overture.':kind==='saints'?'When the Saints Go Marching In: two lively instrumental choruses in C major, with original piano accompaniment, optional violin, bass drum, snare and cymbal. About 32 seconds.':
  kind==='wish'?'We Wish You a Merry Christmas: the familiar melody and Good tidings section, played twice in F major and lilting 3/4 time, with original piano accompaniment, optional violin and light mechanical drums. About 50 seconds.':
  kind==='jingle'?'Jingle Bells: the complete familiar chorus played twice in C major, with cheerful original piano accompaniment, optional violin and light mechanical percussion. About 61 seconds. The Dashing through the snow verse is not included.':
  kind==='scarborough'?'Scarborough Fair: original extended 81-second instrumental in E Dorian using the traditional melody twice, a new four-bar bridge, chimes, marimba, gentle violin and percussion and a full quiet ending. The built-in sound is synthesized live and may differ from the separate MP3 preview.':
@@ -1625,7 +1636,7 @@ async function play(){
  try{await makeAudio()}catch{statusEl.textContent='Audio unavailable';return}
  const id=++session;
  playing=true;playBtn.disabled=true;stopBtn.disabled=false;
- secondsPerUnit=(songSel.value==='charleston'?(30/150):songSel.value==='mood'?(30/154):songSel.value==='danube'?.21:songSel.value==='william'?.165:songSel.value==='saints'?.24:songSel.value==='wish'?.26:songSel.value==='jingle'?.24:songSel.value==='scarborough'?(60/104):songSel.value==='deckgrand'?(30/158):songSel.value==='deck'?.23:songSel.value==='cancan'?.20:songSel.value==='grace'?.34:songSel.value==='joy'?.23:songSel.value==='swing'?.265:songSel.value==='entertainer'?.17:songSel.value==='america'?.56:songSel.value==='country'?.53:.24)/Number(tempoSel.value);
+ secondsPerUnit=(songSel.value==='charleston'?(30/196):songSel.value==='mood'?(30/154):songSel.value==='danube'?.21:songSel.value==='william'?.165:songSel.value==='saints'?.24:songSel.value==='wish'?.26:songSel.value==='jingle'?.24:songSel.value==='scarborough'?(60/104):songSel.value==='deckgrand'?(30/158):songSel.value==='deck'?.23:songSel.value==='cancan'?.20:songSel.value==='grace'?.34:songSel.value==='joy'?.23:songSel.value==='swing'?.265:songSel.value==='entertainer'?.17:songSel.value==='america'?.56:songSel.value==='country'?.53:.24)/Number(tempoSel.value);
  duration=beats*secondsPerUnit;initialCharge=springCharge;
  let mode=soundSel.value,violinAvailable=true;
  activeViolinMode=violinSel.value;
@@ -1644,7 +1655,7 @@ async function play(){
  mechanicsBus=audio.createGain();
  mechanicsBus.gain.value=MECHANICAL_BUS_LEVEL*Number(mechanicsSel.value);
  mechanicsBus.connect(master);
- drumBus=audio.createGain();drumBus.gain.value=songSel.value==='scarborough'?.36:songSel.value==='deckgrand'?.84:songSel.value==='swing'?.94:songSel.value==='william'?.52:.40;drumBus.connect(master);
+ drumBus=audio.createGain();drumBus.gain.value=songSel.value==='charleston'?.68:songSel.value==='scarborough'?.36:songSel.value==='deckgrand'?.84:songSel.value==='swing'?.94:songSel.value==='william'?.52:.40;drumBus.connect(master);
  towerStringsBus=audio.createGain();towerStringsBus.gain.value=towerStringsToggle.checked?1:0;towerStringsBus.connect(instrumentBus);
  const events=buildAudioEvents();
  let nextEvent=0;
@@ -1684,7 +1695,7 @@ async function play(){
      else noteSound(n.midi,start,Math.max(.13,n.len*secondsPerUnit*.80),timbre,volume);
     }else{
      const n=event.note,i=event.index,expression=songSel.value==='charleston'?(n.charlestonExpression||.86):songSel.value==='mood'?(n.moodExpression||.85):songSel.value==='danube'?(n.danubeExpression||.85):event.expression;
-     const noteLength=Math.max(.12,n.len*secondsPerUnit*(songSel.value==='charleston'?.72:songSel.value==='danube'?.94:.85));
+     const noteLength=Math.max(.12,n.len*secondsPerUnit*(songSel.value==='charleston'?.64:songSel.value==='danube'?.94:.85));
      if(isSpiral()&&songSel.value!=='charleston')towerStringsSound(n.midi,start,towerStringsDuration(i),expression);
      if(activeViolinMode!=='lead'||!violinAvailable){
       noteSound(n.midi,start,noteLength,mode,expression);
