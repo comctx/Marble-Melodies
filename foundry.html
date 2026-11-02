@@ -11,7 +11,7 @@ const topReturn=[[1470,60],[1478,69],[1442,59],[1408,65],[1394,91],[1390,127],[1
 function liftPoint(f){const a=Math.PI/2-Math.PI*f;return[1470+90*Math.cos(a),350+290*Math.sin(a)]}
 function marblePoint(type,age,wait=0){if(age<2.5)return pos(paths[type],age/2.5);if(age<6.5)return pos(returns[type],(age-2.5)/4);if(age<6.5+wait)return liftPoint(0);if(age<15.5+wait)return liftPoint((age-6.5-wait)/9);return pos(topReturn,(age-15.5-wait)/3)}
 function guide(points){g.save();g.lineJoin='round';g.lineCap='round';const stroke=(dy,color,width)=>{g.beginPath();points.forEach(([x,y],i)=>i?g.lineTo(x,y+dy):g.moveTo(x,y+dy));g.strokeStyle=color;g.lineWidth=width;g.stroke()};stroke(3,'rgba(12,7,3,.65)',9);stroke(0,'#50321b',5);stroke(-1,'#d4a36b',2.2);stroke(9,'#624022',4);stroke(8,'#e4bb83',1.3);g.restore()}
-function drawGuides(){const unique=new Set();for(const track of [...Object.values(paths),...Object.values(returns),topReturn])for(let i=1;i<track.length;i++){const p=track[i-1],q=track[i],key=p.join(',')+'>'+q.join(',');if(!unique.has(key)){unique.add(key);guide([p,q])}}const lift=[];for(let i=0;i<=120;i++)lift.push(liftPoint(i/120));guide(lift)}
+function drawGuides(){const unique=new Set();for(const track of [...Object.values(paths),...Object.values(returns),topReturn])for(let i=1;i<track.length;i++){const p=track[i-1],q=track[i],key=p.join(',')+'>'+q.join(',');if(!unique.has(key)){unique.add(key);guide([p,q])}}}
 
 function pos(p,f){let ls=[],total=0;for(let i=1;i<p.length;i++){let d=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);ls.push(d);total+=d}let d=Math.max(0,Math.min(1,f))*total;for(let i=0;i<ls.length;i++){if(d<=ls[i]){let a=d/ls[i];return[p[i][0]+(p[i+1][0]-p[i][0])*a,p[i][1]+(p[i+1][1]-p[i][1])*a]}d-=ls[i]}return p.at(-1)}
 function audio(note,type){if(!ac||muted)return;const now=ac.currentTime,f=440*2**((note-69)/12);if(type==='drum'){let o=ac.createOscillator(),v=ac.createGain();o.frequency.setValueAtTime(115,now);o.frequency.exponentialRampToValueAtTime(35,now+.14);v.gain.setValueAtTime(.3,now);v.gain.exponentialRampToValueAtTime(.001,now+.22);o.connect(v).connect(volume);o.start();o.stop(now+.25);return}for(let [mul,amp] of [[1,.23],[2,.07],[3,.025]]){let o=ac.createOscillator(),v=ac.createGain();o.type='sine';o.frequency.value=f*mul*(type==='bell'&&mul>1?1.003:1);v.gain.setValueAtTime(.001,now);v.gain.linearRampToValueAtTime(amp,now+.008);v.gain.exponentialRampToValueAtTime(.001,now+(type==='bell'?2:1.1));o.connect(v).connect(volume);o.start();o.stop(now+2.1)}}
@@ -19,41 +19,68 @@ const camera={x:0,y:0};const wheelTextures=new Map();
 const wheels=[[1044,166,55,1],[1160,170,35,-1],[1220,191,30,1],[593,521,42,1],[661,451,44,-1],[940,512,38,1],[121,671,51,-1],[1506,636,29,1],[1534,665,23,-1],[744,785,14,1],[820,782,14,1]];
 function wheelLayer(x,y,r,speed){let key=x+','+y,texture=wheelTextures.get(key);if(!texture){texture=document.createElement('canvas');texture.width=texture.height=r*2+4;let c=texture.getContext('2d'),z=r+2;c.drawImage(artwork,x-z,y-z,z*2,z*2,0,0,z*2,z*2);c.globalCompositeOperation='destination-in';let mask=c.createRadialGradient(z,z,r-3,z,z,r);mask.addColorStop(0,'#000');mask.addColorStop(1,'#0000');c.fillStyle=mask;c.fillRect(0,0,z*2,z*2);wheelTextures.set(key,texture)}g.save();g.translate(x,y);g.rotate(t*.3*speed);g.drawImage(texture,-r-2,-r-2);g.restore()}
 
+function ferrisCup(x,y,rear=false){
+ g.save();g.translate(x,y);
+ // Gravity keeps the bucket upright on its freely pivoting hanger.
+ g.shadowColor='#0009';g.shadowBlur=4;g.shadowOffsetY=3;
+ line(-8,-9,-10,5,'#513821',3);line(8,-9,10,5,'#9c7948',3);
+ const brass=g.createLinearGradient(-15,-3,15,16);
+ brass.addColorStop(0,'#3e2918');brass.addColorStop(.18,'#a57940');brass.addColorStop(.38,'#f0ce8b');brass.addColorStop(.52,'#bd904c');brass.addColorStop(.8,'#79552e');brass.addColorStop(1,'#382516');
+ g.fillStyle=brass;g.beginPath();g.moveTo(-14,1);g.bezierCurveTo(-13,12,-9,20,0,21);g.bezierCurveTo(9,20,13,12,14,1);g.closePath();g.fill();
+ g.shadowBlur=0;g.shadowOffsetY=0;
+ g.fillStyle='#281e14';g.beginPath();g.ellipse(0,1,14,4,0,0,Math.PI*2);g.fill();
+ g.strokeStyle=rear?'#a78049':'#e7c389';g.lineWidth=1.6;g.stroke();
+ g.strokeStyle='#fff0bc55';g.lineWidth=1;g.beginPath();g.moveTo(-9,7);g.quadraticCurveTo(-8,15,-4,17);g.stroke();
+ circle(-8,-9,2.8,'#30241a');circle(-8.6,-9.6,1.2,'#d9bb7e');
+ circle(8,-9,2.8,'#30241a');circle(7.4,-9.6,1.2,'#d9bb7e');g.restore();
+}
 function drawFerrisWheel(){
- g.save();
- // Replace the still wheel with a rigid, articulated wheel in the same footprint.
- g.beginPath();g.ellipse(1470,350,139,311,0,0,Math.PI*2);g.clip();
+ g.save();g.beginPath();g.ellipse(1470,350,139,311,0,0,Math.PI*2);g.clip();
  g.drawImage(artwork,1610,38,35,626,1331,39,278,622);
  const shade=g.createLinearGradient(1330,0,1610,0);
  shade.addColorStop(0,'rgba(15,12,10,.93)');shade.addColorStop(.5,'rgba(20,15,11,.75)');shade.addColorStop(1,'rgba(15,12,10,.88)');
  g.fillStyle=shade;g.fillRect(1330,39,280,622);g.restore();
  const phase=-t*Math.PI/9;
- // Rotate in the wheel's own plane, then project into the side-on view.
- g.save();g.translate(1470,350);g.scale(90/290,1);g.rotate(phase);
- for(const r of [290,278]){
-  g.beginPath();g.arc(0,0,r,0,Math.PI*2);g.strokeStyle='#33231b';g.lineWidth=15;g.stroke();
-  g.strokeStyle='#c49a62';g.lineWidth=5;g.stroke();
+ function rim(dx,dy,rear){
+  g.save();g.translate(1470+dx,350+dy);g.scale(90/290,1);
+  const metal=g.createLinearGradient(-290,-290,290,290);
+  metal.addColorStop(0,rear?'#685238':'#ddc39a');metal.addColorStop(.23,'#695641');metal.addColorStop(.47,'#b9a389');metal.addColorStop(.7,'#382d24');metal.addColorStop(1,'#9b805b');
+  g.strokeStyle='#211914';g.lineWidth=18;g.beginPath();g.arc(0,0,290,0,Math.PI*2);g.stroke();
+  g.strokeStyle=metal;g.lineWidth=11;g.stroke();
+  g.strokeStyle=rear?'#47382a':'#ead5af';g.lineWidth=1.8;g.beginPath();g.arc(0,0,294,0,Math.PI*2);g.stroke();
+  g.rotate(phase);
+  for(let i=0;i<9;i++){
+   const a=i*Math.PI*2/9,x=Math.cos(a)*282,y=Math.sin(a)*282;
+   line(0,0,x,y,'#2a1714',16);const paint=g.createLinearGradient(0,0,x,y);paint.addColorStop(0,rear?'#40231b':'#4d241c');paint.addColorStop(.3,rear?'#633a29':'#aa5a3b');paint.addColorStop(.6,rear?'#47271f':'#623025');paint.addColorStop(1,rear?'#7b5233':'#c08c59');line(0,0,x,y,paint,11);
+   line(-2,-2,x-2,y-2,rear?'#774032':'#c17d55',2);
+  }
+  for(let i=0;i<36;i++){
+   const a=i*Math.PI*2/36,x=Math.cos(a)*289,y=Math.sin(a)*289;
+   circle(x,y,3.1,'#30271d');circle(x-1,y-1,1.6,rear?'#806443':'#dac297');
+  }
+  g.restore();
  }
- for(let i=0;i<18;i++){
-  const a=Math.PI*2*i/18,x=Math.cos(a)*277,y=Math.sin(a)*277;
-  line(0,0,x,y,'#451c19',13);line(0,0,x,y,'#a44d36',6);
- }
- g.restore();
- // Suspended brass cups stay upright as their pivots revolve.
+ // Two separate iron rims and cross shafts give the wheel real thickness.
+ rim(-18,-7,true);
  for(let i=0;i<18;i++){
   const a=Math.PI/2+phase+i*Math.PI*2/18,x=1470+90*Math.cos(a),y=350+290*Math.sin(a);
-  const rear=Math.cos(a)<0;g.save();g.globalAlpha=rear?.55:1;
-  line(x,y-12,x,y+4,'#b58c55',2);
-  const brass=g.createLinearGradient(x-13,y,x+13,y);
-  brass.addColorStop(0,'#51331b');brass.addColorStop(.35,'#d6ac6a');brass.addColorStop(.65,'#98703c');brass.addColorStop(1,'#382415');
-  g.fillStyle=brass;g.beginPath();g.moveTo(x-12,y+2);g.quadraticCurveTo(x-11,y+17,x,y+18);g.quadraticCurveTo(x+11,y+17,x+12,y+2);g.closePath();g.fill();
-  g.strokeStyle='#ecc78d';g.lineWidth=2;g.beginPath();g.ellipse(x,y+2,12,3,0,0,Math.PI*2);g.stroke();g.restore();
+  line(x-18,y-7,x,y,'#3c2b1d',5);line(x-18,y-8,x,y-1,'#b79a68',1.5);
+  if(Math.cos(a)<0)ferrisCup(x,y,true);
  }
- // Fixed axle and stand sit in front of the rotating spokes.
- line(1417,331,1441,661,'#292522',15);line(1417,331,1405,664,'#b08a54',6);
- circle(1470,350,19,'#36251b');circle(1470,350,13,'#b58c54');circle(1470,350,6,'#ead4a7');
+ rim(0,0,false);
+ for(let i=0;i<18;i++){
+  const a=Math.PI/2+phase+i*Math.PI*2/18;
+  if(Math.cos(a)>=0)ferrisCup(1470+90*Math.cos(a),350+290*Math.sin(a));
+ }
+ // Cast iron bearing support, brass collars, and a fixed steel axle.
+ line(1417,331,1441,661,'#171817',20);line(1417,331,1441,661,'#605a4b',10);line(1414,331,1438,661,'#b29b72',2);
+ line(1417,331,1405,664,'#282724',15);line(1414,331,1402,664,'#8b795a',3);
+ line(1417,331,1470,350,'#201c18',22);line(1417,327,1470,346,'#9a896c',8);
+ const hub=g.createRadialGradient(1464,341,2,1470,350,24);
+ hub.addColorStop(0,'#f7dfab');hub.addColorStop(.3,'#bf9b5e');hub.addColorStop(.62,'#675033');hub.addColorStop(.8,'#c4a673');hub.addColorStop(1,'#34291e');
+ circle(1470,350,24,hub);circle(1470,350,9,'#3b3932');circle(1468,348,5,'#c7c3ac');
+ for(let i=0;i<6;i++){const a=i*Math.PI/3;circle(1470+17*Math.cos(a),350+17*Math.sin(a),2.5,'#352a20')}
 }
-
 function glint(x,y,strength){g.save();g.globalCompositeOperation='screen';let q=g.createRadialGradient(x,y,0,x,y,40);q.addColorStop(0,'rgba(255,202,109,'+strength+')');q.addColorStop(1,'rgba(255,176,60,0)');circle(x,y,40,q);g.restore()}
 function draw(){g.setTransform(1,0,0,1,-camera.x,-camera.y);rect(0,0,1672,941,'#16110c');if(!artReady){text('Opening the workshop…',836,460,24);return}g.drawImage(artwork,0,0,1672,941);for(let w of wheels)wheelLayer(...w);drawFerrisWheel();drawGuides();
 // Keys, bell clappers, mallets and drumsticks react at the arrival time.
@@ -61,7 +88,7 @@ let ph=t-hits.piano;if(ph>=0&&ph<.24){let x=330+(notes%14)*10;rect(x,616+Math.si
 let bh=t-hits.bell;if(bh>=0&&bh<.9){let x=1113+(notes%5)*48,sw=Math.sin(bh*24)*Math.exp(-bh*4)*7;line(x,444,x+sw,474,'#b89858',3);circle(x+sw,474,4,'#e7bf71');glint(x,466,.15*Math.exp(-bh*3))}
 let xh=t-hits.xylo;if(xh>=0&&xh<.27){let x=1104+(notes%12)*21,z=Math.sin(xh/.27*Math.PI);line(x,646,x+4,622-z*15,'#b99458',3);circle(x+4,622-z*15,5,'#c2a070')}
 let dh=t-hits.drum;if(dh>=0&&dh<.28){let k=Math.exp(-dh*16);g.save();g.globalAlpha=.18*k;g.strokeStyle='#ead9ad';g.lineWidth=1;g.beginPath();g.ellipse(783,552,25+dh*25,5+dh*4,0,0,7);g.stroke();g.beginPath();g.ellipse(869,551,24+dh*25,5+dh*4,0,0,7);g.stroke();g.restore()}
-for(const p of particles){let age=t-p.start,pt=marblePoint(p.type,age,p.liftWait);g.save();g.shadowColor='#0008';g.shadowBlur=3;g.shadowOffsetY=2;marble(pt[0],pt[1]-7,7);g.restore()}
+for(const p of particles){let age=t-p.start,pt=marblePoint(p.type,age,p.liftWait);g.save();g.shadowColor='#0008';g.shadowBlur=3;g.shadowOffsetY=2;marble(pt[0],pt[1]-7,7);g.restore();if(age>=6.5+p.liftWait&&age<15.5+p.liftWait){g.save();g.strokeStyle='#dfbb7b';g.lineWidth=2;g.beginPath();g.ellipse(pt[0],pt[1]+2,13,3,0,0,Math.PI);g.stroke();g.restore()}}
 // Warm lamps make the artwork feel like a living workshop.
 for(let [x,y] of [[382,295],[750,408],[1007,402],[1199,403]])glint(x,y,.025+.012*Math.sin(t*1.7+x));
 }
