@@ -2720,6 +2720,30 @@ function spiralSolidArm(px,py,x,y,angle,amount,r=8,silver=false){
  ctx.beginPath();ctx.arc(tx,ty,r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
  spiralBearing(px,py,5);
 }
+// Fixed bearing housings with rotating inner races on the drum drive shafts.
+let drumBearingPhase=0;
+function drawSpiralDrumBearings(machineTime){
+ if(playing)drumBearingPhase=machineTime*.95;
+ const bearings=[[579,1225,19,1],[684,1229,27,-1],[790,1191,12,1.35]];
+ for(const [x,y,r,ratio] of bearings){
+  ctx.save();ctx.translate(x,y);ctx.scale(.78,1);
+  // Housing and reflected light stay fixed while the inner race turns.
+  const brass=ctx.createLinearGradient(-r,-r,r,r);brass.addColorStop(0,'#f0d49a');brass.addColorStop(.3,'#b48b45');brass.addColorStop(.65,'#62451f');brass.addColorStop(1,'#d3ac64');
+  ctx.fillStyle=brass;ctx.strokeStyle='#3f2c15';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#392c1b';ctx.beginPath();ctx.arc(0,0,r*.78,0,Math.PI*2);ctx.fill();
+  ctx.save();ctx.rotate(drumBearingPhase*ratio);
+  // Six bronze cage windows make the direction and rotation visible.
+  for(let i=0;i<6;i++){
+   const a=i*Math.PI/3,bx=Math.cos(a)*r*.55,by=Math.sin(a)*r*.55;
+   ctx.fillStyle='#b39458';ctx.beginPath();ctx.ellipse(bx,by,r*.16,r*.25,a,0,Math.PI*2);ctx.fill();
+   ctx.strokeStyle='#dfc78d';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(Math.cos(a)*r*.21,Math.sin(a)*r*.21);ctx.lineTo(Math.cos(a)*r*.73,Math.sin(a)*r*.73);ctx.stroke();
+  }
+  ctx.fillStyle='#b68d4a';ctx.beginPath();ctx.arc(0,0,r*.28,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#4a3218';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-r*.14,0);ctx.lineTo(r*.14,0);ctx.stroke();ctx.restore();
+  ctx.strokeStyle='rgba(250,223,166,.65)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,r*.91,Math.PI,Math.PI*1.7);ctx.stroke();ctx.restore();
+ }
+}
 function spiralArticulatedMotion(state){
  ctx.save();
  // Spoked drive wheel -- rotates inside a fixed hub, with no rubbery gears.
@@ -2741,6 +2765,7 @@ function spiralArticulatedMotion(state){
   const hit=Math.max(state.pulse[slot],state.pulse[(slot+1)%12]);
   spiralSolidArm(px,py,x,y,.32,hit,8,false);
  }
+ drawSpiralDrumBearings(state.gear);
  // Independent bass beater, alternating snare hands and cymbal hammer.
  spiralSolidArm(348,1177,382,1081,-.15,state.bass,13,false);
  spiralSolidArm(642,1001,656,1040,.46,state.left,4,true);
@@ -2883,3 +2908,4 @@ updateMachine();
 draw();
 </script>
 </body></html>
+
