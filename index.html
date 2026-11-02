@@ -927,7 +927,7 @@ function buildCharleston(){
  ['D5:2 R:1 G4:5','G7'],
  ['G4:2 R:1 D5:5','C7'],
  ['G4:2 R:1 D5:5','C7'],
- ['G4:2 R:1 C5:5','F7'],
+ ['G4:2 R:1 A#4:5','F7'],
  ['A4:1 C5:1 A4:1 G4:2 A4:1 G4:1 F#4:1','F7']
  ];
  const chords={Bb:['A#2','D4','F4','A#3'],D7:['D3','F#4','C4','A3'],G7:['G2','B3','F4','D4'],C7:['C3','E4','A#3','G3'],F7:['F2','A3','D#4','C4']};
@@ -1313,20 +1313,28 @@ function grandSound(m,start,dur,expression=1){
  presence.type='peaking';presence.frequency.value=2400;presence.Q.value=.75;presence.gain.value=-1.7;
  // Hold a natural piano sustain before gently releasing the note.
  // Keep the recording's own decay; avoid an abrupt artificial cutoff.
- const end=start+Math.min(5.5,Math.max(1.9,dur*4.2));
- const releaseStart=Math.max(start+.4,end-.95);
+ const crisp=songSel.value==='charleston';
+ const end=start+(crisp?Math.max(.16,dur+.10):Math.min(5.5,Math.max(1.9,dur*4.2)));
  gain.gain.setValueAtTime(.00001,start);
  gain.gain.linearRampToValueAtTime(.42*expression,start+.009);
- gain.gain.exponentialRampToValueAtTime(.30*expression,start+.24);
- gain.gain.exponentialRampToValueAtTime(.20*expression,releaseStart);
- gain.gain.exponentialRampToValueAtTime(.00001,end);
+ if(crisp){
+  // Follow the written articulation, lifting the damper between accents.
+  const releaseStart=start+Math.max(.035,dur-.025);
+  gain.gain.exponentialRampToValueAtTime(.22*expression,releaseStart);
+  gain.gain.exponentialRampToValueAtTime(.00001,end);
+ }else{
+  const releaseStart=Math.max(start+.4,end-.95);
+  gain.gain.exponentialRampToValueAtTime(.30*expression,start+.24);
+  gain.gain.exponentialRampToValueAtTime(.20*expression,releaseStart);
+  gain.gain.exponentialRampToValueAtTime(.00001,end);
+ }
  src.connect(warmth);warmth.connect(presence);presence.connect(gain);
  gain.connect(instrumentBus);
  src.start(start);src.stop(end+.03);
  scheduled.push(gain);
 }
 function pianoSound(m,start,dur,expression=1){
- const base=hz(m),length=Math.min(3.2,Math.max(.55,dur*2.7));
+ const base=hz(m),length=songSel.value==='charleston'?Math.max(.16,dur+.10):Math.min(3.2,Math.max(.55,dur*2.7));
  const voice=audio.createGain();voice.connect(instrumentBus);
  voice.gain.setValueAtTime(.00001,start);
  voice.gain.exponentialRampToValueAtTime(.19*expression,start+.004);
@@ -1676,8 +1684,8 @@ async function play(){
      else noteSound(n.midi,start,Math.max(.13,n.len*secondsPerUnit*.80),timbre,volume);
     }else{
      const n=event.note,i=event.index,expression=songSel.value==='charleston'?(n.charlestonExpression||.86):songSel.value==='mood'?(n.moodExpression||.85):songSel.value==='danube'?(n.danubeExpression||.85):event.expression;
-     const noteLength=Math.max(.12,n.len*secondsPerUnit*(songSel.value==='danube'?.94:.85));
-     if(isSpiral())towerStringsSound(n.midi,start,towerStringsDuration(i),expression);
+     const noteLength=Math.max(.12,n.len*secondsPerUnit*(songSel.value==='charleston'?.72:songSel.value==='danube'?.94:.85));
+     if(isSpiral()&&songSel.value!=='charleston')towerStringsSound(n.midi,start,towerStringsDuration(i),expression);
      if(activeViolinMode!=='lead'||!violinAvailable){
       noteSound(n.midi,start,noteLength,mode,expression);
       // The bright upper chimes reinforce the melody without swallowing it.
