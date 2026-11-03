@@ -1,21 +1,44 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Christmas Swing Cascade · Marble Melodies</title>
-<style>*{box-sizing:border-box}body{margin:0;background:#171e22;color:#e8e5dc;font:15px system-ui}main{max-width:850px;margin:auto}header{padding:14px 18px 10px}a{color:#bfcacb;font-size:13px}h1{font:29px Georgia;margin:12px 0 6px}p{margin:4px 0;color:#aebbbc;line-height:1.5}canvas{display:block;width:100%;aspect-ratio:900/1000;background:#333f43}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 16px max(18px,env(safe-area-inset-bottom));background:#20292d}button{border:1px solid #627378;border-radius:24px;background:#37484b;color:white;font:15px system-ui;padding:11px 18px}#play{background:#d8b16d;color:#20292d;border-color:#d8b16d}label{font-size:13px;color:#c1ccca;display:flex;align-items:center;gap:7px}input{width:100px;accent-color:#d8b16d}#status{font-size:12px;color:#c2ceca;padding:0 18px 12px}@media(min-width:700px){canvas{max-height:76vh;width:auto;max-width:100%;margin:auto}}</style></head>
-<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Christmas Swing Cascade</h1><p>Jingle Bells — Christmas Swing · four marbles: melody, bells, bass, and drums.</p><p>Two choruses · 144 BPM · original arrangement of the 1857 melody. All sounds are synthesized; no commercial recording is used.</p></header><canvas width="900" height="1000" aria-label="Four marbles bounce onto melody, bells, bass and drum pads, then finish with a splash"></canvas><div class="controls"><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Christmas swing tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">Jingle Bells — Christmas Swing · ready</div></main>
+<style>*{box-sizing:border-box}body{margin:0;background:#171e22;color:#e8e5dc;font:15px system-ui}main{max-width:850px;margin:auto}header{padding:14px 18px 10px}a{color:#bfcacb;font-size:13px}h1{font:29px Georgia;margin:12px 0 6px}p{margin:4px 0;color:#aebbbc;line-height:1.5}canvas{display:block;width:100%;aspect-ratio:900/1000;background:#333f43}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 16px max(18px,env(safe-area-inset-bottom));background:#20292d}select{max-width:240px;padding:10px;border-radius:8px;background:#30483e;color:#fff;border:1px solid #8da79a;font:14px system-ui}button{border:1px solid #627378;border-radius:24px;background:#37484b;color:white;font:15px system-ui;padding:11px 18px}#play{background:#d8b16d;color:#20292d;border-color:#d8b16d}label{font-size:13px;color:#c1ccca;display:flex;align-items:center;gap:7px}input{width:100px;accent-color:#d8b16d}#status{font-size:12px;color:#c2ceca;padding:0 18px 12px}@media(min-width:700px){canvas{max-height:76vh;width:auto;max-width:100%;margin:auto}}</style></head>
+<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Christmas Swing Cascade</h1><p id="song-heading">Four marbles: melody, bells, bass, and drums.</p><p id="song-details">Choose a tune below. Original synthesized arrangements of public-domain melodies; no commercial recording is used.</p></header><canvas width="900" height="1000" aria-label="Four marbles bounce onto melody, bells, bass and drum pads, then finish with a splash"></canvas><div class="controls"><label for="tune">Tune <select id="tune"><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Christmas swing tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">Jingle Bells — Christmas Swing · ready</div></main>
 <script>
 (()=>{'use strict';
 const c=document.querySelector('canvas'),g=c.getContext('2d'),play=document.querySelector('#play'),status=document.querySelector('#status');
-// James Lord Pierpont's 1857 chorus; fresh synthesized swing arrangement.
-const bars=['E:1 E:1 E:2', 'E:1 E:1 E:2', 'E:1 G:1 C:1.5 D:0.5', 'E:4', 'F:1 F:1 F:1.5 F:0.5', 'F:1 E:1 E:1 E:0.5 E:0.5', 'E:1 D:1 D:1 E:1', 'D:2 G:2', 'E:1 E:1 E:2', 'E:1 E:1 E:2', 'E:1 G:1 C:1.5 D:0.5', 'E:4', 'F:1 F:1 F:1.5 F:0.5', 'F:1 E:1 E:1 E:0.5 E:0.5', 'G:1 G:1 F:1 D:1', 'C:4'];
-const chords=['C','C','C','C','F','C','G','G','C','C','C','C','F','C','G','C'];
-const pitches={C:72,D:74,E:76,F:77,G:79};
+// Public-domain melodies with original four-part synthesized accompaniment.
+const songs={
+ jingle:{title:'Jingle Bells — Christmas Swing',bpm:144,lift:12,credit:'James Lord Pierpont, 1857 · familiar chorus twice',bars:['E:1 E:1 E:2', 'E:1 E:1 E:2', 'E:1 G:1 C:1.5 D:0.5', 'E:4', 'F:1 F:1 F:1.5 F:0.5', 'F:1 E:1 E:1 E:0.5 E:0.5', 'E:1 D:1 D:1 E:1', 'D:2 G:2', 'E:1 E:1 E:2', 'E:1 E:1 E:2', 'E:1 G:1 C:1.5 D:0.5', 'E:4', 'F:1 F:1 F:1.5 F:0.5', 'F:1 E:1 E:1 E:0.5 E:0.5', 'G:1 G:1 F:1 D:1', 'C:4'],chords:['C','C','C','C','F','C','G','G','C','C','C','C','F','C','G','C']},
+ deck:{title:'Deck the Halls',bpm:138,lift:0,credit:'Traditional Welsh melody · complete familiar tune twice',bars:[
+ 'G:1.5 F:0.5 E:1 D:1','C:1 D:1 E:1 C:1','D:0.5 E:0.5 F:0.5 D:0.5 E:1.5 D:0.5','C:1 B0:1 C:2',
+ 'G:1.5 F:0.5 E:1 D:1','C:1 D:1 E:1 C:1','D:0.5 E:0.5 F:0.5 D:0.5 E:1.5 D:0.5','C:1 B0:1 C:2',
+ 'D:1.5 E:0.5 F:1 D:1','E:1.5 F:0.5 G:1 D:1','E:0.5 Fs:0.5 G:1 A:0.5 B:0.5 c:1','B:1 A:1 G:2',
+ 'G:1.5 F:0.5 E:1 D:1','C:1 D:1 E:1 C:1','A:0.5 A:0.5 A:0.5 A:0.5 G:1.5 F:0.5','E:1 D:1 C:2'],chords:['C','C','F','C','C','C','F','C','G','C','G','G','C','C','F','C']},
+ joy:{title:'Joy to the World',bpm:116,lift:0,credit:'Historic ANTIOCH melody · familiar tune twice',bars:[
+ 'c:1.5 B:0.5 A:1 G:1.5','F:0.5 E:1 D:1 c:1.5','G:0.5 A:1 A:1.5 B:0.5','B:1 c:3',
+ 'c:0.5 c:0.5 B:0.5 A:0.5 G:0.5 G:0.75 F:0.25 E:0.5','c:0.5 c:0.5 B:0.5 A:0.5 G:0.5 G:0.75 F:0.25 E:0.5',
+ 'E:0.5 E:0.5 E:0.5 E:0.5 E:0.25 F:0.25 G:1','F:0.25 E:0.25 D:0.5 D:0.5 D:0.5 D:0.25 E:0.25 F:1',
+ 'E:0.5 D:0.5 C:1 c:1 A:0.5 G:0.5','F:0.5 E:0.5 F:1 E:1 D:1','C:4'],chords:['C','F','G','C','C','C','C','G','C','F','C'],straight:true},
+ saints:{title:'When the Saints Go Marching In',bpm:132,lift:0,credit:'Traditional melody · familiar chorus twice',bars:[
+ 'C:1 E:1 F:1 G:1','G:4','C:1 E:1 F:1 G:1','G:4',
+ 'C:1 E:1 F:1 G:2','E:2 C:1 E:1','D:4','D:2 E:1 E:1',
+ 'D:1 C:3','C:2 E:1 G:1','G:1 F:3','F:2 E:1 F:1','G:2 E:2','C:1 D:1 C:2','C:4'],chords:['C','C','C','C','C','C','G','G','C','C','F','F','C','G','C']}
+};
+const requested=new URLSearchParams(location.search).get('tune');
+const song=songs[requested]||songs.jingle;
+const tune=document.querySelector('#tune');tune.value=songs[requested]?requested:'jingle';
+tune.onchange=()=>{const url=new URL(location.href);url.searchParams.set('tune',tune.value);location.assign(url.href)};
+document.querySelector('#song-heading').textContent=song.title+' · four marbles: melody, bells, bass, and drums.';
+document.querySelector('#song-details').textContent=song.credit+' · '+song.bpm+' BPM · original synthesized arrangement.';
+document.title=song.title+' · Marble Melodies';
+const bars=song.bars,chords=song.chords;
+const pitches={B0:71,C:72,D:74,E:76,F:77,Fs:78,G:79,A:81,B:83,c:84};
 const melody=[],noteChords=[];let musicalBeat=0;
 for(let pass=0;pass<2;pass++)for(let bar=0;bar<bars.length;bar++){
  let within=0;for(const token of bars[bar].split(' ')){
  const [name,value]=token.split(':');const length=Number(value);
- const swing=b=>Math.floor(b)+(b%1===.5?2/3:b%1);
+ const swing=b=>song.straight?b:Math.floor(b)+(b%1===.5?2/3:b%1);
  const duration=swing(within+length)-swing(within);
- melody.push([pitches[name]+(pass?12:0),duration]);noteChords.push(chords[bar]);within+=length;
+ melody.push([pitches[name]+(pass?song.lift:0),duration]);noteChords.push(chords[bar]);within+=length;
  }musicalBeat+=within;
 }
 const pitchNames=['C','C♯','D','E♭','E','F','F♯','G','G♯','A','B♭','B'];
@@ -27,7 +50,7 @@ const lanes=[pads,harmony];
 const laneX=(x,lane)=>[120,340,560,780][lane]+(x-450)*(lane===2?.08:.23);
 const r=17,endY=pads[pads.length-1].y+120;
 const anchors=[{x:425,y:28},...pads.map(p=>({x:p.x,y:p.y-r})),{x:465,y:endY}];
-const beatSeconds=60/144;
+const beatSeconds=60/song.bpm;
 const durations=[.8,...melody.slice(0,-1).map(n=>n[1]*beatSeconds),melody[melody.length-1][1]*beatSeconds+.6];
 const heights=durations.map((d,i)=>i===0?0:Math.min(125,35+d*65));
 const arrivals=[];let total=0;durations.forEach((d,i)=>{total+=d;if(i<pads.length)arrivals.push(total)});
@@ -77,8 +100,8 @@ function percussion(kind){if(!sound||!ac)return;const z=ac.currentTime;
  let o=ac.createOscillator(),v=ac.createGain();o.frequency.setValueAtTime(kind==='tom'?150:190,z);o.frequency.exponentialRampToValueAtTime(kind==='tom'?48:100,z+.22);v.gain.setValueAtTime(kind==='tom'?.3:.10,z);v.gain.exponentialRampToValueAtTime(.0001,z+.32);o.connect(v).connect(ac.destination);o.start(z);o.stop(z+.34);
  if(kind==='snare'){let b=ac.createBuffer(1,Math.ceil(ac.sampleRate*.16),ac.sampleRate),data=b.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;let n=ac.createBufferSource(),f=ac.createBiquadFilter(),v=ac.createGain();n.buffer=b;f.type='highpass';f.frequency.value=1500;v.gain.setValueAtTime(.11,z);v.gain.exponentialRampToValueAtTime(.0001,z+.16);n.connect(f).connect(v).connect(ac.destination);n.start(z);n.stop(z+.17)}
 }
-function reset(){drumStruck=0;bassStruck=0;splashAge=-1;time=0;struck=0;finished=false;running=false;lanes.forEach(course=>course.forEach(p=>p.hit=-100));play.textContent='Release marbles';status.textContent='Jingle Bells — Christmas Swing · tap Release marbles'}
-function frame(ms){let dt=last===null?0:Math.min(.04,(ms-last)/1000);last=ms;if(splashAge>=0)splashAge+=dt;if(running){time=Math.min(total,time+dt*Number(document.querySelector('#speed').value));while(struck<pads.length&&time>=arrivals[struck]){pads[struck].hit=arrivals[struck];harmony[struck].hit=arrivals[struck];chime(pads[struck].note,pads[struck].beats,.70);chime(harmony[struck].note,harmony[struck].beats,.25);status.textContent=pads[struck].name+' + '+harmony[struck].name+' · note '+(struck+1)+' of '+pads.length;struck++}while(bassStruck<bass.length&&time>=bassArrivals[bassStruck]){let p=bass[bassStruck],until=bassArrivals[bassStruck+1]||total;p.hit=bassArrivals[bassStruck];bassTone(p.note,(until-p.hit)/beatSeconds,bassStruck===bass.length-1);bassStruck++}while(drumStruck<drums.length&&time>=drumArrivals[drumStruck]){const p=drums[drumStruck];p.hit=drumArrivals[drumStruck];percussion(p.kind);drumStruck++}if(time>=total){running=false;finished=true;splashAge=0;splashSound();play.textContent='Play Christmas swing again';status.textContent='Splash! · Jingle Bells — Christmas Swing · finished'}}draw();requestAnimationFrame(frame)}
+function reset(){drumStruck=0;bassStruck=0;splashAge=-1;time=0;struck=0;finished=false;running=false;lanes.forEach(course=>course.forEach(p=>p.hit=-100));play.textContent='Release marbles';status.textContent=song.title+' · tap Release marbles'}
+function frame(ms){let dt=last===null?0:Math.min(.04,(ms-last)/1000);last=ms;if(splashAge>=0)splashAge+=dt;if(running){time=Math.min(total,time+dt*Number(document.querySelector('#speed').value));while(struck<pads.length&&time>=arrivals[struck]){pads[struck].hit=arrivals[struck];harmony[struck].hit=arrivals[struck];chime(pads[struck].note,pads[struck].beats,.70);chime(harmony[struck].note,harmony[struck].beats,.25);status.textContent=pads[struck].name+' + '+harmony[struck].name+' · note '+(struck+1)+' of '+pads.length;struck++}while(bassStruck<bass.length&&time>=bassArrivals[bassStruck]){let p=bass[bassStruck],until=bassArrivals[bassStruck+1]||total;p.hit=bassArrivals[bassStruck];bassTone(p.note,(until-p.hit)/beatSeconds,bassStruck===bass.length-1);bassStruck++}while(drumStruck<drums.length&&time>=drumArrivals[drumStruck]){const p=drums[drumStruck];p.hit=drumArrivals[drumStruck];percussion(p.kind);drumStruck++}if(time>=total){running=false;finished=true;splashAge=0;splashSound();play.textContent='Play Christmas swing again';status.textContent='Splash! · '+song.title+' · finished'}}draw();requestAnimationFrame(frame)}
 play.onclick=async()=>{if(finished)reset();try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();await ac.resume()}catch(e){}running=!running;play.textContent=running?'Pause':'Continue';if(!running)status.textContent='Paused'};document.querySelector('#reset').onclick=reset;document.querySelector('#mute').onclick=()=>{sound=!sound;document.querySelector('#mute').textContent=sound?'Mute':'Sound on';document.querySelector('#mute').setAttribute('aria-pressed',String(!sound))};reset();requestAnimationFrame(frame);
 })();
 
