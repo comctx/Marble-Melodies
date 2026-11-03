@@ -53,23 +53,28 @@ function drawFerrisWheel(){
  g.fillStyle=shade;g.fillRect(1330,39,280,622);g.restore();
  const phase=-t*Math.PI/9;
  function rim(dx,dy,rear){
-  g.save();g.translate(1470+dx,350+dy);g.scale(90/290,1);
-  const metal=g.createLinearGradient(-290,-290,290,290);
-  metal.addColorStop(0,rear?'#685238':'#ddc39a');metal.addColorStop(.23,'#695641');metal.addColorStop(.47,'#b9a389');metal.addColorStop(.7,'#382d24');metal.addColorStop(1,'#9b805b');
-  g.strokeStyle='#211914';g.lineWidth=18;g.beginPath();g.arc(0,0,290,0,Math.PI*2);g.stroke();
-  g.strokeStyle=metal;g.lineWidth=11;g.stroke();
-  g.strokeStyle=rear?'#47382a':'#ead5af';g.lineWidth=1.8;g.beginPath();g.arc(0,0,294,0,Math.PI*2);g.stroke();
-  g.rotate(phase);
-  for(let i=0;i<9;i++){
-   const a=i*Math.PI*2/9,x=Math.cos(a)*282,y=Math.sin(a)*282;
-   line(0,0,x,y,'#2a1714',16);const paint=g.createLinearGradient(0,0,x,y);paint.addColorStop(0,rear?'#40231b':'#4d241c');paint.addColorStop(.3,rear?'#633a29':'#aa5a3b');paint.addColorStop(.6,rear?'#47271f':'#623025');paint.addColorStop(1,rear?'#7b5233':'#c08c59');line(0,0,x,y,paint,11);
-   line(-2,-2,x-2,y-2,rear?'#774032':'#c17d55',2);
+  // Project each point instead of scaling the canvas: steel stays a
+  // believable thickness even when the wheel is viewed nearly edge-on.
+  const cx=1470+dx,cy=350+dy;
+  const point=(a,r=1)=>[cx+90*r*Math.cos(a),cy+290*r*Math.sin(a)];
+  const ring=(rx,ry,color,width)=>{g.strokeStyle=color;g.lineWidth=width;g.beginPath();g.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);g.stroke()};
+  const metal=g.createLinearGradient(cx-90,cy-290,cx+90,cy+290);
+  metal.addColorStop(0,rear?'#655644':'#ecd6ad');metal.addColorStop(.28,'#79654b');metal.addColorStop(.49,'#c4ad87');metal.addColorStop(.72,'#493e32');metal.addColorStop(1,'#b59a6d');
+  ring(90,290,'#171512',10);ring(90,290,metal,6);
+  ring(87,282,rear?'#514735':'#d4ba8b',1.5);
+  ring(78,252,rear?'#403c32':'#82775e',2);
+  for(let i=0;i<18;i++){
+   const angle=Math.PI/2+phase+i*Math.PI/9;
+   const [x,y]=point(angle,.974),[nx,ny]=point(angle+Math.PI/9,.974);
+   line(cx,cy,x,y,'#261e18',6);
+   line(cx,cy,x,y,rear?'#69513d':'#9a6a48',3.4);
+   line(cx-1,cy-1,x-1,y-1,rear?'#79664d':'#d0a875',.8);
+   // Tangential tie rods triangulate neighboring spokes.
+   const [ix,iy]=point(angle,.34);
+   line(ix,iy,nx,ny,rear?'#4e473a':'#9c927a',1);
+   const [bx,by]=point(angle);
+   circle(bx,by,3.4,'#342c21');circle(bx-.7,by-1,1.5,rear?'#8c7756':'#e3c997');
   }
-  for(let i=0;i<36;i++){
-   const a=i*Math.PI*2/36,x=Math.cos(a)*289,y=Math.sin(a)*289;
-   circle(x,y,3.1,'#30271d');circle(x-1,y-1,1.6,rear?'#806443':'#dac297');
-  }
-  g.restore();
  }
  // Two separate iron rims and cross shafts give the wheel real thickness.
  rim(-18,-7,true);
@@ -87,6 +92,14 @@ function drawFerrisWheel(){
  line(1417,331,1441,661,'#171817',20);line(1417,331,1441,661,'#605a4b',10);line(1414,331,1438,661,'#b29b72',2);
  line(1417,331,1405,664,'#282724',15);line(1414,331,1402,664,'#8b795a',3);
  line(1417,331,1470,350,'#201c18',22);line(1417,327,1470,346,'#9a896c',8);
+ // Bolted cast feet and a mechanically connected belt drive.
+ rect(1387,659,35,9,'#342c23');rect(1428,658,35,9,'#342c23');
+ for(const x of [1393,1416,1434,1457]){circle(x,663,2.4,'#c2aa7c')}
+ line(1417,350,1361,611,'#171512',5);
+ line(1430,350,1380,611,'#2d251b',5);
+ gear(1370,611,20,-2.4);
+ line(1417,350,1361,611,'#a18a61',1);
+ circle(1417,350,15,'#4e4231');circle(1417,350,10,'#b2935f');
  const hub=g.createRadialGradient(1464,341,2,1470,350,24);
  hub.addColorStop(0,'#f7dfab');hub.addColorStop(.3,'#bf9b5e');hub.addColorStop(.62,'#675033');hub.addColorStop(.8,'#c4a673');hub.addColorStop(1,'#34291e');
  circle(1470,350,24,hub);circle(1470,350,9,'#3b3932');circle(1468,348,5,'#c7c3ac');
