@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Clockwork Garden · Marble Melodies</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#101c1e;color:#efdfbd;font:15px system-ui}main{max-width:850px;margin:auto;padding:16px 14px 30px}a{color:#dfbc79;text-decoration:none}header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}h1{font:clamp(22px,5vw,34px) Georgia;margin:0 0 4px}header p{margin:0;color:#b8bbb0;font-size:13px}canvas{display:block;width:100%;height:auto;border-radius:22px;box-shadow:0 18px 60px #0008;background:#152628}.controls{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;padding:18px 0 10px}button,select{font:inherit;border-radius:8px;padding:12px;border:1px solid #987d4f;background:#243234;color:#f8e6bf;min-height:44px}button{cursor:pointer}button.primary{background:#d5b274;color:#211d16;font-weight:700}button:disabled{opacity:.5}label{font-size:13px;color:#c9c6b7}select{max-width:100%}#status{text-align:center;min-height:24px;color:#e9c989;font-size:14px}.description{text-align:center;color:#afb9b2;line-height:1.6;font-size:13px;max-width:650px;margin:12px auto}.badge{color:#c8a86c;text-transform:uppercase;letter-spacing:2px;font-size:10px}button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #e7cf91;outline-offset:3px}@media(max-width:500px){header{align-items:flex-start}header a{font-size:12px}.controls{gap:8px}select{max-width:210px}}</style></head>
+<body><main><header><div><div class="badge">Marble Melodies · Mechanical collection</div><h1>Clockwork Garden</h1><p>A little music, set in motion.</p></div><a href="./index.html">← All machines</a></header><canvas width="840" height="1080" aria-label="Clockwork Garden: glass marbles roll along brass rails, strike a flower bell, tip seesaws, turn a cup wheel, and ride a bucket elevator back to the reservoir."></canvas><div class="controls"><label>Song <select id="song"><option value="joy">Joy to the World</option><option value="deck">Deck the Halls</option><option value="jingle">Jingle Bells</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play" class="primary">▶ Play garden</button><button id="stop" disabled>■ Stop</button><button id="mute" aria-pressed="false">Sound on</button></div><div id="status" role="status">Ready · Joy to the World</div><p class="description">Follow each glass marble from the reservoir to the flower bell, through the seesaws and cup wheel, then up the bucket lift. The bell opens on each musical strike. Choose a song and tap Play to wind the garden.</p></main><script>
+(()=>{'use strict';
+const canvas=document.querySelector('canvas'),g=canvas.getContext('2d');
+const $=s=>document.querySelector(s),W=840,H=1080;
+const songs={
+ jingle:{title:'Jingle Bells — Christmas Swing',bpm:144,lift:12,credit:'James Lord Pierpont, 1857 · familiar chorus twice',bars:['E:1 E:1 E:2', 'E:1 E:1 E:2', 'E:1 G:1 C:1.5 D:0.5', 'E:4', 'F:1 F:1 F:1.5 F:0.5', 'F:1 E:1 E:1 E:0.5 E:0.5', 'E:1 D:1 D:1 E:1', 'D:2 G:2', 'E:1 E:1 E:2', 'E:1 E:1 E:2', 'E:1 G:1 C:1.5 D:0.5', 'E:4', 'F:1 F:1 F:1.5 F:0.5', 'F:1 E:1 E:1 E:0.5 E:0.5', 'G:1 G:1 F:1 D:1', 'C:4'],chords:['C','C','C','C','F','C','G','G','C','C','C','C','F','C','G','C']},
+ deck:{title:'Deck the Halls',bpm:138,lift:0,credit:'Traditional Welsh melody · complete familiar tune twice',bars:[
+ 'G:1.5 F:0.5 E:1 D:1','C:1 D:1 E:1 C:1','D:0.5 E:0.5 F:0.5 D:0.5 E:1.5 D:0.5','C:1 B0:1 C:2',
+ 'G:1.5 F:0.5 E:1 D:1','C:1 D:1 E:1 C:1','D:0.5 E:0.5 F:0.5 D:0.5 E:1.5 D:0.5','C:1 B0:1 C:2',
+ 'D:1.5 E:0.5 F:1 D:1','E:1.5 F:0.5 G:1 D:1','E:0.5 Fs:0.5 G:1 A:0.5 B:0.5 c:1','B:1 A:1 G:2',
+ 'G:1.5 F:0.5 E:1 D:1','C:1 D:1 E:1 C:1','A:0.5 A:0.5 A:0.5 A:0.5 G:1.5 F:0.5','E:1 D:1 C:2'],chords:['C','C','F','C','C','C','F','C','G','C','G','G','C','C','F','C']},
+ // ANTIOCH melody transposed D to C, checked against John Chambers's
+ // xmas/Joy_To_the_World.abc; each bar contains two quarter-note beats.
+ joy:{title:'Joy to the World',bpm:112,lift:0,transpose:-12,credit:'Traditional ANTIOCH melody · complete tune twice · melody corrected',bars:[
+ 'c:1 B:0.75 A:0.25','G:1.5 F:0.5','E:1 D:1','C:1.5 G:0.5',
+ 'A:1.5 A:0.5','B:1.5 B:0.5','c:1.5 c:0.5','c:0.5 B:0.5 A:0.5 G:0.5',
+ 'G:0.75 F:0.25 E:0.5 c:0.5','c:0.5 B:0.5 A:0.5 G:0.5',
+ 'G:0.75 F:0.25 E:0.5 E:0.5','E:0.5 E:0.5 E:0.25 F:0.25 G:0.5',
+ 'G:1.5 F:0.25 E:0.25','D:0.5 D:0.5 D:0.25 E:0.25 F:0.5',
+ 'F:1.5 E:0.25 D:0.25','C:0.5 c:1 A:0.5',
+ 'G:0.75 F:0.25 E:0.5 F:0.5','E:1 D:1','C:2'
+ ],chords:['C','C','G','C','F','G','C','C','G','C','G','G','C','G','C','F','C','G','C'],straight:true},
+ saints:{title:'When the Saints Go Marching In',bpm:132,lift:0,credit:'Traditional melody · familiar chorus twice',bars:[
+ 'C:1 E:1 F:1 G:1','G:4','C:1 E:1 F:1 G:1','G:4',
+ 'C:1 E:1 F:1 G:2','E:2 C:1 E:1','D:4','D:2 E:1 E:1',
+ 'D:1 C:3','C:2 E:1 G:1','G:1 F:3','F:2 E:1 F:1','G:2 E:2','C:1 D:1 C:2','C:4'],chords:['C','C','C','C','C','C','G','G','C','C','F','F','C','G','C']}
+};
+
+const palette=['#dd494c','#3a97dc','#58b170','#d39b38','#aa68d4','#35b6ac'];
+// All balls use exactly the same sampled route and speed. Their separation never changes.
+const segments=[
+[255,184,310,194,410,231,450,259],
+[450,259,510,298,677,270,708,323],
+[708,323,765,421,321,382,242,464],
+[242,464,184,540,671,529,704,583],
+[704,583,758,658,276,626,244,708],
+[244,708,226,746,532,708,622,742],
+[622,742,620,778,584,800,592,836],
+[592,836,527,889,258,904,118,932],
+[118,932,105,784,105,278,118,165],
+[118,165,134,136,218,145,255,184]
+];
+const path=[];let routeLength=0;
+segments.forEach((p,segment)=>{for(let j=segment?1:0;j<=160;j++){const u=j/160,v=1-u,x=v*v*v*p[0]+3*v*v*u*p[2]+3*v*u*u*p[4]+u*u*u*p[6],y=v*v*v*p[1]+3*v*v*u*p[3]+3*v*u*u*p[5]+u*u*u*p[7];if(path.length)routeLength+=Math.hypot(x-path.at(-1).x,y-path.at(-1).y);path.push({x,y,d:routeLength,segment})}});
+const speed=255,lap=routeLength/speed;
+function at(distance){const d=Math.max(0,Math.min(routeLength,distance));let lo=0,hi=path.length-1;while(lo<hi){const mid=(lo+hi)>>1;if(path[mid].d<d)lo=mid+1;else hi=mid}const b=path[lo],a=path[Math.max(0,lo-1)],u=(d-a.d)/(b.d-a.d||1);return{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u,segment:b.segment}}
+function nearest(x,y){return path.reduce((a,p)=>Math.hypot(p.x-x,p.y-y)<Math.hypot(a.x-x,a.y-y)?p:a,path[0]).d}
+const strikeDistance=nearest(450,259),strikeDelay=strikeDistance/speed;
+const seesaws=[{d:nearest(405,408),hit:-100},{d:nearest(422,650),hit:-100}];
+let events=[],balls=[],startTime=0,running=false,draining=false,muted=false,played=0,clock=0,frameTime=performance.now()/1000,ctx,master,room,lastHit=-100,lastPitch=60;
+const title=()=>songs[$('#song').value].title;
+function score(){const song=songs[$('#song').value],pitches={B0:71,C:72,D:74,E:76,F:77,Fs:78,G:79,A:81,B:83,c:84};let t=strikeDelay+.35;const result=[];for(let pass=0;pass<2;pass++)for(let b=0;b<song.bars.length;b++){let within=0;for(const token of song.bars[b].split(' ')){const [n,l]=token.split(':'),length=+l,swing=v=>song.straight?v:Math.floor(v)+(v%1===.5?2/3:v%1),duration=(swing(within+length)-swing(within))*60/song.bpm;result.push({t,note:pitches[n]+(song.transpose||0)+(pass?song.lift:0),duration,chord:song.chords[b]});within+=length;t+=duration}}return result}
+async function audioReady(){if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();master.gain.value=.55;master.connect(ctx.destination);room=ctx.createConvolver();const impulse=ctx.createBuffer(2,ctx.sampleRate*1.6,ctx.sampleRate);for(let ch=0;ch<2;ch++){const d=impulse.getChannelData(ch);let seed=813+ch;for(let i=0;i<d.length;i++){seed=(seed*16807)%2147483647;d[i]=(seed/2147483647*2-1)*Math.pow(1-i/d.length,3)*.18}}room.buffer=impulse;room.connect(master)}await ctx.resume()}
+function tone(note,t,velocity=1,bass=false){const freq=440*2**((note-69)/12);for(const [partial,level,decay]of bass?[[1,.18,1.3],[2,.05,.6]]:[[1,.24,1.8],[2,.055,.7],[3.01,.018,.35],[4.02,.009,.2]]){const o=ctx.createOscillator(),gain=ctx.createGain();o.type='sine';o.frequency.value=freq*partial;gain.gain.setValueAtTime(0,t);gain.gain.linearRampToValueAtTime(level*velocity,t+.008);gain.gain.exponentialRampToValueAtTime(.0001,t+decay);o.connect(gain);gain.connect(master);gain.connect(room);o.start(t);o.stop(t+decay+.03)}}
+function schedule(e,i){tone(e.note,startTime+e.t,.95);if(i%4===0){const root={C:36,F:29,G:31}[e.chord]||36;tone(root,startTime+e.t,.55,true);tone(root+19,startTime+e.t,.16)}}
+$('#play').onclick=async()=>{if(running||draining)return;try{await audioReady();clock=0;balls=[];played=0;lastHit=-100;events=score().map((e,i)=>({...e,release:e.t-strikeDelay,color:palette[i%palette.length],released:false,scheduled:false}));startTime=ctx.currentTime+.12;running=true;$('#play').disabled=true;$('#song').disabled=true;$('#stop').disabled=false;$('#status').textContent='Winding up · '+title()}catch(e){$('#status').textContent='Sound could not start. Tap Play again.'}};
+$('#stop').onclick=()=>{if(!running)return;running=false;draining=true;events=events.filter(e=>e.released);master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setTargetAtTime(0,ctx.currentTime,.02);$('#stop').disabled=true;$('#status').textContent='Returning marbles to the reservoir…'};
+$('#mute').onclick=()=>{muted=!muted;if(master)master.gain.setTargetAtTime(muted?0:.55,ctx.currentTime,.025);$('#mute').textContent=muted?'Sound off':'Sound on';$('#mute').setAttribute('aria-pressed',muted)};
+$('#song').onchange=()=>{$('#status').textContent='Ready · '+title()};
+function finish(){running=false;draining=false;$('#play').disabled=false;$('#song').disabled=false;$('#stop').disabled=true;$('#status').textContent='Back in the reservoir · '+title();if(master)master.gain.setTargetAtTime(muted?0:.55,ctx.currentTime,.02)}
+function gradient(x1,y1,x2,y2,stops){const a=g.createLinearGradient(x1,y1,x2,y2);stops.forEach(([p,c])=>a.addColorStop(p,c));return a}
+function line(points,color,width=2){g.beginPath();points.forEach((p,i)=>i?g.lineTo(...p):g.moveTo(...p));g.strokeStyle=color;g.lineWidth=width;g.lineCap='round';g.lineJoin='round';g.stroke()}
+function disc(x,y,r,fill,stroke){g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fillStyle=fill;g.fill();if(stroke){g.strokeStyle=stroke;g.lineWidth=1;g.stroke()}}
+function box(x,y,w,h,r,fill,stroke){g.beginPath();g.roundRect(x,y,w,h,r);g.fillStyle=fill;g.fill();if(stroke){g.strokeStyle=stroke;g.lineWidth=1.5;g.stroke()}}
+const brass=(x,y,w=60)=>gradient(x,y,x+w,y+12,[[0,'#60401e'],[.22,'#bf8a3b'],[.43,'#fff0b4'],[.57,'#ce9a4b'],[.82,'#795020'],[1,'#e5bc70']]);
+function bolt(x,y,r=4){disc(x,y,r,brass(x-r,y-r,r*2),'#50371d');line([[x-r*.45,y+r*.25],[x+r*.45,y-r*.25]],'#634a2b',1)}
+function rail(seg){const p=segments[seg];for(const dy of [8,-2]){g.beginPath();g.moveTo(p[0],p[1]+dy);g.bezierCurveTo(p[2],p[3]+dy,p[4],p[5]+dy,p[6],p[7]+dy);g.strokeStyle='#080e0e';g.lineWidth=9;g.stroke();g.strokeStyle=brass(100,0,640);g.lineWidth=5;g.stroke();g.strokeStyle='#ffe3a0';g.lineWidth=1;g.stroke()}}
+function marble(x,y,color,r=9,angle=0){g.save();g.shadowColor='#0009';g.shadowBlur=5;g.shadowOffsetY=3;const a=g.createRadialGradient(x-r*.35,y-r*.4,1,x,y,r);a.addColorStop(0,'#eefcff');a.addColorStop(.18,color);a.addColorStop(.58,color);a.addColorStop(1,'#101d2c');disc(x,y,r,a,'#d4e6e877');g.shadowBlur=0;g.translate(x,y);g.rotate(angle);g.beginPath();g.ellipse(0,0,r*.35,r*.85,.6,0,Math.PI*2);g.strokeStyle='#ffffff45';g.lineWidth=1.5;g.stroke();disc(-r*.33,-r*.4,r*.17,'#fff');g.restore()}
+function gear(x,y,r,angle){g.save();g.translate(x,y);g.rotate(angle);g.beginPath();for(let i=0;i<96;i++){const a=i/96*Math.PI*2,rr=i%4===0||i%4===3?r:r-6;const xx=Math.cos(a)*rr,yy=Math.sin(a)*rr;i?g.lineTo(xx,yy):g.moveTo(xx,yy)}g.closePath();g.fillStyle=brass(-r,-r,r*2);g.fill();g.strokeStyle='#422811';g.stroke();disc(0,0,r*.73,'#172426','#af8245');for(let i=0;i<6;i++){g.save();g.rotate(i*Math.PI/3);box(-5,0,10,r*.75,3,brass(-5,0,10));g.restore()}disc(0,0,r*.23,brass(-12,-12,24),'#4e361e');bolt(0,0,5);g.restore()}
+function spring(x,y,len){line([[x,y],[x,y+len]],'#5c482f',2);const pts=[];for(let i=0;i<=42;i++)pts.push([x+Math.sin(i/42*Math.PI*14)*5,y+i/42*len]);line(pts,'#cfb47e',2)}
+function stem(x,y,h,lean=0){g.beginPath();g.moveTo(x,y);g.bezierCurveTo(x+lean,y-h*.3,x-lean,y-h*.6,x,y-h);g.strokeStyle=brass(x-5,y,18);g.lineWidth=5;g.stroke();for(const [s,dy]of [[-1,.32],[1,.55]]){g.save();g.translate(x,y-h*dy);g.rotate(s*.75);g.beginPath();g.moveTo(0,0);g.quadraticCurveTo(s*35,-38,s*9,-53);g.quadraticCurveTo(-s*8,-25,0,0);g.fillStyle=brass(-20,-40,40);g.fill();g.strokeStyle='#dec387';g.lineWidth=1;g.stroke();g.restore()}}
+function flower(x,y,r,hit,note){const age=clock-hit,force=age>=0&&age<1?Math.exp(-age*5)*Math.sin(age*32):0;g.save();g.translate(x,y);g.rotate(force*.07);if(age>=0&&age<.55){const glow=g.createRadialGradient(0,0,0,0,0,r*2.3);glow.addColorStop(0,'#f8d88455');glow.addColorStop(1,'#f8d88400');disc(0,0,r*2.3,glow)}for(let i=0;i<7;i++){g.save();g.rotate(i/7*Math.PI*2);g.beginPath();g.moveTo(0,4);g.bezierCurveTo(-r*.5,-r*.5,-r*.55,-r*1.2,0,-r*(1.05+force*.10));g.bezierCurveTo(r*.55,-r*1.2,r*.5,-r*.5,0,4);g.fillStyle=brass(-r*.5,-r,r);g.fill();g.strokeStyle='#e7cb8e';g.lineWidth=1;g.stroke();g.restore()}disc(0,0,r*.22,brass(-8,-8,16),'#514020');if(note&&age<.7&&age>=0){g.fillStyle='#fff2c3';g.font='15px Georgia';g.textAlign='center';g.fillText(['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'][note%12],0,-r-12-age*12)}g.restore()}
+function wheel(t){const x=639,y=813,r=73;g.save();g.translate(x,y);g.rotate(-t*speed/73);disc(0,0,r,'#342a1c','#c99d52');disc(0,0,r-10,'#172626','#b1823f');for(let i=0;i<8;i++){g.save();g.rotate(i*Math.PI/4);box(-5,-r,10,r,3,brass(-5,-r,10));g.beginPath();g.arc(0,-r,15,0,Math.PI);g.fillStyle=brass(-15,-r,30);g.fill();g.strokeStyle='#edc982';g.stroke();g.restore()}disc(0,0,15,brass(-15,-15,30),'#5e3a1d');bolt(0,0,7);g.restore();line([[639,813],[678,919]],brass(650,800,35),13);line([[639,813],[601,919]],brass(610,800,35),13);box(588,917,108,13,4,brass(588,917,108))}
+function seesaw(s,t){const p=at(s.d),age=t-s.hit,a=age>=0&&age<1.1?Math.sin(age*10)*Math.exp(-age*3)*.18:0;box(p.x-48,p.y+37,96,9,3,brass(p.x-48,p.y,96));g.beginPath();g.moveTo(p.x-16,p.y+37);g.lineTo(p.x,p.y+6);g.lineTo(p.x+16,p.y+37);g.closePath();g.fillStyle=brass(p.x-16,p.y,32);g.fill();spring(p.x+42,p.y+12,24);g.save();g.translate(p.x,p.y+6);g.rotate(a);box(-62,-7,124,10,3,gradient(0,-7,0,5,[[0,'#b27a49'],[.4,'#704321'],[1,'#3d2419']]),'#caad6c');bolt(-51,-2,3);bolt(51,-2,3);g.restore();bolt(p.x,p.y+6,6)}
+function cabinet(t){g.clearRect(0,0,W,H);g.fillStyle=gradient(0,0,W,H,[[0,'#233d3e'],[.55,'#102628'],[1,'#071617']]);g.fillRect(0,0,W,H);g.save();g.shadowColor='#000b';g.shadowBlur=30;box(33,28,774,997,25,'#412a1e');g.restore();box(44,34,752,982,20,gradient(44,0,796,0,[[0,'#40251b'],[.12,'#8e5731'],[.25,'#4c2c1e'],[.7,'#6c4129'],[1,'#301c16']]),'#d09853');box(76,99,688,864,18,gradient(0,100,740,950,[[0,'#193335'],[.55,'#0b2022'],[1,'#142a29']]),'#ac7b40');
+// Fine walnut grain stays fixed in the cabinet, never shimmers with animation.
+for(let i=0;i<90;i++){const y=38+i*10.8;g.strokeStyle=i%2?'#e3ad6122':'#180f0c55';g.lineWidth=1;g.beginPath();g.moveTo(45,y);g.bezierCurveTo(220,y+Math.sin(i)*5,610,y-4,794,y+2);if(y>100&&y<960){g.moveTo(46,y);g.lineTo(73,y+2);g.moveTo(766,y);g.lineTo(793,y+1)}g.stroke()}
+// Cover the center grain with the deep inset.
+box(78,100,684,861,15,gradient(0,100,740,950,[[0,'#193335'],[.55,'#0b2022'],[1,'#142a29']]),'#674e31');
+for(const x of [59,781])for(let y=69;y<1000;y+=91)bolt(x,y,5);
+box(226,45,389,43,10,brass(226,45,389),'#f7d899');g.textAlign='center';g.fillStyle='#35281a';g.font='24px Georgia';g.fillText('CLOCKWORK GARDEN',420,74);for(const x of [238,603])bolt(x,66,3);
+box(27,1009,786,24,7,brass(27,1009,786),'#714524');box(61,1033,66,17,4,'#563522');box(715,1033,66,17,4,'#563522');
+// Brass bearing posts, wall mounts and botanical stems.
+for(const x of [198,539,724]){line([[x,220],[x,926]],'#060f0e',9);line([[x,220],[x,926]],brass(x-4,0,8),5);for(const y of [292,449,604,756,906]){box(x-12,y-8,24,16,3,brass(x-12,y,24),'#3d301d');bolt(x-7,y,2);bolt(x+7,y,2)}}
+stem(450,354,82,14);stem(604,400,57,7);stem(315,596,55,8);stem(542,710,58,-7);stem(684,262,98,20);
+flower(684,164,19,-100);flower(604,343,23,-100);flower(315,541,24,-100);flower(542,652,26,-100);
+// Bucket lift: a continuous loop of linked chain and open brass cups.
+line([[105,157],[105,930]],'#060d0e',13);line([[105,157],[105,930]],'#ae8142',5);line([[134,157],[134,930]],'#382d1b',4);for(let y=160;y<930;y+=16){bolt(105,y,2);disc(134,y,2,'#8a6b39')}
+gear(119,157,29,-t*speed/29);gear(119,930,29,-t*speed/29);
+const liftStart=path.find(p=>p.segment===8).d,liftEnd=path.find(p=>p.segment===9).d;
+for(let d=liftStart+(t*speed%55);d<liftEnd;d+=55){const p=at(d);g.beginPath();g.moveTo(p.x-15,p.y-4);g.quadraticCurveTo(p.x,p.y+24,p.x+15,p.y-4);g.closePath();g.fillStyle=brass(p.x-15,p.y,30);g.fill();g.strokeStyle='#eac581';g.stroke()}
+// Separate rails give the balls a readable contact line.
+for(let s=0;s<8;s++)rail(s);rail(9);
+seesaws.forEach(s=>seesaw(s,t));
+// Camshaft drives paired springs, seesaws and the lower cup wheel.
+gear(265,854,52,t*.55);gear(351,854,35,-t*.82);gear(428,863,43,t*.68);line([[235,924],[527,924]],brass(235,919,292),13);for(let i=0;i<5;i++){const x=259+i*53;box(x-7,909,14,30,4,brass(x-7,909,14));const y=897+Math.sin(t*2+i)*10;disc(x,y,10,brass(x-10,y,20),'#684a25');line([[x,y],[x,792]],brass(x-3,790,6),4);spring(x,776,29)}
+wheel(t);
+flower(450,278,38,lastHit,lastPitch);
+// Reservoir, transparent glass and the timed release escapement.
+box(175,152,151,54,11,'#93d9de13','#afd5cf77');g.beginPath();g.ellipse(250,154,78,11,0,0,Math.PI*2);g.strokeStyle='#edddb299';g.lineWidth=3;g.stroke();line([[179,159],[184,191],[194,199]],'#ffffff80',2);box(206,204,90,8,4,brass(206,204,90));gear(316,211,17,running?t*1.4:0);
+for(let i=0;i<18;i++)marble(193+(i%8)*16+(Math.floor(i/8)%2)*7,185-Math.floor(i/8)*13,palette[i%palette.length],7);
+// Soft upper glass reflection.
+g.beginPath();g.moveTo(81,113);g.lineTo(752,113);g.lineTo(752,136);g.lineTo(81,386);g.closePath();g.fillStyle='#b7edee04';g.fill();
+}
+function animate(now){const real=now/1000,dt=Math.min(.1,real-frameTime);frameTime=real;const previous=clock;if(running||draining)clock=Math.max(0,ctx.currentTime-startTime);else if(!ctx)clock=0;
+if(running){master.gain.setTargetAtTime(muted?0:.55,ctx.currentTime,.02);for(let i=0;i<events.length;i++){const e=events[i];if(!e.scheduled&&clock+.18>=e.t){schedule(e,i);e.scheduled=true}if(!e.released&&clock>=e.release){balls.push({release:e.release,note:e.note,color:e.color,hit:false,passed:[false,false]});e.released=true}if(e.t>clock+.3)break}}
+for(const ball of balls){const d=(clock-ball.release)*speed;if(!ball.hit&&d>=strikeDistance){ball.hit=true;if(running){lastHit=clock;lastPitch=ball.note;played++;$('#status').textContent=title()+' · note '+played+' of '+events.length}}seesaws.forEach((s,i)=>{if(!ball.passed[i]&&d>=s.d){s.hit=clock;ball.passed[i]=true}})}balls=balls.filter(b=>(clock-b.release)*speed<routeLength);
+if(running&&events.length&&clock>events.at(-1).t+events.at(-1).duration){running=false;draining=true;$('#stop').disabled=true;$('#status').textContent='Finishing the loop · returning to the reservoir…'}if(draining&&!balls.length)finish();
+cabinet(clock);for(const ball of balls){const d=(clock-ball.release)*speed,p=at(d);if(p.segment===8||p.segment===6){g.beginPath();g.moveTo(p.x-15,p.y-3);g.quadraticCurveTo(p.x,p.y+19,p.x+15,p.y-3);g.closePath();g.fillStyle=brass(p.x-15,p.y,30);g.fill();g.strokeStyle='#eac581';g.stroke()}marble(p.x,p.y-9,ball.color,9,d/9)}
+requestAnimationFrame(animate)}requestAnimationFrame(animate);
+})();
+</script></body></html>
