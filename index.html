@@ -10,7 +10,8 @@
 <body>
 <header><h1>MARBLE MELODIES</h1><p>Watch the Music Come Alive ✦ Mechanical Music Workshop</p></header>
 <main class="shell">
-<div class="controls machine-choice"><label for="machine-type">Choose your machine</label><select id="machine-type"><option value="spiral" selected>The Spiral Orchestra</option><option value="original">Original workshop</option><option value="foundry">The Marble Foundry</option><option value="cascade">Cascade Wall</option></select></div>
+<div class="controls machine-choice"><label for="machine-type">Choose your machine</label><select id="machine-type"><option value="spiral" selected>The Spiral Orchestra</option><option value="original">Original workshop</option><option value="foundry">The Marble Foundry</option><option value="cascade">Cascade Wall</option><option value="christmas">Christmas Swing Cascade — Jingle Bells</option></select></div>
+<div style="text-align:center;margin:12px auto"><a href="./christmas.html" style="display:inline-block;padding:12px 20px;color:#ffe1a4">🎄 Play Jingle Bells — Christmas Swing Cascade →</a></div>
 <div style="text-align:center;margin:12px auto"><a href="./foundry.html" style="display:inline-block;padding:12px 20px;border:1px solid #c7a268;border-radius:9px;background:linear-gradient(#6d4b2a,#372718);color:#fff2d7;font-weight:650;text-decoration:none">Open The Marble Foundry →</a></div>
 <p id="machine-note" class="machine-note" role="status"></p>
 <div class="controls">
@@ -2640,6 +2641,7 @@ spiralImage.onload=()=>{
 spiralImage.onerror=()=>{spiralFailed=true;document.getElementById('machine-note').textContent='The Spiral Orchestra artwork could not load. Refresh the page or select Original workshop.'};
 spiralImage.src='assets/spiral-orchestra.webp';
 function updateMachine(){
+ if(machineSelect.value==='christmas'){if(playing)stop();machineSelect.value='spiral';window.location.assign('./christmas.html');return;}
  if(machineSelect.value==='cascade'){if(playing)stop();machineSelect.value='spiral';window.location.assign('./cascade.html');return;}
  if(machineSelect.value==='foundry'){if(playing)stop();machineSelect.value='spiral';window.location.assign('./foundry.html?v=2');return;}
  if(playing)stop();
