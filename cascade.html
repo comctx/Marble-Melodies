@@ -87,7 +87,7 @@ for(let lane=0;lane<2;lane++){
 }
 // Use spare gaps for the new devices, leaving existing mechanisms in place.
 const pendulumCatch=.24,pendulumRelease=.70;
-const surpriseSlots=[new Map(),new Map()];
+const surpriseSlots=[new Map([[0,'pendulum']]),new Map()];
 for(let lane=0;lane<2;lane++){
  let next=lane;
  for(let i=2;i<pads.length;i++){
@@ -97,13 +97,11 @@ for(let lane=0;lane<2;lane++){
   next++;i+=7;
  }
 }
-// Put the catcher near the finale, using the last clear gap with time to swing.
-for(let lane=0;lane<2;lane++){
- for(let i=pads.length-1;i>=2;i--){
-  if(baseRouteKind(i,lane)||surpriseSlots[lane].has(i)||durations[i]<.44)continue;
-  surpriseSlots[lane].set(i,'pendulum');
-  break;
- }
+// Keep a second catcher near the finale when the harmony lane has room.
+for(let i=pads.length-1;i>=2;i--){
+ if(baseRouteKind(i,1)||surpriseSlots[1].has(i)||durations[i]<.44)continue;
+ surpriseSlots[1].set(i,'pendulum');
+ break;
 }
 // Bass bounces span several melody notes, with one shared final strike.
 const bassIndices=[0];let heldBeats=0;
@@ -139,10 +137,10 @@ function track(o){voices.add(o);o.onended=()=>voices.delete(o)}
 const mechanismCues=[];
 const impactPhases={pendulum:[pendulumRelease],star:[.18],scale:[.48],domino:[1/6,2/6,3/6,4/6,5/6]};
 for(let lane=0;lane<2;lane++){
- for(let i=2;i<pads.length;i++){
+ for(let i=0;i<pads.length;i++){
   const kind=routeKind(i,lane);
   for(const phase of impactPhases[kind]||[]){
-   mechanismCues.push({kind,at:arrivals[i-1]+durations[i]*phase});
+   mechanismCues.push({kind,at:(arrivals[i-1]??0)+durations[i]*phase});
   }
  }
 }
@@ -375,7 +373,7 @@ function segmentProgress(i,t){
  return Math.max(0,Math.min(1,(t-from)/durations[i]));
 }
 function drawRouteDevices(camera){
- for(let i=2;i<pads.length;i++){
+ for(let i=0;i<pads.length;i++){
   const q=routeGeometry(i,0);
   if(Math.max(q.a.y,q.b.y)<camera-140||Math.min(q.a.y,q.b.y)>camera+1140)continue;
   // Harmony passes beneath the arched melody bridge; both marbles stay visible.
@@ -405,6 +403,11 @@ function drawRouteDevices(camera){
     disk(0,0,7,'#f4dca5');disk(0,0,3,'#526e75');g.restore();
    }else if(kind==='pendulum'){
     const pivotY=q.cy-57;
+    if(i===0){
+     g.font='bold 22px system-ui';g.textAlign='left';g.fillStyle='#ffe6a5';
+     g.fillText('Pendulum',q.cx+46,pivotY+5);
+     line(q.cx+25,pivotY,q.cx+39,pivotY,'#ffe6a5',2);
+    }
     line(q.cx-24,pivotY,q.cx+24,pivotY,'#708b91',7);
     g.save();g.translate(q.cx,pivotY);g.rotate(-pendulumAngle(q,u));
     line(0,0,0,66,'#8b643b',7);line(-2,2,-2,64,'#e5bf7f',2);
