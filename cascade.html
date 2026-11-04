@@ -641,6 +641,29 @@ function drawCabinet(camera){
   }
  }
 }
+function drawChordPusher(x,y,index){
+ const arrival=bassArrivals[index];
+ const previous=index?bassArrivals[index-1]:0;
+ const next=bassArrivals[index+1]??total;
+ const lead=Math.min(.34,(arrival-previous)*.72);
+ const recovery=Math.min(.42,(next-arrival)*.72);
+ const offset=time-arrival;
+ const progress=Math.min(1,offset<0?-offset/lead:offset/recovery);
+ const swing=.85*(.5-.5*Math.cos(Math.PI*progress));
+ const side=index%2?-1:1;
+ g.save();
+ g.translate(x+side*60,y+27);
+ g.scale(side,1);
+ line(0,2,0,21,'#677b7e',8);
+ g.rotate(swing);
+ line(0,0,-30,-49,'#553822',12);
+ line(0,0,-30,-49,'#dbad68',7);
+ disk(-30,-49,6,Math.abs(offset)<.075?'#fff1be':'#b88247');
+ disk(0,0,10,'#473c33');
+ disk(0,0,6,'#e4bf84');
+ g.restore();
+}
+
 function draw(dt=1/60){
 let ball=position(time),target=Math.max(cameraY,Math.min(endY-820,ball.y-390));cameraY+=(target-cameraY)*(1-Math.exp(-dt*7));let camera=cameraY;drawCabinet(camera);g.save();g.translate(0,-camera);drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);
 for(let lane=0;lane<4;lane++){let course=lanes[lane];for(let i=0;i<course.length;i++){let p=course[i];if(p.y<camera-100||p.y>camera+1100)continue;let px=laneX(p.x,lane),motion=padMotion(p,time);let age=time-p.hit,compression=age>=0&&age<.7?12*Math.exp(-age*7)*Math.abs(Math.sin(age*22)):0;g.save();g.translate(px,p.y+8);g.rotate(p.angle+motion.tilt);g.scale(.78,.85);ellipse(12,29,60,15,'#0b1c2555');
@@ -669,6 +692,7 @@ ellipse(0,1,57,18,'#38291f');ellipse(0,-4,56,18,rim);
 disk(-49,-5,2,'#fff0c8');disk(49,-5,2,'#fff0c8');ellipse(0,-7,45,12,lane===2?'#796029':lane?'#435c89':'#8f6045');ellipse(-3,-9,38,9,age>=0&&age<.3?'#ffe6ac':lane===2?'#dfc567':lane?'#9ebee0':'#d4ac75');line(-36,-13,24,-13,'#fff0cb77',1);
 if(p.mechanism==='spinner'){for(let spoke=0;spoke<5;spoke++){const a=motion.spin+spoke*Math.PI*2/5;line(Math.cos(a)*9,-7+Math.sin(a)*2,Math.cos(a)*37,-7+Math.sin(a)*10,'#fff1c4aa',2)}disk(0,-7,4,'#fff0c2')}
 else{g.fillStyle='#fff3cb';g.font='10px system-ui';g.textAlign='center';g.fillText('↔',0,-3)}g.restore();
+if(lane===2)drawChordPusher(px,p.y,i);
 if(lane===0&&accentIndices.has(i))drawCymbal(px,p.y,age);
 g.font='16px Georgia';g.fillStyle=age>=0&&age<.5?'#ffe6a5':'#d4dfd7';g.textAlign=lane===2?'center':lane?'left':'right';g.fillText(p.name,Math.max(44,Math.min(856,px+(lane===2?0:lane?61:-61))),p.y+(lane===2?53:7));
 if(age>=0&&age<.45){g.strokeStyle='#f7ce7b';g.lineWidth=2;g.beginPath();g.arc(px,p.y-r,23+age*55,Math.PI*1.1,Math.PI*1.9);g.stroke()}}}
