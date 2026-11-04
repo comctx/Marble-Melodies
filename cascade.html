@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Note Cascade · Marble Melodies</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#171e22;color:#e8e5dc;font:15px system-ui}main{max-width:850px;margin:auto}header{padding:14px 18px 10px}a{color:#bfcacb;font-size:13px}h1{font:29px Georgia;margin:12px 0 6px}p{margin:4px 0;color:#aebbbc;line-height:1.5}canvas{display:block;width:100%;aspect-ratio:900/1000;background:#333f43}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 16px max(18px,env(safe-area-inset-bottom));background:#20292d}button{border:1px solid #627378;border-radius:24px;background:#37484b;color:white;font:15px system-ui;padding:11px 18px}#play{background:#d8b16d;color:#20292d;border-color:#d8b16d}label{font-size:13px;color:#c1ccca;display:flex;align-items:center;gap:7px}select{max-width:240px;padding:10px;border-radius:8px;background:#30464b;color:#fff;border:1px solid #8da79a;font:14px system-ui}input{width:100px;accent-color:#d8b16d}#status{font-size:12px;color:#c2ceca;padding:0 18px 12px}@media(min-width:700px){canvas{max-height:76vh;width:auto;max-width:100%;margin:auto}}</style></head>
-<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
+<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="background-pulse" aria-pressed="false">Background pulse</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
 <script>
 (()=>{'use strict';
 const c=document.querySelector('canvas'),g=c.getContext('2d'),play=document.querySelector('#play'),status=document.querySelector('#status');
@@ -607,7 +607,28 @@ function drawRouteDevices(camera){
  }
 }
 
-function draw(dt=1/60){let bg=g.createLinearGradient(0,0,900,1000);bg.addColorStop(0,'#4d6065');bg.addColorStop(.5,'#293b43');bg.addColorStop(1,'#14262f');g.fillStyle=bg;g.fillRect(0,0,900,1000);
+const pulseButton=document.querySelector('#background-pulse');
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+let pulsePreference=null;
+try{pulsePreference=localStorage.getItem('cascade-background-pulse')}catch{}
+function pulseEnabled(){return pulsePreference===null?!reducedMotion.matches:pulsePreference==='on'}
+function updatePulseButton(){pulseButton.setAttribute('aria-pressed',String(pulseEnabled()))}
+pulseButton.onclick=()=>{
+ pulsePreference=pulseEnabled()?'off':'on';
+ try{localStorage.setItem('cascade-background-pulse',pulsePreference)}catch{}
+ updatePulseButton();
+};
+reducedMotion.addEventListener('change',updatePulseButton);
+updatePulseButton();
+function drawBackgroundPulse(){
+ if(!running||!pulseEnabled()||time<arrivals[0]||time>=total)return;
+ const phase=((time-arrivals[0])%(2*beatSeconds))/(2*beatSeconds);
+ if(phase>=.45)return;
+ const opacity=.13*Math.sin(Math.PI*phase/.45)**2;
+ g.fillStyle='rgba(255,210,145,'+opacity+')';
+ g.fillRect(0,0,900,1000);
+}
+function draw(dt=1/60){let bg=g.createLinearGradient(0,0,900,1000);bg.addColorStop(0,'#4d6065');bg.addColorStop(.5,'#293b43');bg.addColorStop(1,'#14262f');g.fillStyle=bg;g.fillRect(0,0,900,1000);drawBackgroundPulse();
 let ball=position(time),target=Math.max(cameraY,Math.min(endY-820,ball.y-390));cameraY+=(target-cameraY)*(1-Math.exp(-dt*7));let camera=cameraY;g.save();g.translate(0,-camera);drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);
 for(let lane=0;lane<4;lane++){let course=lanes[lane];for(let i=0;i<course.length;i++){let p=course[i];if(p.y<camera-100||p.y>camera+1100)continue;let px=laneX(p.x,lane),motion=padMotion(p,time);let age=time-p.hit,compression=age>=0&&age<.7?12*Math.exp(-age*7)*Math.abs(Math.sin(age*22)):0;g.save();g.translate(px,p.y+8);g.rotate(p.angle+motion.tilt);g.scale(.78,.85);ellipse(12,29,60,15,'#0b1c2555');
 // Visible fulcrum and balanced beam distinguish the occasional seesaw.
