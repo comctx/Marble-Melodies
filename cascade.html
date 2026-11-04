@@ -97,15 +97,13 @@ for(let lane=0;lane<2;lane++){
   next++;i+=7;
  }
 }
-// Reserve one clear gap per lane for the pendulum, preferring a long note.
+// Put the catcher near the finale, using the last clear gap with time to swing.
 for(let lane=0;lane<2;lane++){
- let slot=-1;
- for(let i=2;i<pads.length;i++){
+ for(let i=pads.length-1;i>=2;i--){
   if(baseRouteKind(i,lane)||surpriseSlots[lane].has(i)||durations[i]<.44)continue;
-  if(slot<0||durations[i]>durations[slot])slot=i;
-  if(durations[i]>=.65){slot=i;break}
+  surpriseSlots[lane].set(i,'pendulum');
+  break;
  }
- if(slot>=0)surpriseSlots[lane].set(slot,'pendulum');
 }
 // Bass bounces span several melody notes, with one shared final strike.
 const bassIndices=[0];let heldBeats=0;
@@ -242,10 +240,11 @@ function pendulumSeat(q,u){
 function detourPoint(i,lane,u){
  const q=routeGeometry(i,lane),kind=routeKind(i,lane),mix=(a,b,v)=>({x:a.x+(b.x-a.x)*v,y:a.y+(b.y-a.y)*v}),ease=v=>v*v*(3-2*v);
  if(kind==='pendulum'){
-  if(u<pendulumCatch)return mix(q.a,pendulumSeat(q,pendulumCatch),u/pendulumCatch);
+  if(u<pendulumCatch)return mix(q.a,pendulumSeat(q,pendulumCatch),ease(u/pendulumCatch));
   if(u<=pendulumRelease)return pendulumSeat(q,u);
   const flight=(u-pendulumRelease)/(1-pendulumRelease);
   const p=mix(pendulumSeat(q,pendulumRelease),q.b,flight);
+  p.x+=(Math.sign(q.b.x-q.a.x)||1)*30*Math.sin(Math.PI*flight);
   p.y-=22*Math.sin(Math.PI*flight);
   return p;
  }
@@ -411,6 +410,11 @@ function drawRouteDevices(camera){
     line(0,0,0,66,'#8b643b',7);line(-2,2,-2,64,'#e5bf7f',2);
     g.beginPath();g.moveTo(-22,58);g.quadraticCurveTo(-18,76,0,76);g.quadraticCurveTo(18,76,22,58);
     g.fillStyle='#9e743b';g.fill();g.strokeStyle='#f5d69a';g.lineWidth=4;g.stroke();
+    // The exit latch folds down as the cup reaches the release point.
+    const exit=Math.sign(q.b.x-q.a.x)||1;
+    const opening=Math.max(0,1-Math.abs(u-pendulumRelease)/.12);
+    g.save();g.translate(exit*21,63);g.rotate(-exit*opening*1.25);
+    line(0,0,0,-21,'#e5bf7f',5);disk(0,0,4,'#72542f');g.restore();
     g.restore();disk(q.cx,pivotY,8,'#d9b878');disk(q.cx,pivotY,3,'#526d74');
    }else if(kind==='star'){
     line(q.cx,q.cy,q.cx,q.cy+47,'#91a6a8',6);ellipse(q.cx,q.cy+47,27,5,'#344b53');
