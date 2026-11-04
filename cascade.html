@@ -35,7 +35,7 @@ const requested=new URLSearchParams(location.search).get('tune');
 const song=songs[requested]||songs.anthem;
 const tune=document.querySelector('#tune');tune.value=songs[requested]?requested:'anthem';
 tune.onchange=()=>{const url=new URL(location.href);url.searchParams.set('tune',tune.value);stopVoices();location.assign(url.href)};
-document.querySelector('#song-heading').textContent=song.title+' · one Cascade · tipping cups, spiral funnels, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, and a gong-and-trapdoor finale.';
+document.querySelector('#song-heading').textContent=song.title+' · one Cascade · paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, and a gong-and-trapdoor finale.';
 document.querySelector('#song-details').textContent=song.credit+' · '+song.bpm+' BPM · original synthesized arrangement.';
 document.title=song.title+' · Marble Melodies';
 const bars=song.bars,chords=song.chords;
@@ -357,11 +357,20 @@ function drawRouteDevices(camera){
 
 function draw(dt=1/60){let bg=g.createLinearGradient(0,0,900,1000);bg.addColorStop(0,'#4d6065');bg.addColorStop(.5,'#293b43');bg.addColorStop(1,'#14262f');g.fillStyle=bg;g.fillRect(0,0,900,1000);
 let ball=position(time),target=Math.max(cameraY,Math.min(endY-820,ball.y-390));cameraY+=(target-cameraY)*(1-Math.exp(-dt*7));let camera=cameraY;g.save();g.translate(0,-camera);drawRouteDevices(camera);drawFinale(camera);
-for(let lane=0;lane<4;lane++){let course=lanes[lane];for(let i=0;i<course.length;i++){let p=course[i];if(p.y<camera-100||p.y>camera+1100)continue;let px=laneX(p.x,lane),motion=padMotion(p,time);let age=time-p.hit,hit=age>=0&&age<.7?Math.sin(age*19)*Math.exp(-age*6):0;g.save();g.translate(px,p.y+8);g.rotate(p.angle+motion.tilt);g.scale(.78,.85);ellipse(12,29,60,15,'#0b1c2555');
+for(let lane=0;lane<4;lane++){let course=lanes[lane];for(let i=0;i<course.length;i++){let p=course[i];if(p.y<camera-100||p.y>camera+1100)continue;let px=laneX(p.x,lane),motion=padMotion(p,time);let age=time-p.hit,compression=age>=0&&age<.7?12*Math.exp(-age*7)*Math.abs(Math.sin(age*22)):0;g.save();g.translate(px,p.y+8);g.rotate(p.angle+motion.tilt);g.scale(.78,.85);ellipse(12,29,60,15,'#0b1c2555');
 // Visible fulcrum and balanced beam distinguish the occasional seesaw.
 if(p.mechanism==='seesaw'){g.beginPath();g.moveTo(-14,43);g.lineTo(0,11);g.lineTo(14,43);g.closePath();g.fillStyle='#83989b';g.fill();line(-76,7,76,7,'#e4bc77',10);disk(-72,7,7,'#a87343');disk(72,7,7,'#a87343');disk(0,16,6,'#f3d79d')}
 // Exposed spring and round tilted bouncer.
-line(-28,10,-28,30,'#82969a',4);line(28,10,28,30,'#82969a',4);g.beginPath();for(let k=0;k<=14;k++){let x=-25+k*50/14,y=25+(k%2?5:-5);if(k)g.lineTo(x,y);else g.moveTo(x,y)}g.strokeStyle='#d0c39c';g.lineWidth=2;g.stroke();ellipse(0,33,43,8,'#627980');g.translate(0,hit*8);ellipse(0,0,56,18,'#bd8956');ellipse(0,-5,56,18,'#f0c682');ellipse(0,-7,45,12,lane===2?'#796029':lane?'#435c89':'#8f6045');ellipse(-3,-9,38,9,age>=0&&age<.3?'#ffe6ac':lane===2?'#dfc567':lane?'#9ebee0':'#d4ac75');line(-36,-13,24,-13,'#fff0cb77',1);
+// Fixed base, sliding guide rods, and two upright compression springs.
+ellipse(0,33,43,8,'#627980');
+for(const sx of [-25,25]){
+ line(sx,8,sx,31,'#61777d',5);line(sx,8+compression,sx,24+compression*.2,'#bac9c7',2);
+ const top=9+compression,bottom=30;
+ g.beginPath();g.moveTo(sx,top);
+ for(let k=1;k<=12;k++){const y=top+(bottom-top)*k/13;g.lineTo(sx+(k%2?7:-7),y)}
+ g.lineTo(sx,bottom);g.strokeStyle='#e5d5a7';g.lineWidth=2;g.stroke();
+}
+g.translate(0,compression);ellipse(0,0,56,18,'#bd8956');ellipse(0,-5,56,18,'#f0c682');ellipse(0,-7,45,12,lane===2?'#796029':lane?'#435c89':'#8f6045');ellipse(-3,-9,38,9,age>=0&&age<.3?'#ffe6ac':lane===2?'#dfc567':lane?'#9ebee0':'#d4ac75');line(-36,-13,24,-13,'#fff0cb77',1);
 if(p.mechanism==='spinner'){for(let spoke=0;spoke<5;spoke++){const a=motion.spin+spoke*Math.PI*2/5;line(Math.cos(a)*9,-7+Math.sin(a)*2,Math.cos(a)*37,-7+Math.sin(a)*10,'#fff1c4aa',2)}disk(0,-7,4,'#fff0c2')}
 else{g.fillStyle='#fff3cb';g.font='10px system-ui';g.textAlign='center';g.fillText('↔',0,-3)}g.restore();
 if(lane===0&&accentIndices.has(i))drawCymbal(px,p.y,age);
