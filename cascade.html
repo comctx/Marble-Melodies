@@ -158,7 +158,25 @@ function percussion(kind,when){if(!ac)return;const z=when;
 
 function reset(){drumStruck=0;audioDrumStruck=0;cameraY=0;stopVoices();audioStruck=0;audioBassStruck=0;clockLast=null;bassStruck=0;splashAge=-1;time=0;struck=0;finished=false;running=false;lanes.forEach(course=>course.forEach(p=>p.hit=-100));play.textContent='Release marbles';status.textContent=song.title+' · tap Release marbles'}
 function frame(ms){let dt=last===null?0:Math.min(.04,(ms-last)/1000);last=ms;if(splashAge>=0)splashAge+=dt;if(running){let rate=Number(document.querySelector('#speed').value),now=ac?ac.currentTime:ms/1000,elapsed=clockLast===null?0:Math.max(0,now-clockLast);clockLast=now;time=Math.min(total,time+elapsed*rate);scheduleAudio(rate);while(struck<pads.length&&time>=arrivals[struck]){pads[struck].hit=arrivals[struck];harmony[struck].hit=arrivals[struck];status.textContent=pads[struck].name+' + '+harmony[struck].name+' · note '+(struck+1)+' of '+pads.length;struck++}while(bassStruck<bass.length&&time>=bassArrivals[bassStruck]){let p=bass[bassStruck],until=bassArrivals[bassStruck+1]||total;p.hit=bassArrivals[bassStruck];bassStruck++}while(drumStruck<drums.length&&time>=drumArrivals[drumStruck]){drums[drumStruck].hit=drumArrivals[drumStruck];drumStruck++}if(time>=total){running=false;finished=true;splashAge=0;splashSound();play.textContent='Play again';status.textContent='Splash! · '+song.title+' · finished'}}draw(dt);requestAnimationFrame(frame)}
-play.onclick=async()=>{if(finished)reset();try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(!master){master=ac.createGain();master.gain.value=sound?1:0;master.connect(ac.destination)}await ac.resume()}catch(e){}running=!running;resyncAudio();if(running)scheduleAudio(Number(document.querySelector('#speed').value));play.textContent=running?'Pause':'Continue';if(!running)status.textContent='Paused'};document.querySelector('#reset').onclick=reset;document.querySelector('#mute').onclick=()=>{sound=!sound;if(master)master.gain.setTargetAtTime(sound?1:0,ac.currentTime,.01);document.querySelector('#mute').textContent=sound?'Mute':'Sound on';document.querySelector('#mute').setAttribute('aria-pressed',String(!sound))};document.querySelector('#chords').onclick=()=>{chordsEnabled=!chordsEnabled;const button=document.querySelector('#chords');button.textContent=chordsEnabled?'Chords on':'Chords off';button.setAttribute('aria-pressed',String(chordsEnabled));resyncAudio();if(running)scheduleAudio(Number(document.querySelector('#speed').value))};document.querySelector('#speed').oninput=()=>{if(running){resyncAudio();scheduleAudio(Number(document.querySelector('#speed').value))}};document.addEventListener('visibilitychange',()=>{if(document.hidden&&running){running=false;resyncAudio();play.textContent='Continue';status.textContent='Paused · return and tap Continue'}});reset();requestAnimationFrame(frame);
+play.onclick=async()=>{
+ if(running){running=false;resyncAudio();play.textContent='Continue';status.textContent='Paused';return}
+ if(finished)reset();
+ try{
+  try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+  if(!ac||ac.state==='closed'){ac=new(window.AudioContext||window.webkitAudioContext)();master=null}
+  if(!master){master=ac.createGain();master.gain.value=sound?1:0;master.connect(ac.destination)}
+  // Start an inaudible buffer during the tap to unlock iOS Web Audio.
+  const unlock=ac.createBufferSource();unlock.buffer=ac.createBuffer(1,1,ac.sampleRate);unlock.connect(master);unlock.start();
+  await ac.resume();
+  if(ac.state!=='running')throw new Error('Audio is suspended');
+ }catch(e){
+  running=false;play.textContent='Try sound again';
+  status.textContent='Sound could not start. Tap Try sound again, or open this page in Safari.';
+  return;
+ }
+ running=true;resyncAudio();scheduleAudio(Number(document.querySelector('#speed').value));
+ play.textContent='Pause';status.textContent=sound?'Playing · '+song.title:'Playing · sound is muted; tap Sound on';
+};document.querySelector('#reset').onclick=reset;document.querySelector('#mute').onclick=()=>{sound=!sound;if(master)master.gain.setTargetAtTime(sound?1:0,ac.currentTime,.01);document.querySelector('#mute').textContent=sound?'Mute':'Sound on';document.querySelector('#mute').setAttribute('aria-pressed',String(!sound))};document.querySelector('#chords').onclick=()=>{chordsEnabled=!chordsEnabled;const button=document.querySelector('#chords');button.textContent=chordsEnabled?'Chords on':'Chords off';button.setAttribute('aria-pressed',String(chordsEnabled));resyncAudio();if(running)scheduleAudio(Number(document.querySelector('#speed').value))};document.querySelector('#speed').oninput=()=>{if(running){resyncAudio();scheduleAudio(Number(document.querySelector('#speed').value))}};document.addEventListener('visibilitychange',()=>{if(document.hidden&&running){running=false;resyncAudio();play.textContent='Continue';status.textContent='Paused · return and tap Continue'}});reset();requestAnimationFrame(frame);
 })();
 
 </script></body></html>
