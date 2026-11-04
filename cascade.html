@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Note Cascade · Marble Melodies</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#171e22;color:#e8e5dc;font:15px system-ui}main{max-width:850px;margin:auto}header{padding:14px 18px 10px}a{color:#bfcacb;font-size:13px}h1{font:29px Georgia;margin:12px 0 6px}p{margin:4px 0;color:#aebbbc;line-height:1.5}canvas{display:block;width:100%;aspect-ratio:900/1000;background:#333f43}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 16px max(18px,env(safe-area-inset-bottom));background:#20292d}button{border:1px solid #627378;border-radius:24px;background:#37484b;color:white;font:15px system-ui;padding:11px 18px}#play{background:#d8b16d;color:#20292d;border-color:#d8b16d}label{font-size:13px;color:#c1ccca;display:flex;align-items:center;gap:7px}select{max-width:240px;padding:10px;border-radius:8px;background:#30464b;color:#fff;border:1px solid #8da79a;font:14px system-ui}input{width:100px;accent-color:#d8b16d}#status{font-size:12px;color:#c2ceca;padding:0 18px 12px}@media(min-width:700px){canvas{max-height:76vh;width:auto;max-width:100%;margin:auto}}</style></head>
-<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: four marbles play melody, harmony, chords with bass, and percussion, with paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
+<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: four marbles play melody, harmony, chords with bass, and percussion, with balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
 <script>
 (()=>{'use strict';
 const c=document.querySelector('canvas'),g=c.getContext('2d'),play=document.querySelector('#play'),status=document.querySelector('#status');
@@ -35,7 +35,7 @@ const requested=new URLSearchParams(location.search).get('tune');
 const song=songs[requested]||songs.anthem;
 const tune=document.querySelector('#tune');tune.value=songs[requested]?requested:'anthem';
 tune.onchange=()=>{const url=new URL(location.href);url.searchParams.set('tune',tune.value);stopVoices();location.assign(url.href)};
-document.querySelector('#song-heading').textContent=song.title+' · one Cascade · paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, and a gong-and-trapdoor finale.';
+document.querySelector('#song-heading').textContent=song.title+' · one Cascade · balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, and a gong-and-trapdoor finale.';
 document.querySelector('#song-details').textContent=song.credit+' · '+song.bpm+' BPM · original synthesized arrangement.';
 document.title=song.title+' · Marble Melodies';
 const bars=song.bars,chords=song.chords;
@@ -128,6 +128,7 @@ function routeKind(i,lane){
  if(durations[i]>=.40&&(i+lane*4)%7===3)return 'cup';
  if(durations[i]>=.40&&(i+lane*3)%9===5)return 'funnel';
  if(wheelSlots[lane].has(i))return 'wheel';
+ if(durations[i]>=.40&&(i+lane*3)%6===1)return 'scale';
  if(durations[i]>=.32&&(i+lane*2)%8===4)return 'gate';
  return '';
 }
@@ -158,8 +159,23 @@ function gateAngle(u){
  if(u<.78)return 1.42;
  return (1-ease(Math.min(1,(u-.78)/.22)))*1.42;
 }
+// The loaded pan tips downward, then the counterweight lifts it to launch.
+function scaleAngle(u){
+ const ease=v=>{v=Math.max(0,Math.min(1,v));return v*v*(3-2*v)};
+ if(u<.24)return .18;
+ if(u<.48)return .18-.55*ease((u-.24)/.24);
+ if(u<.68)return -.37+.82*ease((u-.48)/.20);
+ return .45-.27*ease((u-.68)/.32);
+}
+function scaleSeat(q,u){const a=scaleAngle(u);return{x:q.cx-39*Math.cos(a)+19*Math.sin(a),y:q.cy-39*Math.sin(a)-19*Math.cos(a)}}
 function detourPoint(i,lane,u){
  const q=routeGeometry(i,lane),kind=routeKind(i,lane),mix=(a,b,v)=>({x:a.x+(b.x-a.x)*v,y:a.y+(b.y-a.y)*v}),ease=v=>v*v*(3-2*v);
+ if(kind==='scale'){
+  if(u<.24)return mix(q.a,scaleSeat(q,.24),ease(u/.24));
+  if(u<=.68)return scaleSeat(q,u);
+  const v=(u-.68)/.32,p=mix(scaleSeat(q,.68),q.b,v);
+  p.y-=30*Math.sin(Math.PI*v);return p;
+ }
  if(kind==='wheel'){
   if(u<.18)return mix(q.a,wheelSeat(q,.18),ease(u/.18));
   if(u<=.82)return wheelSeat(q,u);
@@ -292,7 +308,16 @@ function drawRouteDevices(camera){
   for(let lane=0;lane<2;lane++){
    const kind=routeKind(i,lane);if(!kind)continue;
    const q=routeGeometry(i,lane),u=segmentProgress(i,time);
-   if(kind==='wheel'){
+   if(kind==='scale'){
+    // Rigid beam, pivot, loaded pan, and a solid counterweight.
+    ellipse(q.cx,q.cy+44,31,6,'#213d46');
+    g.beginPath();g.moveTo(q.cx-17,q.cy+41);g.lineTo(q.cx,q.cy-2);g.lineTo(q.cx+17,q.cy+41);g.closePath();g.fillStyle='#8a9f9d';g.fill();
+    g.save();g.translate(q.cx,q.cy);g.rotate(scaleAngle(u));
+    line(-49,0,45,0,'#72542f',9);line(-49,-3,45,-3,'#f1cd85',4);
+    g.beginPath();g.moveTo(-61,-6);g.quadraticCurveTo(-39,9,-17,-6);g.strokeStyle='#f3d49a';g.lineWidth=5;g.stroke();
+    line(36,0,36,14,'#c9c7ad',3);g.fillStyle='#987342';g.fillRect(24,12,24,19);line(26,15,45,15,'#e5c17c',3);
+    disk(0,0,7,'#f4dca5');disk(0,0,3,'#526e75');g.restore();
+   }else if(kind==='wheel'){
     const angle=wheelAngle(u);
     // Eight open brass paddles share one axle; the marble rides one pocket.
     line(q.cx,q.cy+5,q.cx,q.cy+49,'#8ca3a5',5);
