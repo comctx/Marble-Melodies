@@ -445,28 +445,37 @@ function drawString(contact){
  g.font='bold 18px system-ui';g.textAlign='left';g.fillStyle='#ffe6a5';
  g.fillText('String '+(contact.index+1),x+39,y+6);
 }
-function stringRailPoint(a,b,u){
+function stringRailPoint(a,b,u,curved=true){
  const bend=u*u*(3-2*u);
- return {x:a.x+(b.x-a.x)*bend,y:a.y+(b.y-a.y)*u};
+ const drop=b.y-a.y;
+ const turns=Math.max(1,Math.round(drop/370));
+ const sway=curved?36*Math.sin(2*Math.PI*turns*u)*Math.min(1,8*u,8*(1-u))**2:0;
+ return {x:a.x+(b.x-a.x)*bend+sway,y:a.y+drop*u};
 }
 function stringPosition(t){
  const i=stringRail.findIndex((p,i)=>i>0&&t<=p.at);
  if(i<0)return stringRail[stringRail.length-1];
  const a=stringRail[i-1],b=stringRail[i];
  const u=(t-a.at)/(b.at-a.at);
- return stringRailPoint(a,b,i===stringRail.length-1?u*u:u);
+ const falling=i===stringRail.length-1;
+ return stringRailPoint(a,b,falling?u*u:u,!falling);
 }
 function drawStringRail(camera){
  for(let i=1;i<stringRail.length-1;i++){
   const a=stringRail[i-1],b=stringRail[i];
   if(b.y<camera||a.y>camera+1000)continue;
-  for(const [color,width] of [['#263b41',7],['#c49c65',3]]){
-   g.beginPath();
-   for(let step=0;step<=24;step++){
-    const p=stringRailPoint(a,b,step/24);
-    if(step)g.lineTo(p.x-17,p.y);else g.moveTo(p.x-17,p.y);
+  const steps=Math.ceil((b.y-a.y)/9);
+  const first=Math.max(0,Math.floor((camera-a.y-20)/(b.y-a.y)*steps));
+  const last=Math.min(steps,Math.ceil((camera+1020-a.y)/(b.y-a.y)*steps));
+  for(const offset of [-16,16]){
+   for(const [color,width] of [['#19282d',8],['#a87b4c',5],['#f0c591',1.5]]){
+    g.beginPath();
+    for(let step=first;step<=last;step++){
+     const p=stringRailPoint(a,b,step/steps);
+     if(step===first)g.moveTo(p.x+offset,p.y);else g.lineTo(p.x+offset,p.y);
+    }
+    g.strokeStyle=color;g.lineWidth=width;g.stroke();
    }
-   g.strokeStyle=color;g.lineWidth=width;g.stroke();
   }
  }
  for(const stop of stringStops)if(stop.y>=camera-45&&stop.y<=camera+1045)drawString(stop);
@@ -475,7 +484,10 @@ function drawStringMarble(){
  const p=stringPosition(time);
  const glass=g.createRadialGradient(p.x-5,p.y-6,1,p.x,p.y,stringRadius);
  glass.addColorStop(0,'#fff8d1');glass.addColorStop(.45,'#ffcb56');glass.addColorStop(1,'#a35918');
- disk(p.x,p.y,stringRadius,glass);disk(p.x-5,p.y-6,3,'#fff9de');
+ disk(p.x,p.y,stringRadius,glass);
+ const roll=(p.y-stringRail[0].y)/stringRadius;
+ disk(p.x+8*Math.cos(roll),p.y+8*Math.sin(roll),2.6,'#9d4e2799');
+ disk(p.x-5,p.y-6,3,'#fff9de');
  drawSplash(p.x,stringSplashAge);
 }
 function drawRouteDevices(camera){
