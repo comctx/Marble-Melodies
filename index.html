@@ -1264,7 +1264,7 @@ function approachPosition(n,now){
  const u=Math.max(0,Math.min(1,(now-q.contactAt)/dropSeconds));
  return guidePointFor(n.midi,u*u);
 }
-function makeAudio(){if(!audio){audio=new (window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=.4;master.connect(audio.destination)}return audio.resume()}
+function makeAudio(){try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}if(!audio){audio=new (window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=.4;master.connect(audio.destination)}return audio.resume()}
 // A tuned-bar synthesis model: sharp mallet attack, several slightly inharmonic
 // decaying partials, and a soft body resonance. No samples or external assets.
 // Alexander Holm's Salamander Grand Piano (Yamaha C5), CC BY 3.0.
