@@ -35,7 +35,7 @@ const requested=new URLSearchParams(location.search).get('tune');
 const song=songs[requested]||songs.anthem;
 const tune=document.querySelector('#tune');tune.value=songs[requested]?requested:'anthem';
 tune.onchange=()=>{const url=new URL(location.href);url.searchParams.set('tune',tune.value);stopVoices();location.assign(url.href)};
-document.querySelector('#song-heading').textContent=song.title+' · one Cascade · pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, and a gong-and-trapdoor finale.';
+document.querySelector('#song-heading').textContent=song.title+' · one Cascade · plucked strings, pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, and a gong-and-trapdoor finale.';
 document.querySelector('#song-details').textContent=song.credit+' · '+song.bpm+' BPM · original synthesized arrangement.';
 document.title=song.title+' · Marble Melodies';
 const bars=song.bars,chords=song.chords;
@@ -87,19 +87,21 @@ for(let lane=0;lane<2;lane++){
 }
 // Use spare gaps for the new devices, leaving existing mechanisms in place.
 const pendulumCatch=.24,pendulumRelease=.70;
+const stringPluck=.55;
+const stringSlots=new Map([[2,0],[4,1],[8,2]]);
 const surpriseSlots=[new Map([[0,'pendulum']]),new Map()];
 for(let lane=0;lane<2;lane++){
  let next=lane;
  for(let i=2;i<pads.length;i++){
   const kind=['star','hoop','domino'][next%3];
-  if(baseRouteKind(i,lane)||durations[i]<(kind==='star'?.42:.30))continue;
+  if((lane===1&&stringSlots.has(i))||baseRouteKind(i,lane)||durations[i]<(kind==='star'?.42:.30))continue;
   surpriseSlots[lane].set(i,kind);
   next++;i+=7;
  }
 }
 // Keep a second catcher near the finale when the harmony lane has room.
 for(let i=pads.length-1;i>=2;i--){
- if(baseRouteKind(i,1)||surpriseSlots[1].has(i)||durations[i]<.44)continue;
+ if(stringSlots.has(i)||baseRouteKind(i,1)||surpriseSlots[1].has(i)||durations[i]<.44)continue;
  surpriseSlots[1].set(i,'pendulum');
  break;
 }
@@ -135,22 +137,41 @@ function stopVoices(){for(const o of voices){try{o.stop()}catch(e){}}voices.clea
 function track(o){voices.add(o);o.onended=()=>voices.delete(o)}
 // Cue positions match the catch, scale tip, and individual domino impacts.
 const mechanismCues=[];
-const impactPhases={pendulum:[pendulumRelease],star:[.18],scale:[.48],domino:[1/6,2/6,3/6,4/6,5/6]};
+const impactPhases={string:[stringPluck],pendulum:[pendulumRelease],star:[.18],scale:[.48],domino:[1/6,2/6,3/6,4/6,5/6]};
 for(let lane=0;lane<2;lane++){
  for(let i=0;i<pads.length;i++){
   const kind=routeKind(i,lane);
   for(const phase of impactPhases[kind]||[]){
-   mechanismCues.push({kind,at:(arrivals[i-1]??0)+durations[i]*phase});
+   mechanismCues.push({kind,note:kind==='string'?harmony[i].note:null,at:(arrivals[i-1]??0)+durations[i]*phase});
   }
  }
 }
 mechanismCues.sort((a,b)=>a.at-b.at);
 let nextMechanismCue=0;
 const impactVoices={pendulum:[1350,.018,.032],star:[1650,.023,.026],scale:[460,.032,.046],domino:[980,.014,.021]};
+function pluckString(note,when){
+ const frequency=440*2**((note-69)/12);
+ // Upper harmonics fade first, leaving the warm fundamental ringing.
+ for(const [harmonic,level,decay] of [[1,.060,.58],[2,.026,.32],[3,.013,.18],[4,.005,.11]]){
+  const oscillator=ac.createOscillator(),gain=ac.createGain();
+  oscillator.frequency.setValueAtTime(frequency*harmonic,when);
+  gain.gain.setValueAtTime(.0001,when);
+  gain.gain.linearRampToValueAtTime(level,when+.006);
+  gain.gain.exponentialRampToValueAtTime(.0001,when+decay);
+  oscillator.connect(gain).connect(master);
+  track(oscillator);
+  oscillator.start(when);
+  oscillator.stop(when+decay);
+ }
+}
 function scheduleMechanisms(horizon,rate){
  while(nextMechanismCue<mechanismCues.length&&mechanismCues[nextMechanismCue].at<=horizon){
-  const {kind,at}=mechanismCues[nextMechanismCue++];
+  const {kind,note,at}=mechanismCues[nextMechanismCue++];
   const when=ac.currentTime+Math.max(0,(at-time)/rate);
+  if(kind==='string'){
+   pluckString(note,when);
+   continue;
+  }
   const [frequency,level,duration]=impactVoices[kind];
   const oscillator=ac.createOscillator(),gain=ac.createGain();
   oscillator.type='triangle';
@@ -171,7 +192,7 @@ let cameraY=0;
 let time=0,last=null,running=false,finished=false,struck=0,sound=true,ac=null,splashAge=-1;
 // Every detour is parameterized inside the existing note-to-note time slot.
 // Its endpoints are the original note contacts, so audio timing never changes.
-function routeKind(i,lane){return baseRouteKind(i,lane)||surpriseSlots[lane]?.get(i)||''}
+function routeKind(i,lane){if(lane===1&&stringSlots.has(i))return 'string';return baseRouteKind(i,lane)||surpriseSlots[lane]?.get(i)||''}
 function baseRouteKind(i,lane){
  if(lane>1||i<2||i>=pads.length)return '';
  if(i%13===6)return 'crossing';
@@ -235,8 +256,13 @@ function pendulumSeat(q,u){
  const angle=pendulumAngle(q,u);
  return{x:q.cx+49*Math.sin(angle),y:q.cy-57+49*Math.cos(angle)};
 }
+function stringContact(q){return{x:q.cx+25,y:q.cy-12}}
 function detourPoint(i,lane,u){
  const q=routeGeometry(i,lane),kind=routeKind(i,lane),mix=(a,b,v)=>({x:a.x+(b.x-a.x)*v,y:a.y+(b.y-a.y)*v}),ease=v=>v*v*(3-2*v);
+ if(kind==='string'){
+  const contact=stringContact(q);
+  return u<=stringPluck?mix(q.a,contact,u/stringPluck):mix(contact,q.b,(u-stringPluck)/(1-stringPluck));
+ }
  if(kind==='pendulum'){
   if(u<pendulumCatch)return mix(q.a,pendulumSeat(q,pendulumCatch),ease(u/pendulumCatch));
   if(u<=pendulumRelease)return pendulumSeat(q,u);
@@ -372,6 +398,21 @@ function segmentProgress(i,t){
  const from=i===0?0:arrivals[i-1];
  return Math.max(0,Math.min(1,(t-from)/durations[i]));
 }
+function drawString(q,i,u){
+ const contact=stringContact(q),x=contact.x+48,y=contact.y;
+ const age=time-arrivals[i-1]-durations[i]*stringPluck;
+ const wave=age>=0&&age<.58?7*Math.sin(age*105)*Math.exp(-age*7):0;
+ const flex=u<stringPluck?Math.max(0,1-(stringPluck-u)/.13):Math.max(0,1-(u-stringPluck)/.08);
+ line(x-15,y-37,x+29,y-37,'#a87747',9);
+ line(x-15,y+37,x+29,y+37,'#a87747',9);
+ line(x+25,y-37,x+25,y+37,'#805d40',8);
+ g.beginPath();g.moveTo(x,y-37);g.quadraticCurveTo(x+wave,y,x,y+37);
+ g.strokeStyle='#ffe1a0';g.lineWidth=3;g.stroke();
+ line(contact.x+17,y+(1-flex)*8,x,y,'#ffd28a',5);
+ disk(x,y-37,5,'#e6c07b');disk(x,y+37,5,'#e6c07b');
+ g.font='bold 18px system-ui';g.textAlign='left';g.fillStyle='#ffe6a5';
+ g.fillText('String '+(stringSlots.get(i)+1),x+39,y+6);
+}
 function drawRouteDevices(camera){
  for(let i=0;i<pads.length;i++){
   const q=routeGeometry(i,0);
@@ -392,7 +433,9 @@ function drawRouteDevices(camera){
   for(let lane=0;lane<2;lane++){
    const kind=routeKind(i,lane);if(!kind)continue;
    const q=routeGeometry(i,lane),u=segmentProgress(i,time);
-   if(kind==='scale'){
+   if(kind==='string'){
+    drawString(q,i,u);
+   }else if(kind==='scale'){
     // Rigid beam, pivot, loaded pan, and a solid counterweight.
     ellipse(q.cx,q.cy+44,31,6,'#213d46');
     g.beginPath();g.moveTo(q.cx-17,q.cy+41);g.lineTo(q.cx,q.cy-2);g.lineTo(q.cx+17,q.cy+41);g.closePath();g.fillStyle='#8a9f9d';g.fill();
