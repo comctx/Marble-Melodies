@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Note Cascade · Marble Melodies</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#171e22;color:#e8e5dc;font:15px system-ui}main{max-width:850px;margin:auto}header{padding:14px 18px 10px}a{color:#bfcacb;font-size:13px}h1{font:29px Georgia;margin:12px 0 6px}p{margin:4px 0;color:#aebbbc;line-height:1.5}canvas{display:block;width:100%;aspect-ratio:900/1000;background:#333f43}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 16px max(18px,env(safe-area-inset-bottom));background:#20292d}button{border:1px solid #627378;border-radius:24px;background:#37484b;color:white;font:15px system-ui;padding:11px 18px}#play{background:#d8b16d;color:#20292d;border-color:#d8b16d}label{font-size:13px;color:#c1ccca;display:flex;align-items:center;gap:7px}select{max-width:240px;padding:10px;border-radius:8px;background:#30464b;color:#fff;border:1px solid #8da79a;font:14px system-ui}input{width:100px;accent-color:#d8b16d}#status{font-size:12px;color:#c2ceca;padding:0 18px 12px}@media(min-width:700px){canvas{max-height:76vh;width:auto;max-width:100%;margin:auto}}</style></head>
-<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: four marbles play melody, harmony, chords with bass, and percussion, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
+<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
 <script>
 (()=>{'use strict';
 const c=document.querySelector('canvas'),g=c.getContext('2d'),play=document.querySelector('#play'),status=document.querySelector('#status');
@@ -88,20 +88,31 @@ for(let lane=0;lane<2;lane++){
 // Use spare gaps for the new devices, leaving existing mechanisms in place.
 const pendulumCatch=.24,pendulumRelease=.70;
 const stringPluck=.55;
-const stringSlots=new Map([[2,0],[4,1],[8,2]]);
+const stringSlots=[2,4,8];
+const stringRadius=15,stringEnd=total+beatSeconds;
+const stringStops=stringSlots.map((i,index)=>({
+ ...stringContact(routeGeometry(i,1)),i,index,
+ at:arrivals[i-1]+durations[i]*stringPluck
+}));
+const stringRail=[
+ {x:437,y:40,at:0},
+ ...stringStops,
+ {x:453,y:endY-48,at:total},
+ {x:453,y:endY+17-stringRadius,at:stringEnd}
+];
 const surpriseSlots=[new Map([[0,'pendulum']]),new Map()];
 for(let lane=0;lane<2;lane++){
  let next=lane;
  for(let i=2;i<pads.length;i++){
   const kind=['star','hoop','domino'][next%3];
-  if((lane===1&&stringSlots.has(i))||baseRouteKind(i,lane)||durations[i]<(kind==='star'?.42:.30))continue;
+  if(baseRouteKind(i,lane)||durations[i]<(kind==='star'?.42:.30))continue;
   surpriseSlots[lane].set(i,kind);
   next++;i+=7;
  }
 }
 // Keep a second catcher near the finale when the harmony lane has room.
 for(let i=pads.length-1;i>=2;i--){
- if(stringSlots.has(i)||baseRouteKind(i,1)||surpriseSlots[1].has(i)||durations[i]<.44)continue;
+ if(baseRouteKind(i,1)||surpriseSlots[1].has(i)||durations[i]<.44)continue;
  surpriseSlots[1].set(i,'pendulum');
  break;
 }
@@ -137,14 +148,17 @@ function stopVoices(){for(const o of voices){try{o.stop()}catch(e){}}voices.clea
 function track(o){voices.add(o);o.onended=()=>voices.delete(o)}
 // Cue positions match the catch, scale tip, and individual domino impacts.
 const mechanismCues=[];
-const impactPhases={string:[stringPluck],pendulum:[pendulumRelease],star:[.18],scale:[.48],domino:[1/6,2/6,3/6,4/6,5/6]};
+const impactPhases={pendulum:[pendulumRelease],star:[.18],scale:[.48],domino:[1/6,2/6,3/6,4/6,5/6]};
 for(let lane=0;lane<2;lane++){
  for(let i=0;i<pads.length;i++){
   const kind=routeKind(i,lane);
   for(const phase of impactPhases[kind]||[]){
-   mechanismCues.push({kind,note:kind==='string'?harmony[i].note:null,at:(arrivals[i-1]??0)+durations[i]*phase});
+   mechanismCues.push({kind,at:(arrivals[i-1]??0)+durations[i]*phase});
   }
  }
+}
+for(const stop of stringStops){
+ mechanismCues.push({kind:'string',at:stop.at,note:harmony[stop.i].note});
 }
 mechanismCues.sort((a,b)=>a.at-b.at);
 let nextMechanismCue=0;
@@ -189,10 +203,10 @@ function scheduleMechanisms(horizon,rate){
 function scheduleAudio(rate){if(!ac)return;const horizon=time+.12*rate;scheduleMechanisms(horizon,rate);while(audioStruck<pads.length&&arrivals[audioStruck]<=horizon){let i=audioStruck++,when=ac.currentTime+Math.max(0,(arrivals[i]-time)/rate);chime(pads[i].note,pads[i].beats/rate,.82,when);chime(harmony[i].note,harmony[i].beats/rate,.34,when);if(accentIndices.has(i))cymbalAccent(when,i===pads.length-1);if(i===pads.length-1)finaleGong(when)}while(audioBassStruck<bass.length&&bassArrivals[audioBassStruck]<=horizon){let i=audioBassStruck++,until=bassArrivals[i+1]||total; if(chordsEnabled)chordTone(bass[i].chord,(until-bassArrivals[i])/rate,ac.currentTime+Math.max(0,(bassArrivals[i]-time)/rate)); bassTone(bass[i].note,(until-bassArrivals[i])/beatSeconds/rate,i===bass.length-1,ac.currentTime+Math.max(0,(bassArrivals[i]-time)/rate))}while(audioDrumStruck<drums.length&&drumArrivals[audioDrumStruck]<=horizon){const i=audioDrumStruck++;percussion(drums[i].kind,ac.currentTime+Math.max(0,(drumArrivals[i]-time)/rate))}}
 function resyncAudio(){stopVoices();nextMechanismCue=mechanismCues.findIndex(cue=>cue.at>=time);if(nextMechanismCue<0)nextMechanismCue=mechanismCues.length;audioDrumStruck=drumStruck;audioStruck=struck;audioBassStruck=bassStruck;clockLast=ac?ac.currentTime:null}
 let cameraY=0;
-let time=0,last=null,running=false,finished=false,struck=0,sound=true,ac=null,splashAge=-1;
+let time=0,last=null,running=false,finished=false,struck=0,sound=true,ac=null,splashAge=-1,stringSplashAge=-1;
 // Every detour is parameterized inside the existing note-to-note time slot.
 // Its endpoints are the original note contacts, so audio timing never changes.
-function routeKind(i,lane){if(lane===1&&stringSlots.has(i))return 'string';return baseRouteKind(i,lane)||surpriseSlots[lane]?.get(i)||''}
+function routeKind(i,lane){return baseRouteKind(i,lane)||surpriseSlots[lane]?.get(i)||''}
 function baseRouteKind(i,lane){
  if(lane>1||i<2||i>=pads.length)return '';
  if(i%13===6)return 'crossing';
@@ -259,10 +273,6 @@ function pendulumSeat(q,u){
 function stringContact(q){return{x:q.cx+25,y:q.cy-12}}
 function detourPoint(i,lane,u){
  const q=routeGeometry(i,lane),kind=routeKind(i,lane),mix=(a,b,v)=>({x:a.x+(b.x-a.x)*v,y:a.y+(b.y-a.y)*v}),ease=v=>v*v*(3-2*v);
- if(kind==='string'){
-  const contact=stringContact(q);
-  return u<=stringPluck?mix(q.a,contact,u/stringPluck):mix(contact,q.b,(u-stringPluck)/(1-stringPluck));
- }
  if(kind==='pendulum'){
   if(u<pendulumCatch)return mix(q.a,pendulumSeat(q,pendulumCatch),ease(u/pendulumCatch));
   if(u<=pendulumRelease)return pendulumSeat(q,u);
@@ -398,20 +408,53 @@ function segmentProgress(i,t){
  const from=i===0?0:arrivals[i-1];
  return Math.max(0,Math.min(1,(t-from)/durations[i]));
 }
-function drawString(q,i,u){
- const contact=stringContact(q),x=contact.x+48,y=contact.y;
- const age=time-arrivals[i-1]-durations[i]*stringPluck;
+function drawString(contact){
+ const x=contact.x+48,y=contact.y;
+ const age=time-contact.at;
  const wave=age>=0&&age<.58?7*Math.sin(age*105)*Math.exp(-age*7):0;
- const flex=u<stringPluck?Math.max(0,1-(stringPluck-u)/.13):Math.max(0,1-(u-stringPluck)/.08);
+ const flex=Math.max(0,1-Math.abs(age)/.08);
  line(x-15,y-37,x+29,y-37,'#a87747',9);
  line(x-15,y+37,x+29,y+37,'#a87747',9);
  line(x+25,y-37,x+25,y+37,'#805d40',8);
  g.beginPath();g.moveTo(x,y-37);g.quadraticCurveTo(x+wave,y,x,y+37);
  g.strokeStyle='#ffe1a0';g.lineWidth=3;g.stroke();
- line(contact.x+17,y+(1-flex)*8,x,y,'#ffd28a',5);
+ line(contact.x+stringRadius,y+(1-flex)*8,x,y,'#ffd28a',5);
  disk(x,y-37,5,'#e6c07b');disk(x,y+37,5,'#e6c07b');
  g.font='bold 18px system-ui';g.textAlign='left';g.fillStyle='#ffe6a5';
- g.fillText('String '+(stringSlots.get(i)+1),x+39,y+6);
+ g.fillText('String '+(contact.index+1),x+39,y+6);
+}
+function stringRailPoint(a,b,u){
+ const bend=u*u*(3-2*u);
+ return {x:a.x+(b.x-a.x)*bend,y:a.y+(b.y-a.y)*u};
+}
+function stringPosition(t){
+ const i=stringRail.findIndex((p,i)=>i>0&&t<=p.at);
+ if(i<0)return stringRail[stringRail.length-1];
+ const a=stringRail[i-1],b=stringRail[i];
+ const u=(t-a.at)/(b.at-a.at);
+ return stringRailPoint(a,b,i===stringRail.length-1?u*u:u);
+}
+function drawStringRail(camera){
+ for(let i=1;i<stringRail.length-1;i++){
+  const a=stringRail[i-1],b=stringRail[i];
+  if(b.y<camera||a.y>camera+1000)continue;
+  for(const [color,width] of [['#263b41',7],['#c49c65',3]]){
+   g.beginPath();
+   for(let step=0;step<=24;step++){
+    const p=stringRailPoint(a,b,step/24);
+    if(step)g.lineTo(p.x-17,p.y);else g.moveTo(p.x-17,p.y);
+   }
+   g.strokeStyle=color;g.lineWidth=width;g.stroke();
+  }
+ }
+ for(const stop of stringStops)if(stop.y>=camera-45&&stop.y<=camera+1045)drawString(stop);
+}
+function drawStringMarble(){
+ const p=stringPosition(time);
+ const glass=g.createRadialGradient(p.x-5,p.y-6,1,p.x,p.y,stringRadius);
+ glass.addColorStop(0,'#fff8d1');glass.addColorStop(.45,'#ffcb56');glass.addColorStop(1,'#a35918');
+ disk(p.x,p.y,stringRadius,glass);disk(p.x-5,p.y-6,3,'#fff9de');
+ drawSplash(p.x,stringSplashAge);
 }
 function drawRouteDevices(camera){
  for(let i=0;i<pads.length;i++){
@@ -433,9 +476,7 @@ function drawRouteDevices(camera){
   for(let lane=0;lane<2;lane++){
    const kind=routeKind(i,lane);if(!kind)continue;
    const q=routeGeometry(i,lane),u=segmentProgress(i,time);
-   if(kind==='string'){
-    drawString(q,i,u);
-   }else if(kind==='scale'){
+   if(kind==='scale'){
     // Rigid beam, pivot, loaded pan, and a solid counterweight.
     ellipse(q.cx,q.cy+44,31,6,'#213d46');
     g.beginPath();g.moveTo(q.cx-17,q.cy+41);g.lineTo(q.cx,q.cy-2);g.lineTo(q.cx+17,q.cy+41);g.closePath();g.fillStyle='#8a9f9d';g.fill();
@@ -545,7 +586,7 @@ function drawRouteDevices(camera){
 }
 
 function draw(dt=1/60){let bg=g.createLinearGradient(0,0,900,1000);bg.addColorStop(0,'#4d6065');bg.addColorStop(.5,'#293b43');bg.addColorStop(1,'#14262f');g.fillStyle=bg;g.fillRect(0,0,900,1000);
-let ball=position(time),target=Math.max(cameraY,Math.min(endY-820,ball.y-390));cameraY+=(target-cameraY)*(1-Math.exp(-dt*7));let camera=cameraY;g.save();g.translate(0,-camera);drawRouteDevices(camera);drawFinale(camera);
+let ball=position(time),target=Math.max(cameraY,Math.min(endY-820,ball.y-390));cameraY+=(target-cameraY)*(1-Math.exp(-dt*7));let camera=cameraY;g.save();g.translate(0,-camera);drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);
 for(let lane=0;lane<4;lane++){let course=lanes[lane];for(let i=0;i<course.length;i++){let p=course[i];if(p.y<camera-100||p.y>camera+1100)continue;let px=laneX(p.x,lane),motion=padMotion(p,time);let age=time-p.hit,compression=age>=0&&age<.7?12*Math.exp(-age*7)*Math.abs(Math.sin(age*22)):0;g.save();g.translate(px,p.y+8);g.rotate(p.angle+motion.tilt);g.scale(.78,.85);ellipse(12,29,60,15,'#0b1c2555');
 // Visible fulcrum and balanced beam distinguish the occasional seesaw.
 if(p.mechanism==='seesaw'){g.beginPath();g.moveTo(-14,43);g.lineTo(0,11);g.lineTo(14,43);g.closePath();g.fillStyle='#83989b';g.fill();line(-76,7,76,7,'#e4bc77',10);disk(-72,7,7,'#a87343');disk(72,7,7,'#a87343');disk(0,16,6,'#f3d79d')}
@@ -566,7 +607,7 @@ if(lane===0&&accentIndices.has(i))drawCymbal(px,p.y,age);
 g.font='16px Georgia';g.fillStyle=age>=0&&age<.5?'#ffe6a5':'#d4dfd7';g.textAlign=lane===2?'center':lane?'left':'right';g.fillText(p.name,Math.max(44,Math.min(856,px+(lane===2?0:lane?61:-61))),p.y+(lane===2?53:7));
 if(age>=0&&age<.45){g.strokeStyle='#f7ce7b';g.lineWidth=2;g.beginPath();g.arc(px,p.y-r,23+age*55,Math.PI*1.1,Math.PI*1.9);g.stroke()}}}
 for(let lane=0;lane<4;lane++){let bowlX=laneX(465,lane);ellipse(bowlX,endY+24,65,12,'#1b3039');ellipse(bowlX,endY+20,65,11,'#8fa8ab');ellipse(bowlX,endY+16,53,7,'#438b9a');ellipse(bowlX-9,endY+14,32,3,'#a9e9e477');
-let base=lane===3?drumPosition(time):lane===2?bassPosition(time):position(time,lane),p=finalePosition(time,lane,lane===2?24:r)||{x:laneX(base.x,lane),y:base.y},radius=lane===2?24:r;g.save();g.shadowColor='#06131f88';g.shadowBlur=10;g.shadowOffsetX=8;g.shadowOffsetY=13;let glass=g.createRadialGradient(p.x-6,p.y-8,1,p.x,p.y,radius);glass.addColorStop(0,'#f2ffff');glass.addColorStop(.25,lane===2?'#ffe093':lane===3?'#bba6ff':lane?'#ffbe8e':'#75e3dc');glass.addColorStop(.7,lane===2?'#a77b26':lane?'#b95259':'#24869d');glass.addColorStop(1,'#b5e1da');disk(p.x,p.y,radius,glass);g.restore();g.save();g.beginPath();g.arc(p.x,p.y,radius-1,0,Math.PI*2);g.clip();g.translate(p.x,p.y);g.rotate(time*5);g.strokeStyle=lane===2?'#fff4cf':lane?'#ffe7bb':'#eac369';g.lineWidth=6;g.beginPath();g.ellipse(0,0,lane===2?12:8,lane===2?27:19,.7,0,Math.PI*2);g.stroke();g.restore();disk(p.x-6,p.y-8,4,'#ffffffdd');g.textAlign='left';drawSplash(laneX(465,lane));}g.restore();g.fillStyle='#dce7df';g.font='14px system-ui';g.textAlign='center';['MELODY','HARMONY',chordsEnabled?'CHORDS + BASS':'BASS','PERCUSSION'].forEach((name,i)=>g.fillText(name,[120,340,560,780][i],24));g.textAlign='left'}
+let base=lane===3?drumPosition(time):lane===2?bassPosition(time):position(time,lane),p=finalePosition(time,lane,lane===2?24:r)||{x:laneX(base.x,lane),y:base.y},radius=lane===2?24:r;g.save();g.shadowColor='#06131f88';g.shadowBlur=10;g.shadowOffsetX=8;g.shadowOffsetY=13;let glass=g.createRadialGradient(p.x-6,p.y-8,1,p.x,p.y,radius);glass.addColorStop(0,'#f2ffff');glass.addColorStop(.25,lane===2?'#ffe093':lane===3?'#bba6ff':lane?'#ffbe8e':'#75e3dc');glass.addColorStop(.7,lane===2?'#a77b26':lane?'#b95259':'#24869d');glass.addColorStop(1,'#b5e1da');disk(p.x,p.y,radius,glass);g.restore();g.save();g.beginPath();g.arc(p.x,p.y,radius-1,0,Math.PI*2);g.clip();g.translate(p.x,p.y);g.rotate(time*5);g.strokeStyle=lane===2?'#fff4cf':lane?'#ffe7bb':'#eac369';g.lineWidth=6;g.beginPath();g.ellipse(0,0,lane===2?12:8,lane===2?27:19,.7,0,Math.PI*2);g.stroke();g.restore();disk(p.x-6,p.y-8,4,'#ffffffdd');g.textAlign='left';drawSplash(laneX(465,lane));}drawStringMarble();g.restore();g.fillStyle='#dce7df';g.font='14px system-ui';g.textAlign='center';['MELODY','HARMONY',chordsEnabled?'CHORDS + BASS':'BASS','PERCUSSION'].forEach((name,i)=>g.fillText(name,[120,340,560,780][i],24));g.textAlign='left'}
 // A linkage from the bouncer taps a miniature cymbal on selected long notes.
 function drawCymbal(x,y,age){const active=age>=0&&age<.8,shake=active?Math.sin(age*65)*Math.exp(-age*7):0,stroke=active?16*Math.exp(-age*20):0,cx=x+58,cy=y-24;
 line(cx,cy+3,cx,y+42,'#a9b4ae',3);ellipse(cx,y+43,18,4,'#283b43');
@@ -575,7 +616,7 @@ g.save();g.translate(cx,cy);g.rotate(shake*.12);ellipse(0,0,29,7,'#a37c33');elli
 line(cx-18,y+13,cx-9,cy-16+stroke,'#c9a579',4);disk(cx-9,cy-16+stroke,5,'#eadbc1');
 if(active){g.globalAlpha=Math.max(0,1-age/.8);for(let side of [-1,1]){g.beginPath();g.arc(cx,cy,35+age*12,side<0?2.6:-.6,side<0?3.7:.6);g.strokeStyle='#f6dc91';g.lineWidth=2;g.stroke()}g.globalAlpha=1}}
 // Real-time splash animation continues after the music and marble stop.
-function drawSplash(cx){if(splashAge<0||splashAge>2.8)return;let t=splashAge,cy=endY+16,fade=Math.max(0,1-t/2.8);g.save();
+function drawSplash(cx,t=splashAge){if(t<0||t>2.8)return;let cy=endY+16,fade=Math.max(0,1-t/2.8);g.save();
 for(let i=0;i<4;i++){let age=t-i*.11;if(age<0)continue;g.globalAlpha=Math.max(0,1-age/1.8)*.7;g.beginPath();g.ellipse(cx,cy+3,35+age*105,7+age*16,0,0,Math.PI*2);g.strokeStyle=i%2?'#efffff':'#6ddff0';g.lineWidth=3;g.stroke()}
 // Wide translucent crown erupts around the landing marble.
 if(t<1.1){let u=t/1.1,h=Math.sin(Math.PI*Math.sqrt(u))*150,w=28+u*110;g.globalAlpha=(1-u)*.8;g.beginPath();g.moveTo(cx-47,cy);g.quadraticCurveTo(cx-w,cy-h*.45,cx-w*.85,cy-h);g.quadraticCurveTo(cx-25,cy-h*.6,cx,cy-8);g.quadraticCurveTo(cx+25,cy-h*.6,cx+w*.85,cy-h);g.quadraticCurveTo(cx+w,cy-h*.45,cx+47,cy);g.closePath();g.fillStyle='#85e9f1';g.fill();g.strokeStyle='#d9ffff';g.lineWidth=2;g.stroke()}
@@ -595,8 +636,8 @@ function percussion(kind,when){if(!ac)return;const z=when;
  if(kind==='snare'){let b=ac.createBuffer(1,Math.ceil(ac.sampleRate*.16),ac.sampleRate),data=b.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;let n=ac.createBufferSource(),f=ac.createBiquadFilter(),v=ac.createGain();n.buffer=b;f.type='highpass';f.frequency.value=1500;v.gain.setValueAtTime(.11,z);v.gain.exponentialRampToValueAtTime(.0001,z+.16);n.connect(f).connect(v).connect(master);track(n);n.start(z);n.stop(z+.17)}
 }
 
-function reset(){nextMechanismCue=0;drumStruck=0;audioDrumStruck=0;cameraY=0;stopVoices();audioStruck=0;audioBassStruck=0;clockLast=null;bassStruck=0;splashAge=-1;time=0;struck=0;finished=false;running=false;lanes.forEach(course=>course.forEach(p=>p.hit=-100));play.textContent='Release marbles';status.textContent=song.title+' · tap Release marbles'}
-function frame(ms){let dt=last===null?0:Math.min(.04,(ms-last)/1000);last=ms;if(splashAge>=0)splashAge+=dt;if(running){let rate=Number(document.querySelector('#speed').value),now=ac?ac.currentTime:ms/1000,elapsed=clockLast===null?0:Math.max(0,now-clockLast);clockLast=now;time=Math.min(total,time+elapsed*rate);scheduleAudio(rate);while(struck<pads.length&&time>=arrivals[struck]){pads[struck].hit=arrivals[struck];harmony[struck].hit=arrivals[struck];status.textContent=pads[struck].name+' + '+harmony[struck].name+' · note '+(struck+1)+' of '+pads.length;struck++}while(bassStruck<bass.length&&time>=bassArrivals[bassStruck]){let p=bass[bassStruck],until=bassArrivals[bassStruck+1]||total;p.hit=bassArrivals[bassStruck];bassStruck++}while(drumStruck<drums.length&&time>=drumArrivals[drumStruck]){drums[drumStruck].hit=drumArrivals[drumStruck];drumStruck++}if(time>=total){running=false;finished=true;splashAge=0;splashSound();play.textContent='Play again';status.textContent='Splash! · '+song.title+' · finished'}}draw(dt);requestAnimationFrame(frame)}
+function reset(){nextMechanismCue=0;drumStruck=0;audioDrumStruck=0;cameraY=0;stopVoices();audioStruck=0;audioBassStruck=0;clockLast=null;bassStruck=0;splashAge=-1;stringSplashAge=-1;time=0;struck=0;finished=false;running=false;lanes.forEach(course=>course.forEach(p=>p.hit=-100));play.textContent='Release marbles';status.textContent=song.title+' · tap Release marbles'}
+function frame(ms){let dt=last===null?0:Math.min(.04,(ms-last)/1000);last=ms;if(splashAge>=0)splashAge+=dt;if(stringSplashAge>=0)stringSplashAge+=dt;if(running){let rate=Number(document.querySelector('#speed').value),now=ac?ac.currentTime:ms/1000,elapsed=clockLast===null?0:Math.max(0,now-clockLast);clockLast=now;time=Math.min(stringEnd,time+elapsed*rate);scheduleAudio(rate);while(struck<pads.length&&time>=arrivals[struck]){pads[struck].hit=arrivals[struck];harmony[struck].hit=arrivals[struck];status.textContent=pads[struck].name+' + '+harmony[struck].name+' · note '+(struck+1)+' of '+pads.length;struck++}while(bassStruck<bass.length&&time>=bassArrivals[bassStruck]){let p=bass[bassStruck],until=bassArrivals[bassStruck+1]||total;p.hit=bassArrivals[bassStruck];bassStruck++}while(drumStruck<drums.length&&time>=drumArrivals[drumStruck]){drums[drumStruck].hit=drumArrivals[drumStruck];drumStruck++}if(time>=total&&splashAge<0){splashAge=0;splashSound();status.textContent='Amber marble approaching the splash'}if(time>=stringEnd){running=false;finished=true;stringSplashAge=0;splashSound();play.textContent='Play again';status.textContent='Splash! · '+song.title+' · finished'}}draw(dt);requestAnimationFrame(frame)}
 play.onclick=async()=>{
  if(running){running=false;resyncAudio();play.textContent='Continue';status.textContent='Paused';return}
  if(finished)reset();
