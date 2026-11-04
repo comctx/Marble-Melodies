@@ -607,8 +607,30 @@ function drawRouteDevices(camera){
  }
 }
 
-function draw(dt=1/60){let bg=g.createLinearGradient(0,0,900,1000);bg.addColorStop(0,'#4d6065');bg.addColorStop(.5,'#293b43');bg.addColorStop(1,'#14262f');g.fillStyle=bg;g.fillRect(0,0,900,1000);
-let ball=position(time),target=Math.max(cameraY,Math.min(endY-820,ball.y-390));cameraY+=(target-cameraY)*(1-Math.exp(-dt*7));let camera=cameraY;g.save();g.translate(0,-camera);drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);
+function drawCabinet(camera){
+ const steel=g.createLinearGradient(0,0,900,0);
+ for(const [stop,color] of [[0,'#10191e'],[.12,'#26353c'],[.48,'#34444a'],[.88,'#26353c'],[1,'#10191e']]){
+  steel.addColorStop(stop,color);
+ }
+ g.fillStyle=steel;g.fillRect(0,0,900,1000);
+ for(let y=4-(camera%8);y<1000;y+=8)line(23,y,877,y,'#cadbd912',1);
+ for(let y=85-(camera%210);y<1000;y+=210){
+  line(23,y,877,y,'#0d171d88',2);
+  line(23,y+2,877,y+2,'#b3c7c321',1);
+ }
+ for(const x of [13,887]){
+  const brass=g.createLinearGradient(x-9,0,x+9,0);
+  brass.addColorStop(0,'#4e351e');brass.addColorStop(.38,'#c99b59');
+  brass.addColorStop(.55,'#e7c187');brass.addColorStop(1,'#513921');
+  g.fillStyle=brass;g.fillRect(x-9,0,18,1000);
+  for(let y=48-(camera%105);y<1000;y+=105){
+   disk(x,y,5,'#513822');disk(x,y-1,4,'#e2bc81');
+   line(x-2,y+1,x+2,y-2,'#604329',1.5);
+  }
+ }
+}
+function draw(dt=1/60){
+let ball=position(time),target=Math.max(cameraY,Math.min(endY-820,ball.y-390));cameraY+=(target-cameraY)*(1-Math.exp(-dt*7));let camera=cameraY;drawCabinet(camera);g.save();g.translate(0,-camera);drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);
 for(let lane=0;lane<4;lane++){let course=lanes[lane];for(let i=0;i<course.length;i++){let p=course[i];if(p.y<camera-100||p.y>camera+1100)continue;let px=laneX(p.x,lane),motion=padMotion(p,time);let age=time-p.hit,compression=age>=0&&age<.7?12*Math.exp(-age*7)*Math.abs(Math.sin(age*22)):0;g.save();g.translate(px,p.y+8);g.rotate(p.angle+motion.tilt);g.scale(.78,.85);ellipse(12,29,60,15,'#0b1c2555');
 // Visible fulcrum and balanced beam distinguish the occasional seesaw.
 if(p.mechanism==='seesaw'){g.beginPath();g.moveTo(-14,43);g.lineTo(0,11);g.lineTo(14,43);g.closePath();g.fillStyle='#83989b';g.fill();line(-76,7,76,7,'#e4bc77',10);disk(-72,7,7,'#a87343');disk(72,7,7,'#a87343');disk(0,16,6,'#f3d79d')}
@@ -629,7 +651,10 @@ if(age>=0&&age<.24){
  ellipse(0,-5,60,20,'#ffdc92');
  g.restore();
 }
-ellipse(0,0,56,18,'#bd8956');ellipse(0,-5,56,18,'#f0c682');ellipse(0,-7,45,12,lane===2?'#796029':lane?'#435c89':'#8f6045');ellipse(-3,-9,38,9,age>=0&&age<.3?'#ffe6ac':lane===2?'#dfc567':lane?'#9ebee0':'#d4ac75');line(-36,-13,24,-13,'#fff0cb77',1);
+const rim=g.createLinearGradient(0,-24,0,18);
+rim.addColorStop(0,'#ffe3ac');rim.addColorStop(.36,'#d8a25c');rim.addColorStop(1,'#7c4c29');
+ellipse(0,1,57,18,'#38291f');ellipse(0,-4,56,18,rim);
+disk(-49,-5,2,'#fff0c8');disk(49,-5,2,'#fff0c8');ellipse(0,-7,45,12,lane===2?'#796029':lane?'#435c89':'#8f6045');ellipse(-3,-9,38,9,age>=0&&age<.3?'#ffe6ac':lane===2?'#dfc567':lane?'#9ebee0':'#d4ac75');line(-36,-13,24,-13,'#fff0cb77',1);
 if(p.mechanism==='spinner'){for(let spoke=0;spoke<5;spoke++){const a=motion.spin+spoke*Math.PI*2/5;line(Math.cos(a)*9,-7+Math.sin(a)*2,Math.cos(a)*37,-7+Math.sin(a)*10,'#fff1c4aa',2)}disk(0,-7,4,'#fff0c2')}
 else{g.fillStyle='#fff3cb';g.font='10px system-ui';g.textAlign='center';g.fillText('↔',0,-3)}g.restore();
 if(lane===0&&accentIndices.has(i))drawCymbal(px,p.y,age);
