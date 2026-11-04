@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Note Cascade · Marble Melodies</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#171e22;color:#e8e5dc;font:15px system-ui}main{max-width:850px;margin:auto}header{padding:14px 18px 10px}a{color:#bfcacb;font-size:13px}h1{font:29px Georgia;margin:12px 0 6px}p{margin:4px 0;color:#aebbbc;line-height:1.5}canvas{display:block;width:100%;aspect-ratio:900/1000;background:#333f43}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 16px max(18px,env(safe-area-inset-bottom));background:#20292d}button{border:1px solid #627378;border-radius:24px;background:#37484b;color:white;font:15px system-ui;padding:11px 18px}#play{background:#d8b16d;color:#20292d;border-color:#d8b16d}label{font-size:13px;color:#c1ccca;display:flex;align-items:center;gap:7px}select{max-width:240px;padding:10px;border-radius:8px;background:#30464b;color:#fff;border:1px solid #8da79a;font:14px system-ui}input{width:100px;accent-color:#d8b16d}#status{font-size:12px;color:#c2ceca;padding:0 18px 12px}@media(min-width:700px){canvas{max-height:76vh;width:auto;max-width:100%;margin:auto}}</style></head>
-<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: four marbles play melody, harmony, chords with bass, and percussion, with star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
+<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: four marbles play melody, harmony, chords with bass, and percussion, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
 <script>
 (()=>{'use strict';
 const c=document.querySelector('canvas'),g=c.getContext('2d'),play=document.querySelector('#play'),status=document.querySelector('#status');
@@ -35,7 +35,7 @@ const requested=new URLSearchParams(location.search).get('tune');
 const song=songs[requested]||songs.anthem;
 const tune=document.querySelector('#tune');tune.value=songs[requested]?requested:'anthem';
 tune.onchange=()=>{const url=new URL(location.href);url.searchParams.set('tune',tune.value);stopVoices();location.assign(url.href)};
-document.querySelector('#song-heading').textContent=song.title+' · one Cascade · star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, and a gong-and-trapdoor finale.';
+document.querySelector('#song-heading').textContent=song.title+' · one Cascade · pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, and a gong-and-trapdoor finale.';
 document.querySelector('#song-details').textContent=song.credit+' · '+song.bpm+' BPM · original synthesized arrangement.';
 document.title=song.title+' · Marble Melodies';
 const bars=song.bars,chords=song.chords;
@@ -86,6 +86,7 @@ for(let lane=0;lane<2;lane++){
  }
 }
 // Use spare gaps for the new devices, leaving existing mechanisms in place.
+const pendulumCatch=.24,pendulumRelease=.70;
 const surpriseSlots=[new Map(),new Map()];
 for(let lane=0;lane<2;lane++){
  let next=lane;
@@ -95,6 +96,16 @@ for(let lane=0;lane<2;lane++){
   surpriseSlots[lane].set(i,kind);
   next++;i+=7;
  }
+}
+// Reserve one clear gap per lane for the pendulum, preferring a long note.
+for(let lane=0;lane<2;lane++){
+ let slot=-1;
+ for(let i=2;i<pads.length;i++){
+  if(baseRouteKind(i,lane)||surpriseSlots[lane].has(i)||durations[i]<.44)continue;
+  if(slot<0||durations[i]>durations[slot])slot=i;
+  if(durations[i]>=.65){slot=i;break}
+ }
+ if(slot>=0)surpriseSlots[lane].set(slot,'pendulum');
 }
 // Bass bounces span several melody notes, with one shared final strike.
 const bassIndices=[0];let heldBeats=0;
@@ -128,7 +139,7 @@ function stopVoices(){for(const o of voices){try{o.stop()}catch(e){}}voices.clea
 function track(o){voices.add(o);o.onended=()=>voices.delete(o)}
 // Cue positions match the catch, scale tip, and individual domino impacts.
 const mechanismCues=[];
-const impactPhases={star:[.18],scale:[.48],domino:[1/6,2/6,3/6,4/6,5/6]};
+const impactPhases={pendulum:[pendulumRelease],star:[.18],scale:[.48],domino:[1/6,2/6,3/6,4/6,5/6]};
 for(let lane=0;lane<2;lane++){
  for(let i=2;i<pads.length;i++){
   const kind=routeKind(i,lane);
@@ -139,7 +150,7 @@ for(let lane=0;lane<2;lane++){
 }
 mechanismCues.sort((a,b)=>a.at-b.at);
 let nextMechanismCue=0;
-const impactVoices={star:[1650,.023,.026],scale:[460,.032,.046],domino:[980,.014,.021]};
+const impactVoices={pendulum:[1350,.018,.032],star:[1650,.023,.026],scale:[460,.032,.046],domino:[980,.014,.021]};
 function scheduleMechanisms(horizon,rate){
  while(nextMechanismCue<mechanismCues.length&&mechanismCues[nextMechanismCue].at<=horizon){
   const {kind,at}=mechanismCues[nextMechanismCue++];
@@ -214,8 +225,30 @@ function scaleAngle(u){
 function scaleSeat(q,u){const a=scaleAngle(u);return{x:q.cx-39*Math.cos(a)+19*Math.sin(a),y:q.cy-39*Math.sin(a)-19*Math.cos(a)}}
 function hoopCenter(q,u){return{x:q.cx+24*Math.sin(2*Math.PI*(u-.5)),y:q.cy-30+10*Math.cos(2*Math.PI*(u-.5))}}
 function dominoPoint(q,k){const v=(k+1)/6;return{x:q.a.x+(q.b.x-q.a.x)*v+38*Math.sin(Math.PI*v),y:q.a.y+(q.b.y-q.a.y)*v}}
+function pendulumAngle(q,u){
+ const direction=Math.sign(q.b.x-q.a.x)||1;
+ if(u<=pendulumCatch)return 0;
+ if(u<=pendulumRelease){
+  const swing=(u-pendulumCatch)/(pendulumRelease-pendulumCatch);
+  return direction*1.02*Math.sin(swing*Math.PI/2);
+ }
+ const reset=(u-pendulumRelease)/(1-pendulumRelease);
+ return direction*1.02*(1+Math.cos(Math.PI*reset))/2;
+}
+function pendulumSeat(q,u){
+ const angle=pendulumAngle(q,u);
+ return{x:q.cx+49*Math.sin(angle),y:q.cy-57+49*Math.cos(angle)};
+}
 function detourPoint(i,lane,u){
  const q=routeGeometry(i,lane),kind=routeKind(i,lane),mix=(a,b,v)=>({x:a.x+(b.x-a.x)*v,y:a.y+(b.y-a.y)*v}),ease=v=>v*v*(3-2*v);
+ if(kind==='pendulum'){
+  if(u<pendulumCatch)return mix(q.a,pendulumSeat(q,pendulumCatch),u/pendulumCatch);
+  if(u<=pendulumRelease)return pendulumSeat(q,u);
+  const flight=(u-pendulumRelease)/(1-pendulumRelease);
+  const p=mix(pendulumSeat(q,pendulumRelease),q.b,flight);
+  p.y-=22*Math.sin(Math.PI*flight);
+  return p;
+ }
  if(kind==='scale'){
   if(u<.24)return mix(q.a,scaleSeat(q,.24),ease(u/.24));
   if(u<=.68)return scaleSeat(q,u);
@@ -371,6 +404,14 @@ function drawRouteDevices(camera){
     g.beginPath();g.moveTo(-61,-6);g.quadraticCurveTo(-39,9,-17,-6);g.strokeStyle='#f3d49a';g.lineWidth=5;g.stroke();
     line(36,0,36,14,'#c9c7ad',3);g.fillStyle='#987342';g.fillRect(24,12,24,19);line(26,15,45,15,'#e5c17c',3);
     disk(0,0,7,'#f4dca5');disk(0,0,3,'#526e75');g.restore();
+   }else if(kind==='pendulum'){
+    const pivotY=q.cy-57;
+    line(q.cx-24,pivotY,q.cx+24,pivotY,'#708b91',7);
+    g.save();g.translate(q.cx,pivotY);g.rotate(-pendulumAngle(q,u));
+    line(0,0,0,66,'#8b643b',7);line(-2,2,-2,64,'#e5bf7f',2);
+    g.beginPath();g.moveTo(-22,58);g.quadraticCurveTo(-18,76,0,76);g.quadraticCurveTo(18,76,22,58);
+    g.fillStyle='#9e743b';g.fill();g.strokeStyle='#f5d69a';g.lineWidth=4;g.stroke();
+    g.restore();disk(q.cx,pivotY,8,'#d9b878');disk(q.cx,pivotY,3,'#526d74');
    }else if(kind==='star'){
     line(q.cx,q.cy,q.cx,q.cy+47,'#91a6a8',6);ellipse(q.cx,q.cy+47,27,5,'#344b53');
     g.save();g.translate(q.cx,q.cy);g.scale(1,29/32);g.rotate(wheelAngle(u));
