@@ -95,12 +95,21 @@ box(27,1009,786,24,7,brass(27,1009,786),'#714524');box(61,1033,66,17,4,'#563522'
 for(const x of [198,539,724]){line([[x,220],[x,926]],'#060f0e',9);line([[x,220],[x,926]],brass(x-4,0,8),5);for(const y of [292,449,604,756,906]){box(x-12,y-8,24,16,3,brass(x-12,y,24),'#3d301d');bolt(x-7,y,2);bolt(x+7,y,2)}}
 stem(450,354,82,14);stem(604,400,57,7);stem(315,596,55,8);stem(542,710,58,-7);stem(684,262,98,20);
 flower(684,164,19,-100);flower(604,343,23,-100);flower(315,541,24,-100);flower(542,652,26,-100);
-// Bucket lift: a continuous loop of linked chain and open brass cups.
-line([[105,157],[105,930]],'#060d0e',13);line([[105,157],[105,930]],'#ae8142',5);line([[134,157],[134,930]],'#382d1b',4);
+// One chain wraps around both sprockets inside a shared elevator frame.
+box(86,126,66,835,30,'#122223','#74562f');
+gear(119,157,18,-t*speed/15);gear(119,930,18,-t*speed/15);
+g.beginPath();g.moveTo(104,930);g.lineTo(104,157);
+g.arc(119,157,15,Math.PI,2*Math.PI);
+g.lineTo(134,930);g.arc(119,930,15,0,Math.PI);g.closePath();
+g.strokeStyle='#080f10';g.lineWidth=9;g.stroke();
+g.strokeStyle=brass(104,157,30);g.lineWidth=4;g.stroke();
 const chainOffset=t*speed%16;
-for(let y=173;y<930;y+=16){bolt(105,y-chainOffset,2);disc(134,y+chainOffset,2,'#8a6b39')}
-gear(119,157,29,-t*speed/29);gear(119,930,29,-t*speed/29);
-for(let y=158+t*speed%72;y<930;y+=72)cup(139,y);
+for(let y=173;y<930;y+=16){bolt(104,y-chainOffset,2);disc(134,y+chainOffset,2,'#bc965b')}
+for(let y=158+t*speed%72;y<930;y+=72){
+ // Empty cups fold against the chain on the return side.
+ line([[134,y],[142,y]],'#c49a58',3);
+ box(138,y-8,8,17,3,brass(138,y-8,8),'#6a4e2a');
+}
 // Separate rails give the balls a readable contact line.
 for(let s=0;s<8;s++)rail(s);rail(9);
 seesaws.forEach(s=>seesaw(s,t));
