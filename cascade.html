@@ -1,12 +1,40 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Note Cascade · Marble Melodies</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#171e22;color:#e8e5dc;font:15px system-ui}main{max-width:850px;margin:auto}header{padding:14px 18px 10px}a{color:#bfcacb;font-size:13px}h1{font:29px Georgia;margin:12px 0 6px}p{margin:4px 0;color:#aebbbc;line-height:1.5}canvas{display:block;width:100%;aspect-ratio:900/1000;background:#333f43}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 16px max(18px,env(safe-area-inset-bottom));background:#20292d}button{border:1px solid #627378;border-radius:24px;background:#37484b;color:white;font:15px system-ui;padding:11px 18px}#play{background:#d8b16d;color:#20292d;border-color:#d8b16d}label{font-size:13px;color:#c1ccca;display:flex;align-items:center;gap:7px}select{max-width:240px;padding:10px;border-radius:8px;background:#30464b;color:#fff;border:1px solid #8da79a;font:14px system-ui}input{width:100px;accent-color:#d8b16d}#status{font-size:12px;color:#c2ceca;padding:0 18px 12px}@media(min-width:700px){canvas{max-height:76vh;width:auto;max-width:100%;margin:auto}}</style></head>
-<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
+<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="sousa">The Stars and Stripes Forever</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
 <script>
 (()=>{'use strict';
 const c=document.querySelector('canvas'),g=c.getContext('2d'),play=document.querySelector('#play'),status=document.querySelector('#status');
 // The Star-Spangled Banner: traditional melody, original synthesized performance.
 const songs={
+ sousa:{title:'The Stars and Stripes Forever',bpm:224,highHarmony:true,credit:'John Philip Sousa, 1897 · trio theme once · arranged in G',
+ // Trio melody checked against https://trillian.mit.edu/~jc/music/abc/band/Stars_and_Stripes-D.abc
+ // Tied notes are combined. Chords and the high harmony are arranged for Cascade.
+ melody:[
+ [74,2,'G'],[72,1,'G'],[71,1,'G'],
+ [71,2,'G'],[70,1,'G'],[71,5,'G'],
+ [71,2,'G'],[70,1,'G'],[71,1,'G'],
+ [71,2,'G'],[70,1,'G'],[71,1,'G'],
+ [74,2,'G'],[71,1.5,'G'],[74,.5,'G'],
+ [72,4,'D'],[69,3,'D'],[69,1,'D'],
+ [69,2,'D'],[68,1,'D'],[69,1,'D'],
+ [69,2,'D'],[68,1,'D'],[69,1,'D'],
+ [72,6,'D'],[71,1,'D'],[69,1,'D'],
+ [71,1,'G'],[74,3,'G'],[76,3,'C'],[76,1,'C'],
+ [69,6,'D'],[74,2,'D'],
+ [74,2,'G'],[72,1,'G'],[71,1,'G'],
+ [71,2,'G'],[70,1,'G'],[71,5,'G'],
+ [71,2,'G'],[70,1,'G'],[71,1,'G'],
+ [71,2,'G'],[70,1,'G'],[71,1,'G'],
+ [72,1,'C'],[71,1,'C'],[69,1.5,'C'],[77,.5,'C'],
+ [69,4,'D'],[67,3,'G'],[67,1,'G'],
+ [67,2,'G'],[66,1,'D'],[67,1,'G'],
+ [70,2,'G'],[69,1,'D'],[67,1,'G'],
+ [79,5,'G'],[67,1,'G'],[69,1,'G'],[71,1,'G'],
+ [74,1,'G'],[67,1,'G'],[69,1,'G'],[71,1,'G'],
+ [74,1,'G'],[62,1,'D'],[64,1,'D'],[71,1,'D'],
+ [69,4,'D'],[67,4,'G']
+ ]},
  maple:{title:'Maple Leaf Rag',bpm:112,credit:'Scott Joplin, 1899 · opening strain once · original key',
  // Top line of the opening strain, from the Mutopia transcription of the 1899 score.
  // Each row is one bar. Entries give MIDI pitch, beats to the next attack, and accompaniment chord.
@@ -85,7 +113,7 @@ const chordKeys=pads.map((p,i)=>{
   if(pc===7||pc===11)return 'G';
   return 'D';
 });
-const harmony=pads.map((p,i)=>{const chord=chordBook[chordKeys[i]];let note=p.note-1;while(!chord.notes.some(n=>n%12===note%12))note--;return{...p,note,name:pitchNames[note%12]+(Math.floor(note/12)-1),angle:-p.angle,hit:-100}});
+const harmony=pads.map((p,i)=>{const chord=chordBook[chordKeys[i]];const step=song.highHarmony?1:-1;let note=p.note+step;while(!chord.notes.some(n=>n%12===note%12))note+=step;return{...p,note,name:pitchNames[note%12]+(Math.floor(note/12)-1),angle:-p.angle,hit:-100}});
 // Alternate occasional seesaws with spinning discs; both activate only on impact.
 const lanes=[pads,harmony];
 const accentIndices=new Set();let lastAccent=-8;
