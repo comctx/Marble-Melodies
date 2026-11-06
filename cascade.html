@@ -755,39 +755,61 @@ function drawLowerMirror(camera){
  const top=endY-510,bottom=endY+118;
  if(top>camera+1000||bottom<camera)return;
  const glass=g.createLinearGradient(24,top,876,bottom);
- glass.addColorStop(0,'#263c47');
- glass.addColorStop(.36,'#4f6874');
- glass.addColorStop(.58,'#334c59');
- glass.addColorStop(1,'#1c303b');
+ glass.addColorStop(0,'#182c37');
+ glass.addColorStop(.42,'#526d7c');
+ glass.addColorStop(.68,'#405b6b');
+ glass.addColorStop(1,'#243d4d');
  g.save();
- g.fillStyle=glass;
- g.fillRect(24,top,852,bottom-top);
  g.beginPath();
  g.rect(24,top,852,bottom-top);
  g.clip();
- g.fillStyle='#d6f2ff0b';
- g.beginPath();
- g.moveTo(105,bottom);
- g.lineTo(395,top);
- g.lineTo(495,top);
- g.lineTo(205,bottom);
- g.fill();
- // Shift the reflected motion to suggest depth behind the foreground hardware.
- g.translate(48,14);
- g.globalAlpha=.84;
- for(let lane=0;lane<4;lane++){
-  drawCascadeMarble(lane,lane===2&&soloAge>=0?soloPosition():undefined);
-  drawSplash(laneX(465,lane),splashAge,.78);
- }
- drawFountain(laneX(465,2),.88);
+ g.fillStyle=glass;
+ g.fillRect(24,top,852,bottom-top);
+
+ // A vertical back mirror keeps the machine upright. The smaller image
+ // and offset show the extra distance behind the glass.
+ const depth=.88,offsetX=84,offsetY=top*(1-depth)+24;
+ g.save();
+ g.translate(offsetX,offsetY);
+ g.scale(depth,depth);
+ drawMachine((top-offsetY)/depth);
  g.restore();
- line(24,top,876,top,'#c4d5db',3);
- line(24,top+4,876,top+4,'#182d36',2);
- line(24,bottom,876,bottom,'#8faab5',2);
+
+ const sheen=g.createLinearGradient(24,bottom,876,top);
+ sheen.addColorStop(0,'#132b4160');
+ sheen.addColorStop(.40,'#203c551e');
+ sheen.addColorStop(.54,'#d8f4ff30');
+ sheen.addColorStop(.66,'#28455c18');
+ sheen.addColorStop(1,'#11283d55');
+ g.fillStyle=sheen;
+ g.fillRect(24,top,852,bottom-top);
+ g.restore();
+ g.strokeStyle='#172a34';
+ g.lineWidth=6;
+ g.strokeRect(24,top,852,bottom-top);
+ g.strokeStyle='#b9d2de';
+ g.lineWidth=1.5;
+ g.strokeRect(27,top+3,846,bottom-top-6);
+ line(28,top+5,872,top+5,'#e4f6ff',2);
 }
 
 function draw(dt=1/60){
-let ball=position(time),target=Math.max(cameraY,Math.min(endY-820,ball.y-390));cameraY+=(target-cameraY)*(1-Math.exp(-dt*7));let camera=cameraY;drawCabinet(camera);g.save();g.translate(0,-camera);drawLowerMirror(camera);drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);drawSoloTargets();
+ let ball=position(time),target=Math.max(cameraY,Math.min(endY-820,ball.y-390));
+ cameraY+=(target-cameraY)*(1-Math.exp(-dt*7));
+ const camera=cameraY;
+ drawCabinet(camera);
+ g.save();
+ g.translate(0,-camera);
+ drawLowerMirror(camera);
+ drawMachine(camera);
+ g.restore();
+ g.fillStyle='#dce7df';g.font='14px system-ui';g.textAlign='center';
+ ['MELODY','HARMONY',chordsEnabled?'CHORDS + BASS':'BASS','PERCUSSION'].forEach((name,i)=>g.fillText(name,[120,340,560,780][i],24));
+ g.textAlign='left';
+}
+
+function drawMachine(camera){
+ drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);drawSoloTargets();
 for(let lane=0;lane<4;lane++){let course=lanes[lane];for(let i=0;i<course.length;i++){let p=course[i];if(p.y<camera-100||p.y>camera+1100)continue;let px=laneX(p.x,lane),motion=padMotion(p,time);let age=time-p.hit,compression=age>=0&&age<.7?12*Math.exp(-age*7)*Math.abs(Math.sin(age*22)):0;g.save();g.translate(px,p.y+8);g.rotate(p.angle+motion.tilt);g.scale(.78,.85);ellipse(12,29,60,15,'#0b1c2555');
 // Visible fulcrum and balanced beam distinguish the occasional seesaw.
 if(p.mechanism==='seesaw'){g.beginPath();g.moveTo(-14,43);g.lineTo(0,11);g.lineTo(14,43);g.closePath();g.fillStyle='#83989b';g.fill();line(-76,7,76,7,'#e4bc77',10);disk(-72,7,7,'#a87343');disk(72,7,7,'#a87343');disk(0,16,6,'#f3d79d')}
@@ -819,7 +841,7 @@ if(lane===0&&accentIndices.has(i))drawCymbal(px,p.y,age);
 g.font='16px Georgia';g.fillStyle=age>=0&&age<.5?'#ffe6a5':'#d4dfd7';g.textAlign=lane===2?'center':lane?'left':'right';g.fillText(p.name,Math.max(44,Math.min(856,px+(lane===2?0:lane?61:-61))),p.y+(lane===2?53:7));
 if(age>=0&&age<.45){g.strokeStyle='#f7ce7b';g.lineWidth=2;g.beginPath();g.arc(px,p.y-r,23+age*55,Math.PI*1.1,Math.PI*1.9);g.stroke()}}}
 for(let lane=0;lane<4;lane++){let bowlX=laneX(465,lane);ellipse(bowlX,endY+24,65,12,'#1b3039');ellipse(bowlX,endY+20,65,11,'#8fa8ab');ellipse(bowlX,endY+16,53,7,'#438b9a');ellipse(bowlX-9,endY+14,32,3,'#a9e9e477');
-drawCascadeMarble(lane,lane===2&&soloAge>=0?soloPosition():undefined);g.textAlign='left';drawSplash(laneX(465,lane));}drawSoloRail();drawFountain(laneX(465,2));drawStringMarble();g.restore();g.fillStyle='#dce7df';g.font='14px system-ui';g.textAlign='center';['MELODY','HARMONY',chordsEnabled?'CHORDS + BASS':'BASS','PERCUSSION'].forEach((name,i)=>g.fillText(name,[120,340,560,780][i],24));g.textAlign='left'}
+drawCascadeMarble(lane,lane===2&&soloAge>=0?soloPosition():undefined);g.textAlign='left';drawSplash(laneX(465,lane));}drawSoloRail();drawFountain(laneX(465,2));drawStringMarble();}
 // A linkage from the bouncer taps a miniature cymbal on selected long notes.
 function drawCymbal(x,y,age){const active=age>=0&&age<.8,shake=active?Math.sin(age*65)*Math.exp(-age*7):0,stroke=active?16*Math.exp(-age*20):0,cx=x+58,cy=y-24;
 line(cx,cy+3,cx,y+42,'#a9b4ae',3);ellipse(cx,y+43,18,4,'#283b43');
