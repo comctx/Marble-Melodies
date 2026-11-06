@@ -709,7 +709,7 @@ function drawLowerMirror(camera){
  g.beginPath();
  g.rect(24,top,852,bottom-top);
  g.clip();
- g.fillStyle='#d6f2ff14';
+ g.fillStyle='#d6f2ff0b';
  g.beginPath();
  g.moveTo(105,bottom);
  g.lineTo(395,top);
@@ -717,10 +717,13 @@ function drawLowerMirror(camera){
  g.lineTo(205,bottom);
  g.fill();
  // Shift the reflected motion to suggest depth behind the foreground hardware.
- g.translate(25,13);
- g.globalAlpha=.26;
- for(let lane=0;lane<4;lane++)drawCascadeMarble(lane);
- drawFountain(laneX(465,2),.26);
+ g.translate(48,14);
+ g.globalAlpha=.84;
+ for(let lane=0;lane<4;lane++){
+  drawCascadeMarble(lane);
+  drawSplash(laneX(465,lane),splashAge,.78);
+ }
+ drawFountain(laneX(465,2),.88);
  g.restore();
  line(24,top,876,top,'#c4d5db',3);
  line(24,top+4,876,top+4,'#182d36',2);
@@ -769,13 +772,13 @@ g.save();g.translate(cx,cy);g.rotate(shake*.12);ellipse(0,0,29,7,'#a37c33');elli
 line(cx-18,y+13,cx-9,cy-16+stroke,'#c9a579',4);disk(cx-9,cy-16+stroke,5,'#eadbc1');
 if(active){g.globalAlpha=Math.max(0,1-age/.8);for(let side of [-1,1]){g.beginPath();g.arc(cx,cy,35+age*12,side<0?2.6:-.6,side<0?3.7:.6);g.strokeStyle='#f6dc91';g.lineWidth=2;g.stroke()}g.globalAlpha=1}}
 // Real-time splash animation continues after the music and marble stop.
-function drawSplash(cx,t=splashAge){if(t<0||t>2.8)return;let cy=endY+16,fade=Math.max(0,1-t/2.8);g.save();
-for(let i=0;i<4;i++){let age=t-i*.11;if(age<0)continue;g.globalAlpha=Math.max(0,1-age/1.8)*.7;g.beginPath();g.ellipse(cx,cy+3,35+age*105,7+age*16,0,0,Math.PI*2);g.strokeStyle=i%2?'#efffff':'#6ddff0';g.lineWidth=3;g.stroke()}
+function drawSplash(cx,t=splashAge,opacity=1){if(t<0||t>2.8)return;let cy=endY+16,fade=Math.max(0,1-t/2.8);g.save();
+for(let i=0;i<4;i++){let age=t-i*.11;if(age<0)continue;g.globalAlpha=opacity*Math.max(0,1-age/1.8)*.7;g.beginPath();g.ellipse(cx,cy+3,35+age*105,7+age*16,0,0,Math.PI*2);g.strokeStyle=i%2?'#efffff':'#6ddff0';g.lineWidth=3;g.stroke()}
 // Wide translucent crown erupts around the landing marble.
-if(t<1.1){let u=t/1.1,h=Math.sin(Math.PI*Math.sqrt(u))*150,w=28+u*110;g.globalAlpha=(1-u)*.8;g.beginPath();g.moveTo(cx-47,cy);g.quadraticCurveTo(cx-w,cy-h*.45,cx-w*.85,cy-h);g.quadraticCurveTo(cx-25,cy-h*.6,cx,cy-8);g.quadraticCurveTo(cx+25,cy-h*.6,cx+w*.85,cy-h);g.quadraticCurveTo(cx+w,cy-h*.45,cx+47,cy);g.closePath();g.fillStyle='#85e9f1';g.fill();g.strokeStyle='#d9ffff';g.lineWidth=2;g.stroke()}
-for(let i=0;i<86;i++){let seed=Math.sin(i*127.1+19)*43758.5453,rand=seed-Math.floor(seed),angle=-Math.PI*.94+(i%23)/22*Math.PI*.88,speed=135+rand*255,delay=(i%5)*.018,age=t-delay;if(age<0)continue;let x=cx+Math.cos(angle)*speed*age,y=cy+Math.sin(angle)*speed*age+220*age*age;if(y>cy+12&&age>.3)continue;g.globalAlpha=fade*Math.min(1,age*18);g.save();g.translate(x,y);g.rotate(Math.atan2(Math.sin(angle)*speed+440*age,Math.cos(angle)*speed));ellipse(0,0,3+rand*4,2+rand*2,i%3?'#8ae9f0':'#efffff');g.restore()}
+if(t<1.1){let u=t/1.1,h=Math.sin(Math.PI*Math.sqrt(u))*150,w=28+u*110;g.globalAlpha=opacity*(1-u)*.8;g.beginPath();g.moveTo(cx-47,cy);g.quadraticCurveTo(cx-w,cy-h*.45,cx-w*.85,cy-h);g.quadraticCurveTo(cx-25,cy-h*.6,cx,cy-8);g.quadraticCurveTo(cx+25,cy-h*.6,cx+w*.85,cy-h);g.quadraticCurveTo(cx+w,cy-h*.45,cx+47,cy);g.closePath();g.fillStyle='#85e9f1';g.fill();g.strokeStyle='#d9ffff';g.lineWidth=2;g.stroke()}
+for(let i=0;i<86;i++){let seed=Math.sin(i*127.1+19)*43758.5453,rand=seed-Math.floor(seed),angle=-Math.PI*.94+(i%23)/22*Math.PI*.88,speed=135+rand*255,delay=(i%5)*.018,age=t-delay;if(age<0)continue;let x=cx+Math.cos(angle)*speed*age,y=cy+Math.sin(angle)*speed*age+220*age*age;if(y>cy+12&&age>.3)continue;g.globalAlpha=opacity*fade*Math.min(1,age*18);g.save();g.translate(x,y);g.rotate(Math.atan2(Math.sin(angle)*speed+440*age,Math.cos(angle)*speed));ellipse(0,0,3+rand*4,2+rand*2,i%3?'#8ae9f0':'#efffff');g.restore()}
 // Small four-point glints follow the droplets into the finale.
-for(let i=0;i<24;i++){const delay=(i%6)*.055,age=t-delay;if(age<0||age>1.8)continue;const a=-Math.PI*.92+(i/23)*Math.PI*.84,speed=130+(i*47%170),x=cx+Math.cos(a)*speed*age,y=cy+Math.sin(a)*speed*age+180*age*age;if(y>cy+8)continue;const size=(3+i%4)*Math.sin(Math.PI*age/1.8);g.globalAlpha=Math.max(0,1-age/1.8);g.beginPath();g.moveTo(x,y-size*1.7);g.lineTo(x+size*.4,y-size*.4);g.lineTo(x+size,y);g.lineTo(x+size*.4,y+size*.4);g.lineTo(x,y+size*1.7);g.lineTo(x-size*.4,y+size*.4);g.lineTo(x-size,y);g.lineTo(x-size*.4,y-size*.4);g.closePath();g.fillStyle=i%2?'#fff6cf':'#d0ffff';g.fill()}
+for(let i=0;i<24;i++){const delay=(i%6)*.055,age=t-delay;if(age<0||age>1.8)continue;const a=-Math.PI*.92+(i/23)*Math.PI*.84,speed=130+(i*47%170),x=cx+Math.cos(a)*speed*age,y=cy+Math.sin(a)*speed*age+180*age*age;if(y>cy+8)continue;const size=(3+i%4)*Math.sin(Math.PI*age/1.8);g.globalAlpha=opacity*Math.max(0,1-age/1.8);g.beginPath();g.moveTo(x,y-size*1.7);g.lineTo(x+size*.4,y-size*.4);g.lineTo(x+size,y);g.lineTo(x+size*.4,y+size*.4);g.lineTo(x,y+size*1.7);g.lineTo(x-size*.4,y+size*.4);g.lineTo(x-size,y);g.lineTo(x-size*.4,y-size*.4);g.closePath();g.fillStyle=i%2?'#fff6cf':'#d0ffff';g.fill()}
 g.restore()}
 function cymbalAccent(when,final=false){if(!ac)return;const duration=final?1.05:.42,buffer=ac.createBuffer(1,Math.ceil(ac.sampleRate*duration),ac.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/(ac.sampleRate*(final?.24:.09)));const source=ac.createBufferSource(),filter=ac.createBiquadFilter(),v=ac.createGain();source.buffer=buffer;filter.type='highpass';filter.frequency.value=3800;v.gain.setValueAtTime(final?.075:.045,when);v.gain.exponentialRampToValueAtTime(.0001,when+duration);source.connect(filter).connect(v).connect(master);track(source);source.start(when);source.stop(when+duration)}
 const fountainJets=[
