@@ -836,6 +836,21 @@ function returnClick(pitch=520){
  v.gain.exponentialRampToValueAtTime(.0001,now+.12);
  o.connect(v).connect(master);track(o);o.start(now);o.stop(now+.13);
 }
+
+function liftProgress(age){
+ // Ramp the bucket into and out of its long constant-speed climb.
+ const u=Math.max(0,Math.min(1,(age-returnPhases.lift)/(returnPhases.top-returnPhases.lift)));
+ const ramp=.08,scale=1-ramp;
+ if(u<ramp)return u*u/(2*ramp*scale);
+ if(u>1-ramp)return 1-(1-u)*(1-u)/(2*ramp*scale);
+ return (u-ramp/2)/scale;
+}
+function topReleasePoint(age){
+ const u=Math.max(0,Math.min(1,(age-returnPhases.top)/(returnPhases.reservoir-returnPhases.top)));
+ const t=u*u*(3-2*u),v=1-t;
+ return{x:v*v*returnLift.x+2*v*t*710+t*t*laneX(465,2),
+        y:v*v*returnLift.top+2*v*t*(returnLift.top-2)+t*t*105};
+}
 function returnPosition(age=soloAge){
  const mix=(a,b,u)=>({x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u});
  const fraction=(a,b)=>Math.max(0,Math.min(1,(age-a)/(b-a)));
@@ -851,10 +866,9 @@ function returnPosition(age=soloAge){
  if(age<=returnPhases.chute)return mix(returnExit,rampEnd,smooth(fraction(returnPhases.wheel,returnPhases.chute)));
  const liftBottom={x:returnLift.x,y:returnLift.bottom};
  if(age<=returnPhases.lift)return mix(rampEnd,liftBottom,smooth(fraction(returnPhases.chute,returnPhases.lift)));
- if(age<=returnPhases.top)return{x:returnLift.x,y:returnLift.bottom-(returnLift.bottom-returnLift.top)*fraction(returnPhases.lift,returnPhases.top)};
- const reservoir={x:laneX(465,2),y:105};
- if(age<=returnPhases.reservoir)return mix({x:returnLift.x,y:returnLift.top},reservoir,smooth(fraction(returnPhases.top,returnPhases.reservoir)));
- return reservoir;
+ if(age<=returnPhases.top)return{x:returnLift.x,y:returnLift.bottom-(returnLift.bottom-returnLift.top)*liftProgress(age)};
+ if(age<=returnPhases.reservoir)return topReleasePoint(age);
+ return topReleasePoint(returnPhases.reservoir);
 }
 
 function soloPosition(age=soloAge){
@@ -929,7 +943,9 @@ function drawWaterwheelReturn(camera){
   line(sx-23,top,sx-23,bottom,'#b1e7e45e',3);
   line(sx+24,top,sx+24,bottom,'#b1e7e45e',3);
   // A high-ratio pinion carries the upward chain at the bucket's real speed.
-  const offset=((wheelPhase*(980/wheelSpeed))%74+74)%74;
+  // Drive the roller chain and sprockets from the marble's real climb.
+  const chainDistance=(returnLift.bottom-returnLift.top)*liftProgress(soloAge);
+  const offset=((chainDistance)%74+74)%74;
   for(let y=Math.floor((top-74)/74)*74+offset;y<bottom+74;y+=74){
    if(y<top||y>bottom)continue;
    for(const dx of [-25,25]){
@@ -942,15 +958,37 @@ function drawWaterwheelReturn(camera){
    line(sx-34,y,sx+34,y,'#7f999d77',3);
    disk(sx-35,y,4,'#f0ce94');disk(sx+35,y,4,'#f0ce94');
   }
-  if(soloAge>=returnPhases.lift&&soloAge<=returnPhases.top){
-   const p=returnPosition(soloAge);
-   // Only the actual returning marble sits in this single moving bucket.
-   g.save();g.translate(sx,p.y);
+  // Upper and lower sprockets mesh with the traveling chain.
+  const sprocketAngle=-chainDistance/25;
+  for(const gy of [returnLift.top+27,returnLift.bottom-27]){
+   if(gy<camera-100||gy>camera+1110)continue;
+   g.save();g.translate(sx,gy);g.rotate(sprocketAngle);
+   disk(0,0,29,'#433628');
+   for(let tooth=0;tooth<12;tooth++){
+    g.save();g.rotate(tooth*Math.PI/6);g.fillStyle='#d6ad71';
+    g.fillRect(-5,-34,10,10);g.restore();
+   }
+   disk(0,0,23,'#b88c54');
+   for(let k=0;k<6;k++){
+    const a=k*Math.PI/3;
+    line(0,0,Math.cos(a)*20,Math.sin(a)*20,'#f9d49c',4);
+   }
+   disk(0,0,8,'#445458');disk(0,0,3,'#fae2b2');
+   g.restore();
+  }
+  if(soloAge>=returnPhases.lift&&soloAge<returnPhases.reservoir){
+   // This bucket remains visible as the marble leaves; it never duplicates it.
+   const y=soloAge<=returnPhases.top?returnPosition(soloAge).y:returnLift.top;
+   const u=(soloAge-returnPhases.top+.11)/.58;
+   const tip=u<=0?0:u<.5?u*2:u<1?2*(1-u):0;
+   g.save();g.translate(sx,y);g.rotate(-.46*tip);
    line(-28,25,-28,0,'#8ba3a4',5);line(28,25,28,0,'#8ba3a4',5);
    g.beginPath();g.moveTo(-29,9);g.lineTo(-23,31);
    g.quadraticCurveTo(0,43,23,31);g.lineTo(29,9);
    g.fillStyle='#be936a88';g.fill();g.strokeStyle='#f9d69c';g.lineWidth=5;g.stroke();
    line(-25,5,25,5,'#effad5',2);
+   disk(0,35,6,'#f2d49a');
+   line(0,35,17,42,'#a0b2b2',3);
    g.restore();
   }
   g.restore();
@@ -958,7 +996,7 @@ function drawWaterwheelReturn(camera){
  if(returnLift.top>=camera-150&&returnLift.top<=camera+1100){
   // Upper take-off rail and an open receiving reservoir.
   g.beginPath();g.moveTo(sx,returnLift.top+25);
-  g.quadraticCurveTo(710,returnLift.top+23,laneX(465,2),125);
+  g.quadraticCurveTo(710,returnLift.top+23,laneX(465,2),130);
   g.strokeStyle='#2a3439';g.lineWidth=14;g.stroke();
   g.strokeStyle='#e5c18a';g.lineWidth=5;g.stroke();
   line(laneX(465,2)-53,122,laneX(465,2)+53,122,'#f1ce8f',6);
@@ -967,6 +1005,17 @@ function drawWaterwheelReturn(camera){
   ellipse(laneX(465,2),120,47,7,'#365e6c');
   g.fillStyle='#f8dba9';g.textAlign='center';g.font='13px Georgia';
   g.fillText('RETURN RESERVOIR',laneX(465,2),154);
+  // Spring-linked top latch retracts once the bucket reaches the exit.
+  const a=returnPhases.top-.18,b=returnPhases.top+.42;
+  const t=Math.max(0,Math.min(1,(soloAge-a)/(b-a))),open=t*t*(3-2*t);
+  const hx=sx-29,hy=returnLift.top+7;
+  g.save();g.translate(hx,hy);g.rotate(-1.18*open);
+  line(0,0,-10,32,'#735438',11);line(0,0,-10,32,'#f1ca8b',5);
+  disk(-10,32,5,'#fbe5b1');disk(0,0,7,'#dfbe84');g.restore();
+  line(sx-50,returnLift.top+40,hx-12*open,hy+22-11*open,'#a8c2c1',4);
+  disk(sx-50,returnLift.top+40,5,'#e6c58c');
+  g.fillStyle='#d5e8e5';g.font='11px system-ui';
+  g.fillText('RELEASE',sx-58,returnLift.top+70);
  }
  if(wy<camera-220||wy>camera+1200)return;
  g.save();
@@ -978,6 +1027,23 @@ function drawWaterwheelReturn(camera){
  line(787,endY-9,sx,returnLift.bottom+19,'#463b2e',12);
  line(returnExit.x,returnExit.y+16,787,endY-14,'#f0c681',5);
  line(787,endY-14,sx,returnLift.bottom+14,'#f0c681',5);
+ // Spring-loaded loading gate opens just ahead of the only marble.
+ const gateOpenAt=returnPhases.chute-.08,gateFullAt=returnPhases.chute+.19;
+ const gateCloseAt=returnPhases.lift+.08,gateClosedAt=returnPhases.lift+.41;
+ const gateEase=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
+ const gateOpening=gateEase((soloAge-gateOpenAt)/(gateFullAt-gateOpenAt));
+ const gateClosing=gateEase((soloAge-gateCloseAt)/(gateClosedAt-gateCloseAt));
+ const gateOpen=gateOpening*(1-gateClosing);
+ const gx=sx-44,gy=returnLift.bottom+19;
+ line(gx-22,gy+22,gx-22,gy-27,'#8ea4a2',7);
+ g.save();g.translate(gx,gy);g.rotate(-gateOpen*1.22);
+ line(0,0,0,-54,'#694833',11);line(0,0,0,-54,'#f2ca8d',5);
+ disk(0,-54,5,'#fce5b5');disk(0,0,9,'#3d4e4e');disk(0,0,5,'#ffe7ae');
+ g.restore();
+ line(gx-21,gy+15,gx-21,gy-7,'#8ba4a8',10);
+ line(gx-21,gy-8,gx-4+gateOpen*9,gy-27+gateOpen*10,'#eff1dc',4);
+ g.fillStyle='#f6dba7';g.textAlign='center';g.font='12px Georgia';
+ g.fillText(gateOpen>.5?'GATE OPEN':'LOADING GATE',gx-3,gy+57);
  // Large bronze waterwheel, eight scoops, center axle, and rotating spokes.
  disk(wx,wy,returnWheel.r+12,'#25363d');
  g.beginPath();g.arc(wx,wy,returnWheel.r+6,0,2*Math.PI);
