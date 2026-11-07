@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Note Cascade · Marble Melodies</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#171e22;color:#e8e5dc;font:15px system-ui}main{max-width:850px;margin:auto}header{padding:14px 18px 10px}a{color:#bfcacb;font-size:13px}h1{font:29px Georgia;margin:12px 0 6px}p{margin:4px 0;color:#aebbbc;line-height:1.5}canvas{display:block;width:100%;aspect-ratio:900/1000;background:#333f43}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 16px max(18px,env(safe-area-inset-bottom));background:#20292d}button{border:1px solid #627378;border-radius:24px;background:#37484b;color:white;font:15px system-ui;padding:11px 18px}#play{background:#d8b16d;color:#20292d;border-color:#d8b16d}label{font-size:13px;color:#c1ccca;display:flex;align-items:center;gap:7px}select{max-width:240px;padding:10px;border-radius:8px;background:#30464b;color:#fff;border:1px solid #8da79a;font:14px system-ui}input{width:100px;accent-color:#d8b16d}#status{font-size:12px;color:#c2ceca;padding:0 18px 12px}@media(min-width:700px){canvas{max-height:76vh;width:auto;max-width:100%;margin:auto}}</style></head>
-<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="sousa">The Stars and Stripes Forever</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
+<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash, fiery marble trails, and cooling water sprays"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="sousa">The Stars and Stripes Forever</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="effects" aria-pressed="true" title="Toggle fiery trails and cooling water sprays">Fire + water on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
 <script>
 (()=>{'use strict';
 const c=document.querySelector('canvas'),g=c.getContext('2d'),play=document.querySelector('#play'),status=document.querySelector('#status');
@@ -253,7 +253,7 @@ function scheduleMechanisms(horizon,rate){
 function scheduleAudio(rate){if(!ac)return;const horizon=time+.12*rate;scheduleMechanisms(horizon,rate);while(audioStruck<pads.length&&arrivals[audioStruck]<=horizon){let i=audioStruck++,when=ac.currentTime+Math.max(0,(arrivals[i]-time)/rate);chime(pads[i].note,pads[i].beats/rate,.82,when);chime(harmony[i].note,harmony[i].beats/rate,.34,when);if(accentIndices.has(i))cymbalAccent(when,i===pads.length-1);if(i===pads.length-1)finaleGong(when)}while(audioBassStruck<bass.length&&bassArrivals[audioBassStruck]<=horizon){let i=audioBassStruck++,until=bassArrivals[i+1]||total; if(chordsEnabled)chordTone(bass[i].chord,(until-bassArrivals[i])/rate,ac.currentTime+Math.max(0,(bassArrivals[i]-time)/rate)); bassTone(bass[i].note,(until-bassArrivals[i])/beatSeconds/rate,i===bass.length-1,ac.currentTime+Math.max(0,(bassArrivals[i]-time)/rate))}while(audioDrumStruck<drums.length&&drumArrivals[audioDrumStruck]<=horizon){const i=audioDrumStruck++;percussion(drums[i].kind,ac.currentTime+Math.max(0,(drumArrivals[i]-time)/rate))}}
 function resyncAudio(){stopVoices();nextMechanismCue=mechanismCues.findIndex(cue=>cue.at>=time);if(nextMechanismCue<0)nextMechanismCue=mechanismCues.length;audioDrumStruck=drumStruck;audioStruck=struck;audioBassStruck=bassStruck;clockLast=ac?ac.currentTime:null}
 let cameraY=0;
-let time=0,last=null,running=false,finished=false,struck=0,sound=true,ac=null,splashAge=-1,stringSplashAge=-1;
+let time=0,last=null,running=false,finished=false,struck=0,sound=true,effectsEnabled=true,ac=null,splashAge=-1,stringSplashAge=-1;
 // Every detour is parameterized inside the existing note-to-note time slot.
 // Its endpoints are the original note contacts, so audio timing never changes.
 function routeKind(i,lane){return baseRouteKind(i,lane)||surpriseSlots[lane]?.get(i)||''}
@@ -692,6 +692,91 @@ function drawChordPusher(x,y,index){
  g.restore();
 }
 
+
+/* Purely visual effects: follows the actual five marble routes and impact times.
+   Keeps the notes, velocity, machine layout and shared song arrangement intact. */
+function trailPoint(t,lane){
+ if(lane===4)return stringPosition(t);
+ const base=lane===3?drumPosition(t):lane===2?bassPosition(t):position(t,lane);
+ return finalePosition(t,lane,lane===2?24:r)||{x:laneX(base.x,lane),y:base.y};
+}
+function drawFireTrails(camera){
+ if(!effectsEnabled||time<=.02)return;
+ g.save();g.globalCompositeOperation='lighter';g.lineCap='round';
+ for(let lane=0;lane<5;lane++){
+  const solo=lane===2&&soloAge>=0&&soloAge<soloStops[soloStops.length-1].at;
+  if(!solo&&time>stringEnd+.08)continue;
+  const clock=solo?soloAge:time;
+  if(clock<=.035)continue;
+  const head=solo?soloPosition(clock):trailPoint(Math.min(clock,stringEnd),lane);
+  if(!head||head.y<camera-220||head.y>camera+1200)continue;
+  const segments=18,step=.033,thickness=lane===2?29:lane===4?19:23;
+  for(let i=1;i<=segments;i++){
+   const earlier=clock-i*step,later=clock-(i-1)*step;
+   if(earlier<0)break;
+   const a=solo?soloPosition(earlier):trailPoint(earlier,lane);
+   const b=solo?soloPosition(later):trailPoint(later,lane);
+   if(!a||!b||Math.hypot(b.x-a.x,b.y-a.y)>150)continue;
+   const strength=1-i/(segments+1),flicker=.87+.13*Math.sin(time*35+i*2.6+lane*3.1);
+   g.globalAlpha=.84*strength*flicker;g.shadowColor='#ff5c16';g.shadowBlur=16;
+   line(a.x,a.y,b.x,b.y,'#ed3b16',thickness*strength);
+   g.shadowBlur=7;
+   line(a.x,a.y,b.x,b.y,'#ff9e27',thickness*.58*strength);
+   line(a.x,a.y,b.x,b.y,'#ffe9a1',thickness*.24*strength);
+   if(i%3===0){
+    const sideways=Math.sin(i*7.8+lane*3+time*13)*13;
+    const tx=a.x+sideways,ty=a.y-9-19*strength;
+    g.beginPath();g.moveTo(a.x-5*strength,a.y);
+    g.quadraticCurveTo(a.x+sideways*.5,a.y-12,tx,ty);
+    g.quadraticCurveTo(a.x+sideways*.3+5,a.y-9,a.x+5*strength,a.y);
+    g.closePath();g.fillStyle=i%2?'#ffb33b':'#fa5419';g.fill();
+    disk(a.x+sideways*.7,a.y-12-7*strength,1.5+strength*1.5,'#ffe3a2');
+   }
+  }
+ }
+ g.restore();
+}
+function drawCoolingJets(camera){
+ if(!effectsEnabled||time<=0)return;
+ g.save();
+ for(let lane=0;lane<4;lane++)for(const p of lanes[lane]){
+  if(p.y<camera-120||p.y>camera+1100)continue;
+  const age=time-p.hit,x=laneX(p.x,lane),y=p.y,side=lane%2===0?-1:1;
+  const sx=x+side*70,sy=y-38,tx=x,ty=y-11;
+  // Fixed sprinkler nozzle, mounted beside the instrument.
+  line(sx,sy+25,sx,sy-3,'#27454e',8);
+  line(sx,sy+17,sx,sy-3,'#9ebac1',4);
+  line(sx,sy,sx-side*13,sy-4,'#d6a46b',7);
+  disk(sx-side*13,sy-4,4,'#bfe2e7');
+  if(age<0||age>1.25)continue;
+  const power=Math.max(0,Math.min(1,age/.09,(1.25-age)/.35));
+  if(power<=0)continue;
+  const cx=(sx+tx)/2-side*10,cy=Math.min(sy,ty)-45;
+  const water=g.createLinearGradient(sx,sy,tx,ty);
+  water.addColorStop(0,'#6acada');water.addColorStop(.52,'#e0faff');water.addColorStop(1,'#8de5ff');
+  g.globalAlpha=power*.9;g.lineCap='round';
+  for(let stream=-1;stream<=1;stream++){
+   const nudge=stream*5+Math.sin(time*18+lane)*2;
+   g.beginPath();g.moveTo(sx-side*13,sy-4);
+   g.quadraticCurveTo(cx,cy+nudge,tx+nudge*.7,ty);
+   g.strokeStyle=water;g.lineWidth=stream===0?4:2;g.stroke();
+  }
+  for(let d=0;d<9;d++){
+   const u=(d/9+time*2.8+d*.037)%1,v=1-u;
+   disk(v*v*(sx-side*13)+2*v*u*cx+u*u*tx,v*v*(sy-4)+2*v*u*cy+u*u*ty,1.5+2*u,'#d7faff');
+  }
+  // Steam and scattering droplets where the water lands.
+  const mist=Math.min(1,age/.25)*Math.max(0,1-age/1.35);
+  ellipse(tx,ty-16,21+age*10,9+age*6,'rgba(230,251,255,'+(.21*mist).toFixed(3)+')');
+  for(let i=0;i<5;i++){
+   const a=-Math.PI+i*Math.PI/4,dist=6+age*24;
+   disk(tx+Math.cos(a)*dist,ty+Math.sin(a)*dist*.8,1.8+power,'#d8ffff');
+  }
+  g.globalAlpha=1;
+ }
+ g.restore();
+}
+
 function drawCascadeMarble(lane,soloPoint){
  let base=lane===3?drumPosition(time):lane===2?bassPosition(time):position(time,lane),p=soloPoint||finalePosition(time,lane,lane===2?24:r)||{x:laneX(base.x,lane),y:base.y},radius=lane===2?24:r;g.save();g.shadowColor='#06131f88';g.shadowBlur=10;g.shadowOffsetX=8;g.shadowOffsetY=13;let glass=g.createRadialGradient(p.x-6,p.y-8,1,p.x,p.y,radius);glass.addColorStop(0,'#f2ffff');glass.addColorStop(.25,lane===2?'#ffe093':lane===3?'#bba6ff':lane?'#ffbe8e':'#75e3dc');glass.addColorStop(.7,lane===2?'#a77b26':lane?'#b95259':'#24869d');glass.addColorStop(1,'#b5e1da');disk(p.x,p.y,radius,glass);g.restore();g.save();g.beginPath();g.arc(p.x,p.y,radius-1,0,Math.PI*2);g.clip();g.translate(p.x,p.y);g.rotate(time*5);g.strokeStyle=lane===2?'#fff4cf':lane?'#ffe7bb':'#eac369';g.lineWidth=6;g.beginPath();g.ellipse(0,0,lane===2?12:8,lane===2?27:19,.7,0,Math.PI*2);g.stroke();g.restore();disk(p.x-6,p.y-8,4,'#ffffffdd');
 }
@@ -706,10 +791,10 @@ const soloStops=[
  {at:5.25,x:laneX(465,2),y:17-24}
 ];
 let soloAge=-1,soloNext=1;
-function soloPosition(){
- const index=soloStops.findIndex(stop=>stop.at>soloAge);
+function soloPosition(age=soloAge){
+ const index=soloStops.findIndex(stop=>stop.at>age);
  const b=soloStops[index<0?soloStops.length-1:index],a=soloStops[(index<0?soloStops.length-1:index)-1];
- const u=Math.max(0,Math.min(1,(soloAge-a.at)/(b.at-a.at)));
+ const u=Math.max(0,Math.min(1,(age-a.at)/(b.at-a.at)));
  const arch=Math.sin(Math.PI*u);
  return {x:a.x+(b.x-a.x)*u,y:endY+a.y+(b.y-a.y)*u-arch*(index===1?105:55)};
 }
@@ -809,7 +894,7 @@ function draw(dt=1/60){
 }
 
 function drawMachine(camera){
- drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);drawSoloTargets();
+ drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);drawSoloTargets();drawFireTrails(camera);
 for(let lane=0;lane<4;lane++){let course=lanes[lane];for(let i=0;i<course.length;i++){let p=course[i];if(p.y<camera-100||p.y>camera+1100)continue;let px=laneX(p.x,lane),motion=padMotion(p,time);let age=time-p.hit,compression=age>=0&&age<.7?12*Math.exp(-age*7)*Math.abs(Math.sin(age*22)):0;g.save();g.translate(px,p.y+8);g.rotate(p.angle+motion.tilt);g.scale(.78,.85);ellipse(12,29,60,15,'#0b1c2555');
 // Visible fulcrum and balanced beam distinguish the occasional seesaw.
 if(p.mechanism==='seesaw'){g.beginPath();g.moveTo(-14,43);g.lineTo(0,11);g.lineTo(14,43);g.closePath();g.fillStyle='#83989b';g.fill();line(-76,7,76,7,'#e4bc77',10);disk(-72,7,7,'#a87343');disk(72,7,7,'#a87343');disk(0,16,6,'#f3d79d')}
@@ -840,6 +925,7 @@ if(lane===2)drawChordPusher(px,p.y,i);
 if(lane===0&&accentIndices.has(i))drawCymbal(px,p.y,age);
 g.font='16px Georgia';g.fillStyle=age>=0&&age<.5?'#ffe6a5':'#d4dfd7';g.textAlign=lane===2?'center':lane?'left':'right';g.fillText(p.name,Math.max(44,Math.min(856,px+(lane===2?0:lane?61:-61))),p.y+(lane===2?53:7));
 if(age>=0&&age<.45){g.strokeStyle='#f7ce7b';g.lineWidth=2;g.beginPath();g.arc(px,p.y-r,23+age*55,Math.PI*1.1,Math.PI*1.9);g.stroke()}}}
+drawCoolingJets(camera);
 for(let lane=0;lane<4;lane++){let bowlX=laneX(465,lane);ellipse(bowlX,endY+24,65,12,'#1b3039');ellipse(bowlX,endY+20,65,11,'#8fa8ab');ellipse(bowlX,endY+16,53,7,'#438b9a');ellipse(bowlX-9,endY+14,32,3,'#a9e9e477');
 drawCascadeMarble(lane,lane===2&&soloAge>=0?soloPosition():undefined);g.textAlign='left';drawSplash(laneX(465,lane));}drawSoloRail();drawFountain(laneX(465,2));drawStringMarble();}
 // A linkage from the bouncer taps a miniature cymbal on selected long notes.
@@ -932,7 +1018,7 @@ play.onclick=async()=>{
  }
  running=true;resyncAudio();scheduleAudio(Number(document.querySelector('#speed').value));
  play.textContent='Pause';status.textContent=sound?'Playing · '+song.title:'Playing · sound is muted; tap Sound on';
-};document.querySelector('#reset').onclick=reset;document.querySelector('#mute').onclick=()=>{sound=!sound;if(master)master.gain.setTargetAtTime(sound?1:0,ac.currentTime,.01);document.querySelector('#mute').textContent=sound?'Mute':'Sound on';document.querySelector('#mute').setAttribute('aria-pressed',String(!sound))};document.querySelector('#chords').onclick=()=>{chordsEnabled=!chordsEnabled;const button=document.querySelector('#chords');button.textContent=chordsEnabled?'Chords on':'Chords off';button.setAttribute('aria-pressed',String(chordsEnabled));resyncAudio();if(running)scheduleAudio(Number(document.querySelector('#speed').value))};document.querySelector('#speed').oninput=()=>{if(running){resyncAudio();scheduleAudio(Number(document.querySelector('#speed').value))}};document.addEventListener('visibilitychange',()=>{if(document.hidden&&running){running=false;resyncAudio();play.textContent='Continue';status.textContent='Paused · return and tap Continue'}});reset();requestAnimationFrame(frame);
+};document.querySelector('#reset').onclick=reset;document.querySelector('#mute').onclick=()=>{sound=!sound;if(master)master.gain.setTargetAtTime(sound?1:0,ac.currentTime,.01);document.querySelector('#mute').textContent=sound?'Mute':'Sound on';document.querySelector('#mute').setAttribute('aria-pressed',String(!sound))};document.querySelector('#chords').onclick=()=>{chordsEnabled=!chordsEnabled;const button=document.querySelector('#chords');button.textContent=chordsEnabled?'Chords on':'Chords off';button.setAttribute('aria-pressed',String(chordsEnabled));resyncAudio();if(running)scheduleAudio(Number(document.querySelector('#speed').value))};document.querySelector('#effects').onclick=()=>{effectsEnabled=!effectsEnabled;const button=document.querySelector('#effects');button.textContent=effectsEnabled?'Fire + water on':'Fire + water off';button.setAttribute('aria-pressed',String(effectsEnabled))};document.querySelector('#speed').oninput=()=>{if(running){resyncAudio();scheduleAudio(Number(document.querySelector('#speed').value))}};document.addEventListener('visibilitychange',()=>{if(document.hidden&&running){running=false;resyncAudio();play.textContent='Continue';status.textContent='Paused · return and tap Continue'}});reset();requestAnimationFrame(frame);
 })();
 
 </script></body></html>
