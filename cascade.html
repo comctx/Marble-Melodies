@@ -929,7 +929,7 @@ function drawWaterwheelReturn(camera){
   line(sx-23,top,sx-23,bottom,'#b1e7e45e',3);
   line(sx+24,top,sx+24,bottom,'#b1e7e45e',3);
   // A high-ratio pinion carries the upward chain at the bucket's real speed.
-  const offset=((-wheelPhase*(980/wheelSpeed))%74+74)%74;
+  const offset=((wheelPhase*(980/wheelSpeed))%74+74)%74;
   for(let y=Math.floor((top-74)/74)*74+offset;y<bottom+74;y+=74){
    if(y<top||y>bottom)continue;
    for(const dx of [-25,25]){
