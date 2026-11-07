@@ -74,10 +74,25 @@ const songs={
  'F:1.5 E:0.25 D:0.25','C:0.5 c:1 A:0.5',
  'G:0.75 F:0.25 E:0.5 F:0.5','E:1 D:1','C:2'
  ],chords:['C','C','G','C','F','G','C','C','G','C','G','G','C','G','C','F','C','G','C'],straight:true},
- saints:{title:'When the Saints Go Marching In',bpm:132,lift:0,credit:'Traditional melody · familiar chorus twice',bars:[
- 'C:1 E:1 F:1 G:1','G:4','C:1 E:1 F:1 G:1','G:4',
- 'C:1 E:1 F:1 G:2','E:2 C:1 E:1','D:4','D:2 E:1 E:1',
- 'D:1 C:3','C:2 E:1 G:1','G:1 F:3','F:2 E:1 F:1','G:2 E:2','C:1 D:1 C:2','C:4'],chords:['C','C','C','C','C','C','G','G','C','C','F','F','C','G','C']}
+ saints:{title:'When the Saints Go Marching In',bpm:132,repeatMelody:2,tightArticulation:true,clearHarmony:true,
+ credit:'Traditional public-domain melody · corrected C-major refrain twice · 4/4',
+ // Transcribed against the published C-major ABC melody (Musica Viva / John Chambers).
+ // Fourth value, when present, is sounding length before a rest; second value
+ // includes the silence between impacts so the marbles stay in rhythm.
+ melody:[
+ // "Oh, when the saints go marching in" (twice)
+ [72,1,'C'],[76,1,'C'],[77,1,'C'],[79,5,'C',4],
+ [72,1,'C'],[76,1,'C'],[77,1,'C'],[79,5,'C',4],
+ // "Oh, when the saints go marching in"
+ [72,1,'C'],[76,1,'C'],[77,1,'C'],[79,2,'C'],[76,2,'C'],
+ [72,2,'C'],[76,2,'C'],[74,5,'G',4],
+ // "Oh, how I want to be in that number"
+ [76,1,'G'],[76,1,'G'],[74,1,'G'],[72,4,'C'],
+ [76,2,'C'],[79,2,'C'],[79,1,'F'],[77,5,'F',3],
+ // "When the saints go marching in"
+ [76,1,'F'],[77,1,'F'],[79,2,'C'],[76,2,'C'],
+ [72,2,'F'],[74,2,'G'],[72,5,'C',4]
+ ]}
 };
 songs.anthem={title:'The Star-Spangled Banner',bpm:84,credit:'Traditional melody · original synthesized arrangement',melody:[[69,0.75],[66,0.25],[62,1],[66,1],[69,1],[74,2],[78,0.75],[76,0.25],[74,1],[66,1],[68,1],[69,2],[69,1],[78,1.5],[76,0.5],[74,1],[73,2],[71,0.5],[73,0.5],[74,1],[74,1],[69,1],[66,1],[62,2],[69,0.75],[66,0.25],[62,1],[66,1],[69,1],[74,2],[78,0.75],[76,0.25],[74,1],[66,1],[68,1],[69,2],[69,1],[78,1.5],[76,0.5],[74,1],[73,2],[71,0.5],[73,0.5],[74,1],[74,1],[69,1],[66,1],[62,2],[78,0.75],[78,0.25],[78,1],[79,1],[81,1],[81,2],[79,0.75],[78,0.25],[76,1],[78,1],[79,1],[79,2],[79,1],[78,1.5],[76,0.5],[74,1],[73,2],[71,0.75],[73,0.25],[74,1],[66,1],[68,1],[69,2],[69,1],[74,1],[74,1],[74,0.5],[73,0.5],[71,1],[71,1],[71,1],[76,1],[79,0.5],[78,0.5],[76,0.5],[74,0.5],[74,1],[73,1],[69,0.75],[69,0.25],[74,1.5],[76,0.5],[78,0.5],[79,0.5],[81,2],[74,0.75],[76,0.25],[78,1.5],[79,0.5],[76,1],[74,3]]};
 const requested=new URLSearchParams(location.search).get('tune');
@@ -90,7 +105,7 @@ document.title=song.title+' · Marble Melodies';
 const bars=song.bars,chords=song.chords;
 const pitches={E0:64,F0:65,G0:67,A0:69,B0:71,C:72,D:74,E:76,F:77,Fs:78,G:79,A:81,B:83,c:84};
 const melody=[],noteChords=[];let musicalBeat=0;
-if(song.melody)melody.push(...song.melody);else for(let pass=0;pass<(song.passes||2);pass++)for(let bar=0;bar<bars.length;bar++){
+if(song.melody){for(let pass=0;pass<(song.repeatMelody||1);pass++)melody.push(...song.melody)}else for(let pass=0;pass<(song.passes||2);pass++)for(let bar=0;bar<bars.length;bar++){
  let within=0;for(const token of bars[bar].split(' ')){
  const [name,value]=token.split(':');const length=Number(value);
  const swing=b=>song.straight?b:Math.floor(b)+(b%1===.5?2/3:b%1);
@@ -113,7 +128,7 @@ const chordKeys=pads.map((p,i)=>{
   if(pc===7||pc===11)return 'G';
   return 'D';
 });
-const harmony=pads.map((p,i)=>{const chord=chordBook[chordKeys[i]];const step=song.highHarmony?1:-1;let note=p.note+step;while(!chord.notes.some(n=>n%12===note%12))note+=step;return{...p,note,name:pitchNames[note%12]+(Math.floor(note/12)-1),angle:-p.angle,hit:-100}});
+const harmony=pads.map((p,i)=>{const chord=chordBook[chordKeys[i]];const step=song.highHarmony?1:-1;let note=p.note+step;while(!chord.notes.some(n=>n%12===note%12)||(song.clearHarmony&&Math.abs(note-p.note)<3))note+=step;return{...p,note,name:pitchNames[note%12]+(Math.floor(note/12)-1),angle:-p.angle,hit:-100}});
 // Alternate occasional seesaws with spinning discs; both activate only on impact.
 const lanes=[pads,harmony];
 const accentIndices=new Set();let lastAccent=-8;
@@ -250,7 +265,7 @@ function scheduleMechanisms(horizon,rate){
   oscillator.stop(when+duration);
  }
 }
-function scheduleAudio(rate){if(!ac)return;const horizon=time+.12*rate;scheduleMechanisms(horizon,rate);while(audioStruck<pads.length&&arrivals[audioStruck]<=horizon){let i=audioStruck++,when=ac.currentTime+Math.max(0,(arrivals[i]-time)/rate);chime(pads[i].note,pads[i].beats/rate,.82,when);chime(harmony[i].note,harmony[i].beats/rate,.34,when);if(accentIndices.has(i))cymbalAccent(when,i===pads.length-1);if(i===pads.length-1)finaleGong(when)}while(audioBassStruck<bass.length&&bassArrivals[audioBassStruck]<=horizon){let i=audioBassStruck++,until=bassArrivals[i+1]||total; if(chordsEnabled)chordTone(bass[i].chord,(until-bassArrivals[i])/rate,ac.currentTime+Math.max(0,(bassArrivals[i]-time)/rate)); bassTone(bass[i].note,(until-bassArrivals[i])/beatSeconds/rate,i===bass.length-1,ac.currentTime+Math.max(0,(bassArrivals[i]-time)/rate))}while(audioDrumStruck<drums.length&&drumArrivals[audioDrumStruck]<=horizon){const i=audioDrumStruck++;percussion(drums[i].kind,ac.currentTime+Math.max(0,(drumArrivals[i]-time)/rate))}}
+function scheduleAudio(rate){if(!ac)return;const horizon=time+.12*rate;scheduleMechanisms(horizon,rate);while(audioStruck<pads.length&&arrivals[audioStruck]<=horizon){let i=audioStruck++,when=ac.currentTime+Math.max(0,(arrivals[i]-time)/rate);const gate=melody[i][3]??pads[i].beats;chime(pads[i].note,gate/rate,.82,when);chime(harmony[i].note,gate/rate,song.clearHarmony?.23:.34,when);if(accentIndices.has(i))cymbalAccent(when,i===pads.length-1);if(i===pads.length-1)finaleGong(when)}while(audioBassStruck<bass.length&&bassArrivals[audioBassStruck]<=horizon){let i=audioBassStruck++,until=bassArrivals[i+1]||total; if(chordsEnabled)chordTone(bass[i].chord,(until-bassArrivals[i])/rate,ac.currentTime+Math.max(0,(bassArrivals[i]-time)/rate)); bassTone(bass[i].note,(until-bassArrivals[i])/beatSeconds/rate,i===bass.length-1,ac.currentTime+Math.max(0,(bassArrivals[i]-time)/rate))}while(audioDrumStruck<drums.length&&drumArrivals[audioDrumStruck]<=horizon){const i=audioDrumStruck++;percussion(drums[i].kind,ac.currentTime+Math.max(0,(drumArrivals[i]-time)/rate))}}
 function resyncAudio(){stopVoices();nextMechanismCue=mechanismCues.findIndex(cue=>cue.at>=time);if(nextMechanismCue<0)nextMechanismCue=mechanismCues.length;audioDrumStruck=drumStruck;audioStruck=struck;audioBassStruck=bassStruck;clockLast=ac?ac.currentTime:null}
 let cameraY=0;
 let time=0,last=null,running=false,finished=false,struck=0,sound=true,effectsEnabled=true,ac=null,splashAge=-1,stringSplashAge=-1;
@@ -988,7 +1003,7 @@ function fountainChime(){
  fountainJets.forEach((jet,i)=>chime(notes[i]+12,.55,.19,start+jet.delay));
 }
 function splashSound(){if(!sound||!ac)return;let duration=.7,buffer=ac.createBuffer(1,Math.ceil(ac.sampleRate*duration),ac.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,2);let source=ac.createBufferSource(),filter=ac.createBiquadFilter(),gain=ac.createGain();source.buffer=buffer;filter.type='lowpass';filter.frequency.setValueAtTime(2800,ac.currentTime);filter.frequency.exponentialRampToValueAtTime(400,ac.currentTime+duration);gain.gain.setValueAtTime(.22,ac.currentTime);gain.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+duration);source.connect(filter).connect(gain).connect(ac.destination);source.start();source.stop(ac.currentTime+duration)}
-function chime(n,beats=1,level=1,when=ac.currentTime){if(!ac)return;let z=when,f=440*2**((n-69)/12);for(const [m,a,d] of [[1,.28,Math.max(1.2,beats*beatSeconds*.95)],[2,.07,.5],[3,.02,.25]]){let o=ac.createOscillator(),v=ac.createGain();o.frequency.value=f*m;v.gain.setValueAtTime(.0001,z);v.gain.exponentialRampToValueAtTime(a*level,z+.005);v.gain.exponentialRampToValueAtTime(.0001,z+d);o.connect(v).connect(master);track(o);o.start(z);o.stop(z+d+.01)}}
+function chime(n,beats=1,level=1,when=ac.currentTime){if(!ac)return;let z=when,f=440*2**((n-69)/12);for(const [m,a,d] of [[1,.28,song.tightArticulation?Math.max(.16,beats*beatSeconds*.86):Math.max(1.2,beats*beatSeconds*.95)],[2,.07,song.tightArticulation?Math.max(.1,Math.min(.4,beats*beatSeconds*.7)):.5],[3,.02,song.tightArticulation?Math.max(.08,Math.min(.2,beats*beatSeconds*.5)):.25]]){let o=ac.createOscillator(),v=ac.createGain();o.frequency.value=f*m;v.gain.setValueAtTime(.0001,z);v.gain.exponentialRampToValueAtTime(a*level,z+.005);v.gain.exponentialRampToValueAtTime(.0001,z+d);o.connect(v).connect(master);track(o);o.start(z);o.stop(z+d+.01)}}
 // A soft organ-like chord shares the bass impact timestamp and releases before the next chord.
 function chordTone(chord,seconds,when){if(!ac)return;const duration=Math.max(.12,seconds*.88);for(const n of chord.notes){const o=ac.createOscillator(),v=ac.createGain();o.type='sine';o.frequency.value=440*2**((n-69)/12);v.gain.setValueAtTime(.0001,when);v.gain.exponentialRampToValueAtTime(.055,when+Math.min(.035,duration/4));v.gain.setValueAtTime(.042,when+duration*.65);v.gain.exponentialRampToValueAtTime(.0001,when+duration);o.connect(v).connect(master);track(o);o.start(when);o.stop(when+duration+.02)}}
 function bassTone(n,beats,final=false,when=ac.currentTime){if(!ac)return;if(final)chime(n+36,beats,.16,when);let z=when,d=Math.max(1,beats*beatSeconds),f=440*2**((n-69)/12);for(let [multiple,level,type] of [[1,.20,'sine'],[2,.055,'triangle']]){let o=ac.createOscillator(),v=ac.createGain();o.type=type;o.frequency.value=f*multiple;v.gain.setValueAtTime(.0001,z);v.gain.exponentialRampToValueAtTime(level,z+.018);v.gain.exponentialRampToValueAtTime(.0001,z+d);o.connect(v).connect(master);track(o);o.start(z);o.stop(z+d+.02)}}
