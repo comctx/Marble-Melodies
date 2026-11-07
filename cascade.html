@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Note Cascade · Marble Melodies</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#171e22;color:#e8e5dc;font:15px system-ui}main{max-width:850px;margin:auto}header{padding:14px 18px 10px}a{color:#bfcacb;font-size:13px}h1{font:29px Georgia;margin:12px 0 6px}p{margin:4px 0;color:#aebbbc;line-height:1.5}canvas{display:block;width:100%;aspect-ratio:900/1000;background:#333f43}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 16px max(18px,env(safe-area-inset-bottom));background:#20292d}button{border:1px solid #627378;border-radius:24px;background:#37484b;color:white;font:15px system-ui;padding:11px 18px}#play{background:#d8b16d;color:#20292d;border-color:#d8b16d}label{font-size:13px;color:#c1ccca;display:flex;align-items:center;gap:7px}select{max-width:240px;padding:10px;border-radius:8px;background:#30464b;color:#fff;border:1px solid #8da79a;font:14px system-ui}input{width:100px;accent-color:#d8b16d}#status{font-size:12px;color:#c2ceca;padding:0 18px 12px}@media(min-width:700px){canvas{max-height:76vh;width:auto;max-width:100%;margin:auto}}</style></head>
-<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash, fiery marble trails, and cooling water sprays, with a synchronized waterwheel, meshed gears, moving bucket elevator, and the same amber marble returning to a glowing upper reservoir"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="sousa">The Stars and Stripes Forever</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="effects" aria-pressed="true" title="Toggle fiery trails and cooling water sprays">Fire + water on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
+<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash, fiery marble trails, and cooling water sprays, with a synchronized waterwheel, original copper clockwork guardian, meshed gears, moving bucket elevator, and the same amber marble returning to a glowing upper reservoir"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="sousa">The Stars and Stripes Forever</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="effects" aria-pressed="true" title="Toggle fiery trails and cooling water sprays">Fire + water on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
 <script>
 (()=>{'use strict';
 const c=document.querySelector('canvas'),g=c.getContext('2d'),play=document.querySelector('#play'),status=document.querySelector('#status');
@@ -928,6 +928,116 @@ function drawSoloRail(){
  for(let i=0;i<3;i++)line(636,y+10+i*5,774,y-17+i*5,'#c2ece4',1);
 }
 
+
+// COPPERKEEPER: an original triangular brass-and-glass clockwork attendant.
+// Distinct from any movie robot: tripod-mounted, three optical lenses, exposed
+// winding gears, asymmetric valve arm, and no humanoid silhouette.
+// It responds to the same real marble/return timestamps for every song.
+function drawCopperkeeper(camera){
+ const x=393,y=endY-178;
+ if(y+115<camera-150||y-188>camera+1120)return;
+ const engaged=soloAge>=returnStart&&soloAge<returnPhases.reservoir;
+ const returning=soloAge>=returnPhases.reservoir;
+ const gateTime=(soloAge-returnPhases.chute+.11)/.60;
+ const gatePulse=Math.max(0,Math.min(1,gateTime));
+ const gateEase=gatePulse*gatePulse*(3-2*gatePulse);
+ const armAction=engaged?gateEase:0;
+ const eyeGlow=engaged||returning;
+ const guide=soloAge>=0&&soloAge<returnPhases.reservoir?returnPosition(soloAge):null;
+ const look=guide?Math.max(-.23,Math.min(.23,(guide.x-x)/1200)):.08*Math.sin(time*.24);
+ const pulse=returning?.83+.17*Math.sin((soloAge-returnPhases.reservoir)*5):.82+.16*Math.sin(time*3.5);
+ g.save();g.translate(x,y);
+ // Floor fixture and diagonal bolted tripod, not walking legs.
+ ellipse(0,103,90,14,'#0c2029aa');
+ line(-51,85,38,85,'#805633',16);
+ line(-47,81,36,81,'#f0c68a',4);
+ for(const foot of [-58,0,58]){
+  line(foot*.25,53,foot,85,'#5f4c3d',11);
+  line(foot*.25,50,foot,83,'#c59b62',4);
+  disk(foot,86,9,'#62452c');
+  disk(foot,86,4,'#f0d59a');
+ }
+ // Animated service valve and link rod to the wheel's water-feed nozzle.
+ const valveX=133,valveY=-13;
+ line(61,5,valveX-9,valveY,'#453f37',9);
+ line(61,2,valveX-9,valveY-4,'#d5b886',3);
+ ellipse(valveX,valveY+14,21,7,'#273d43');
+ g.save();g.translate(valveX,valveY);g.rotate(-armAction*.92);
+ line(0,0,0,-33,'#e3b87b',7);
+ line(-17,-33,17,-33,'#d0a36e',5);
+ disk(0,0,9,'#755332');disk(0,0,4,'#f9e5b8');g.restore();
+ // Copper faceted body with a central rotating clockwork escapement.
+ g.beginPath();
+ g.moveTo(-49,-45);g.lineTo(34,-58);g.lineTo(66,-2);
+ g.lineTo(40,61);g.lineTo(-48,54);g.lineTo(-64,-4);g.closePath();
+ const bronze=g.createLinearGradient(-60,-50,62,62);
+ bronze.addColorStop(0,'#e3bf80');bronze.addColorStop(.45,'#987044');
+ bronze.addColorStop(.72,'#c99453');bronze.addColorStop(1,'#5b4534');
+ g.fillStyle=bronze;g.fill();g.strokeStyle='#ffdfa1';g.lineWidth=5;g.stroke();
+ for(const bolt of [[-39,-28],[25,-41],[44,6],[-40,35],[19,45]]){
+  disk(bolt[0],bolt[1],4,'#443b2d');
+  disk(bolt[0]-1,bolt[1]-1,1.8,'#ffe9af');
+ }
+ // Gear and the eccentric connecting rod only move while the return runs.
+ const gears=engaged?wheelPhase*2.6:time*.17;
+ g.save();g.translate(2,5);g.rotate(gears);
+ disk(0,0,27,'#5b432a');
+ for(let j=0;j<12;j++){
+  const a=j*Math.PI/6;
+  g.save();g.rotate(a);g.fillStyle='#f3d196';g.fillRect(-3,-30,6,9);g.restore();
+ }
+ disk(0,0,21,'#b98b4d');
+ for(let j=0;j<6;j++){const a=j*Math.PI/3;line(0,0,Math.cos(a)*19,Math.sin(a)*19,'#ffde9f',4)}
+ disk(0,0,8,'#293e42');g.restore();
+ // Arc-shaped inspection window and an animated status meter.
+ g.beginPath();g.roundRect(-36,28,54,17,7);
+ g.fillStyle='#24424a';g.fill();g.strokeStyle='#e2bc83';g.lineWidth=2;g.stroke();
+ g.fillStyle=eyeGlow?'#8aece0':'#769c9a';
+ g.fillRect(-31,33,(eyeGlow?43:17)*pulse,7);
+ // Asymmetric articulated manipulator, not a movie robot's arm.
+ g.save();g.translate(48,-23);g.rotate(-.08-armAction*.39);
+ line(0,0,44,7,'#513e2d',16);line(0,0,44,7,'#e1b77c',6);
+ disk(44,7,10,'#4f4938');disk(44,7,5,'#f9cf91');
+ g.translate(44,7);g.rotate(.13+armAction*.64);
+ line(0,0,32,-18,'#5f4431',12);line(0,0,32,-18,'#d2bd9b',5);
+ line(32,-18,45,-29,'#f0d6a4',4);
+ line(32,-18,48,-12,'#f0d6a4',4);
+ disk(32,-18,6,'#304c4a');g.restore();
+ // The other arm is a short sprung counterweight.
+ line(-43,-18,-73,4,'#624932',11);
+ line(-43,-20,-73,2,'#e4c28d',4);
+ disk(-75,5,15,'#b17c44');disk(-75,5,8,'#dec797');
+ // Separate amber-glass observatory head on a rotary bearing.
+ line(-7,-53,-7,-80,'#77573a',12);
+ disk(-7,-77,12,'#c5a06d');
+ g.save();g.translate(-8,-103);g.rotate(look);
+ g.beginPath();
+ g.moveTo(-40,-31);g.lineTo(-22,-53);g.lineTo(28,-46);
+ g.lineTo(44,-16);g.lineTo(30,24);g.lineTo(-27,29);
+ g.lineTo(-44,0);g.closePath();
+ const glass=g.createLinearGradient(-38,-52,34,30);
+ glass.addColorStop(0,'#f8e9ac');glass.addColorStop(.28,'#97c9bd');
+ glass.addColorStop(.72,'#24636b');glass.addColorStop(1,'#243d4a');
+ g.fillStyle=glass;g.fill();g.strokeStyle='#eac98c';g.lineWidth=6;g.stroke();
+ g.beginPath();g.moveTo(-27,-35);g.lineTo(-10,-43);g.lineTo(17,-38);
+ g.strokeStyle='#ffffff8f';g.lineWidth=3;g.stroke();
+ for(const lens of [{x:-20,y:-9,r:10},{x:10,y:-10,r:12},{x:-1,y:14,r:7}]){
+  disk(lens.x,lens.y,lens.r+3,'#493f32');
+  disk(lens.x,lens.y,lens.r,eyeGlow?'#61dbe1':'#7caea8');
+  disk(lens.x-2,lens.y-3,lens.r*.47,eyeGlow?'#f5ffff':'#c9e8df');
+ }
+ // Tiny asymmetric rangefinder and hinged inspection antenna.
+ line(25,-40,42,-64,'#e1c68b',5);
+ disk(42,-66,7,'#4b5856');disk(42,-66,3,'#a9f0ed');
+ g.restore();
+ // Cast plaque stays legible on-screen; never names a copyrighted character.
+ g.fillStyle='#1f343c';g.fillRect(-64,66,129,18);
+ g.strokeStyle='#caa36b';g.lineWidth=2;g.strokeRect(-64,66,129,18);
+ g.fillStyle='#f5dcad';g.font='bold 12px Georgia';g.textAlign='center';
+ g.fillText('COPPERKEEPER',1,79);
+ g.restore();
+}
+
 function drawWaterwheelReturn(camera){
  const sx=returnLift.x,wy=returnWheel.y,wx=returnWheel.x;
  const top=Math.max(returnLift.top,camera-85),bottom=Math.min(returnLift.bottom,camera+1080);
@@ -1179,7 +1289,7 @@ function draw(dt=1/60){
 }
 
 function drawMachine(camera){
- drawWaterwheelReturn(camera);drawReturnArrival(camera);drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);drawSoloTargets();drawFireTrails(camera);
+ drawCopperkeeper(camera);drawWaterwheelReturn(camera);drawReturnArrival(camera);drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);drawSoloTargets();drawFireTrails(camera);
 for(let lane=0;lane<4;lane++){let course=lanes[lane];for(let i=0;i<course.length;i++){let p=course[i];if(p.y<camera-100||p.y>camera+1100)continue;let px=laneX(p.x,lane),motion=padMotion(p,time);let age=time-p.hit,compression=age>=0&&age<.7?12*Math.exp(-age*7)*Math.abs(Math.sin(age*22)):0;g.save();g.translate(px,p.y+8);g.rotate(p.angle+motion.tilt);g.scale(.78,.85);ellipse(12,29,60,15,'#0b1c2555');
 // Visible fulcrum and balanced beam distinguish the occasional seesaw.
 if(p.mechanism==='seesaw'){g.beginPath();g.moveTo(-14,43);g.lineTo(0,11);g.lineTo(14,43);g.closePath();g.fillStyle='#83989b';g.fill();line(-76,7,76,7,'#e4bc77',10);disk(-72,7,7,'#a87343');disk(72,7,7,'#a87343');disk(0,16,6,'#f3d79d')}
