@@ -99,7 +99,7 @@ const requested=new URLSearchParams(location.search).get('tune');
 const song=songs[requested]||songs.anthem;
 const tune=document.querySelector('#tune');tune.value=songs[requested]?requested:'anthem';
 tune.onchange=()=>{const url=new URL(location.href);url.searchParams.set('tune',tune.value);stopVoices();location.assign(url.href)};
-document.querySelector('#song-heading').textContent=song.title+' · one Cascade · plucked strings, pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, and a gong-and-trapdoor finale.';
+document.querySelector('#song-heading').textContent=song.title+' · one Cascade · plucked strings, pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, and a gong-and-trapdoor finale, followed by the golden marble Wild Ride with swinging hoops and corkscrew turns.';
 document.querySelector('#song-details').textContent=song.credit+' · '+song.bpm+' BPM · original synthesized arrangement.';
 document.title=song.title+' · Marble Melodies';
 const bars=song.bars,chords=song.chords;
@@ -785,6 +785,13 @@ function drawChordPusher(x,y,index){
  disk(0,0,10,'#473c33');
  disk(0,0,6,'#e4bf84');
  g.restore();
+ // The pusher nose meets the marble exactly at bassArrivals[index].
+ if(Math.abs(offset)<.14){
+  const pulse=1-Math.abs(offset)/.14;
+  g.save();g.globalAlpha=.85*pulse;g.strokeStyle='#fff0bc';g.lineWidth=2.5;
+  g.beginPath();g.arc(x+side*30,y-22,10+(1-pulse)*18,0,Math.PI*2);g.stroke();
+  g.restore();
+ }
 }
 
 
@@ -875,17 +882,21 @@ function drawCoolingJets(camera){
 function drawCascadeMarble(lane,soloPoint){
  let base=lane===3?drumPosition(time):lane===2?bassPosition(time):position(time,lane),p=soloPoint||finalePosition(time,lane,lane===2?24:r)||{x:laneX(base.x,lane),y:base.y},radius=lane===2?24:r;g.save();g.shadowColor='#06131f88';g.shadowBlur=10;g.shadowOffsetX=8;g.shadowOffsetY=13;let glass=g.createRadialGradient(p.x-6,p.y-8,1,p.x,p.y,radius);glass.addColorStop(0,'#f2ffff');glass.addColorStop(.25,lane===2?'#ffe093':lane===3?'#bba6ff':lane?'#ffbe8e':'#75e3dc');glass.addColorStop(.7,lane===2?'#a77b26':lane?'#b95259':'#24869d');glass.addColorStop(1,'#b5e1da');disk(p.x,p.y,radius,glass);g.restore();g.save();g.beginPath();g.arc(p.x,p.y,radius-1,0,Math.PI*2);g.clip();g.translate(p.x,p.y);g.rotate(time*5);g.strokeStyle=lane===2?'#fff4cf':lane?'#ffe7bb':'#eac369';g.lineWidth=6;g.beginPath();g.ellipse(0,0,lane===2?12:8,lane===2?27:19,.7,0,Math.PI*2);g.stroke();g.restore();disk(p.x-6,p.y-8,4,'#ffffffdd');
 }
+// The one original gold marble rides the same route for every song.
 const soloStops=[
- {at:0,x:laneX(465,2),y:17-24},
- {at:.85,x:92,y:-375,kind:'Note'},
- {at:1.58,x:808,y:-315,kind:'Chord'},
- {at:2.26,x:615,y:-250,kind:'String'},
- {at:3.04,x:125,y:-188,kind:'Note'},
- {at:3.86,x:744,y:-125,kind:'Chord'},
- {at:4.55,x:375,y:-67,kind:'String'},
- {at:5.25,x:laneX(465,2),y:17-24}
+ {at:0,x:laneX(465,2),y:-7},
+ {at:.90,x:116,y:-452,kind:'Note'},
+ {at:1.68,x:785,y:-407,kind:'Chord'},
+ {at:2.48,x:190,y:-356,kind:'String'},
+ {at:3.29,x:733,y:-300,kind:'Note'},
+ {at:4.08,x:165,y:-243,kind:'Chord'},
+ {at:4.86,x:747,y:-187,kind:'String'},
+ {at:5.67,x:207,y:-132,kind:'Note'},
+ {at:6.47,x:689,y:-67,kind:'Chord'},
+ {at:7.26,x:laneX(465,2),y:-7}
 ];
-let soloAge=-1,soloNext=1;
+const wildHoopSegments=[3,6,8],wildSpiralSegments=[4,7];
+let soloAge=-1,soloNext=1,soloHoopNext=0;
 // One continuous amber marble: the solo ends in the basin, travels around
 // a water-powered wheel, rides the visible bucket lift and returns to the top.
 // Return stages are derived from the song's actual height, not a second ball.
@@ -953,13 +964,33 @@ function returnPosition(age=soloAge){
 
 function soloPosition(age=soloAge){
  const index=soloStops.findIndex(stop=>stop.at>age);
- const b=soloStops[index<0?soloStops.length-1:index],a=soloStops[(index<0?soloStops.length-1:index)-1];
+ const end=index<0?soloStops.length-1:index;
+ const a=soloStops[end-1],b=soloStops[end];
  const u=Math.max(0,Math.min(1,(age-a.at)/(b.at-a.at)));
- const arch=Math.sin(Math.PI*u);
- return {x:a.x+(b.x-a.x)*u,y:endY+a.y+(b.y-a.y)*u-arch*(index===1?105:55)};
+ const arch=Math.sin(Math.PI*u),smooth=u*u*(3-2*u);
+ const travel=end===1?smooth:u;
+ let x=a.x+(b.x-a.x)*travel,y=endY+a.y+(b.y-a.y)*travel;
+ if(end===1)y-=85*arch; // Water-powered upward launch from the basin.
+ else{
+  y-=47*arch;
+  x+=(Math.sign(b.x-a.x)||1)*18*arch*arch;
+  if(wildSpiralSegments.includes(end)){
+   const theta=Math.PI*2*u,envelope=arch*arch;
+   x+=92*Math.sin(theta)*envelope;
+   y+=48*(Math.cos(theta)-1)*envelope;
+  }
+ }
+ return{x,y};
 }
 function advanceSolo(dt){
  soloAge+=dt;
+ while(soloHoopNext<wildHoopSegments.length){
+  const segment=wildHoopSegments[soloHoopNext];
+  const crossing=(soloStops[segment-1].at+soloStops[segment].at)/2;
+  if(soloAge<crossing)break;
+  soloHoopNext++;
+  returnClick(810-segment*35);
+ }
  while(soloNext<soloStops.length&&soloStops[soloNext].at<=soloAge){
   const i=soloNext++,stop=soloStops[i];
   if(!stop.kind){splashAge=0;splashSound();continue}
@@ -983,20 +1014,88 @@ function advanceSolo(dt){
  }
 }
 function drawSoloTargets(){
- if(soloAge<0||soloAge>=soloStops[soloStops.length-1].at)return;
+ if(soloAge<0||soloAge>=returnStart)return;
  g.save();
  for(const stop of soloStops){
   if(!stop.kind)continue;
-  const y=endY+stop.y+24,lit=soloAge>=stop.at&&soloAge-stop.at<.24;
-  ellipse(stop.x,y+7,40,9,'#24353c');
-  ellipse(stop.x,y,38,7,lit?'#fff1af':'#c39350');
-  if(stop.kind==='String'){
-   for(let i=-1;i<=1;i++)line(stop.x-30,y+i*4,stop.x+30,y+i*4,lit?'#fffbe0':'#aee4e0',1.5);
+  const y=endY+stop.y+24,age=soloAge-stop.at;
+  const lit=age>=0&&age<.48;
+  const compression=lit?13*Math.abs(Math.sin(age*23))*Math.exp(-age*9):0;
+  const rock=lit?.13*Math.sin(age*23)*Math.exp(-age*6):0;
+  // One fixed frame with springs; instrument reacts at the exact audio contact.
+  for(const side of [-28,28])line(stop.x+side,y+10,stop.x+side,y+40,'#70868a',5);
+  ellipse(stop.x,y+42,44,9,'#273e46');
+  for(const side of [-25,25]){
+   g.beginPath();
+   for(let coil=0;coil<=10;coil++){
+    const py=y+8+compression+(31-compression)*coil/10;
+    const px=stop.x+side+(coil%2?6:-6);
+    if(coil)g.lineTo(px,py);else g.moveTo(px,py);
+   }
+   g.strokeStyle='#d9c79e';g.lineWidth=2;g.stroke();
   }
-  g.fillStyle='#f8ebd0';
-  g.textAlign='center';
-  g.font='15px Georgia';
-  g.fillText(stop.kind,stop.x,y+28);
+  g.save();g.translate(stop.x,y+compression);g.rotate(rock);
+  ellipse(0,7,42,11,'#2d4450');
+  ellipse(0,0,39,9,lit?'#fff1af':'#c39350');
+  ellipse(0,-3,32,5,lit?'#fff7d8':'#ecc68a');
+  if(stop.kind==='String'){
+   for(let wire=-1;wire<=1;wire++){
+    const vibration=lit?Math.sin(age*95+wire)*6*Math.exp(-age*8):0;
+    line(-29,wire*4+vibration,29,wire*4-vibration,lit?'#fffbe0':'#aee4e0',1.5);
+   }
+  }
+  g.restore();
+  if(lit){
+   const glow=Math.max(0,1-age/.48);
+   g.globalAlpha=.75*glow;
+   g.strokeStyle='#ffedb3';g.lineWidth=2;
+   g.beginPath();g.arc(stop.x,y-24,26+age*77,Math.PI*1.03,Math.PI*1.97);g.stroke();
+   g.globalAlpha=1;
+  }
+  g.fillStyle=lit?'#fff4cb':'#f8ebd0';
+  g.textAlign='center';g.font='15px Georgia';
+  g.fillText(stop.kind,stop.x,y+61);
+ }
+ g.restore();
+}
+function drawWildRideDevices(camera){
+ if(soloAge<0||soloAge>=returnStart)return;
+ g.save();
+ // Three swinging hoops react at the instant the marble crosses their center.
+ for(const segment of wildHoopSegments){
+  const a=soloStops[segment-1],b=soloStops[segment];
+  const at=(a.at+b.at)/2,center=soloPosition(at);
+  if(center.y<camera-115||center.y>camera+1115)continue;
+  const age=soloAge-at,energy=age>=0?Math.sin(age*19)*Math.exp(-age*7):0;
+  const angle=.13*Math.sin(soloAge*.9+segment)+.48*energy;
+  const side=segment%2?1:-1;
+  line(center.x+side*39,center.y-80,center.x+side*39,center.y-38,'#6b777a',6);
+  disk(center.x+side*39,center.y-80,8,'#f1d399');
+  g.save();g.translate(center.x,center.y);g.rotate(angle);
+  g.strokeStyle='#33291f';g.lineWidth=13;g.beginPath();g.ellipse(0,0,38,49,.24,0,Math.PI*2);g.stroke();
+  g.strokeStyle=age>=0&&age<.23?'#fff5c9':'#e4bb72';g.lineWidth=6;
+  g.beginPath();g.ellipse(0,0,38,49,.24,0,Math.PI*2);g.stroke();
+  g.strokeStyle='#d2faff99';g.lineWidth=2;
+  g.beginPath();g.ellipse(0,0,30,43,.24,0,Math.PI*2);g.stroke();
+  disk(0,-49,5,'#fff1bd');g.restore();
+ }
+ // Free-standing glass rings mark the two helical turns; no straight solo rail.
+ for(const segment of wildSpiralSegments){
+  const a=soloStops[segment-1],b=soloStops[segment];
+  for(let ring=1;ring<=3;ring++){
+   const u=ring/4,at=a.at+(b.at-a.at)*u,center=soloPosition(at);
+   if(center.y<camera-90||center.y>camera+1090)continue;
+   const flash=Math.max(0,1-Math.abs(soloAge-at)/.19);
+   g.save();g.translate(center.x,center.y);
+   g.rotate((segment%2?1:-1)*(.22+u*.5));
+   g.strokeStyle='#172e38';g.lineWidth=10;
+   g.beginPath();g.ellipse(0,0,34,42,0,0,Math.PI*2);g.stroke();
+   g.strokeStyle=flash?'#fff0bd':'#afdfdd';g.lineWidth=4;
+   g.beginPath();g.ellipse(0,0,34,42,0,0,Math.PI*2);g.stroke();
+   g.strokeStyle='#ffe2a077';g.lineWidth=1.5;
+   g.beginPath();g.ellipse(0,0,26,35,0,0,Math.PI*2);g.stroke();
+   g.restore();
+  }
  }
  g.restore();
 }
@@ -1370,7 +1469,7 @@ function draw(dt=1/60){
 }
 
 function drawMachine(camera){
- drawCopperkeeper(camera);drawWaterwheelReturn(camera);drawReturnArrival(camera);drawPrismLightOrgan(camera);drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);drawSoloTargets();drawFireTrails(camera);
+ drawCopperkeeper(camera);drawWaterwheelReturn(camera);drawReturnArrival(camera);drawPrismLightOrgan(camera);drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);drawWildRideDevices(camera);drawSoloTargets();drawFireTrails(camera);
 for(let lane=0;lane<4;lane++){let course=lanes[lane];for(let i=0;i<course.length;i++){let p=course[i];if(p.y<camera-100||p.y>camera+1100)continue;let px=laneX(p.x,lane),motion=padMotion(p,time);let age=time-p.hit,compression=age>=0&&age<.7?12*Math.exp(-age*7)*Math.abs(Math.sin(age*22)):0;g.save();g.translate(px,p.y+8);g.rotate(p.angle+motion.tilt);g.scale(.78,.85);ellipse(12,29,60,15,'#0b1c2555');
 // Visible fulcrum and balanced beam distinguish the occasional seesaw.
 if(p.mechanism==='seesaw'){g.beginPath();g.moveTo(-14,43);g.lineTo(0,11);g.lineTo(14,43);g.closePath();g.fillStyle='#83989b';g.fill();line(-76,7,76,7,'#e4bc77',10);disk(-72,7,7,'#a87343');disk(72,7,7,'#a87343');disk(0,16,6,'#f3d79d')}
@@ -1403,7 +1502,7 @@ g.font='16px Georgia';g.fillStyle=age>=0&&age<.5?'#ffe6a5':'#d4dfd7';g.textAlign
 if(age>=0&&age<.45){g.strokeStyle='#f7ce7b';g.lineWidth=2;g.beginPath();g.arc(px,p.y-r,23+age*55,Math.PI*1.1,Math.PI*1.9);g.stroke()}}}
 drawCoolingJets(camera);
 for(let lane=0;lane<4;lane++){let bowlX=laneX(465,lane);ellipse(bowlX,endY+24,65,12,'#1b3039');ellipse(bowlX,endY+20,65,11,'#8fa8ab');ellipse(bowlX,endY+16,53,7,'#438b9a');ellipse(bowlX-9,endY+14,32,3,'#a9e9e477');
-drawCascadeMarble(lane,lane===2&&soloAge>=0?returnPosition(soloAge):undefined);g.textAlign='left';drawSplash(laneX(465,lane));}drawSoloRail();drawFountain(laneX(465,2));drawStringMarble();}
+drawCascadeMarble(lane,lane===2&&soloAge>=0?returnPosition(soloAge):undefined);g.textAlign='left';drawSplash(laneX(465,lane));}drawFountain(laneX(465,2));drawStringMarble();}
 // A linkage from the bouncer taps a miniature cymbal on selected long notes.
 function drawCymbal(x,y,age){const active=age>=0&&age<.8,shake=active?Math.sin(age*65)*Math.exp(-age*7):0,stroke=active?16*Math.exp(-age*20):0,cx=x+58,cy=y-24;
 line(cx,cy+3,cx,y+42,'#a9b4ae',3);ellipse(cx,y+43,18,4,'#283b43');
@@ -1474,8 +1573,8 @@ function percussion(kind,when){if(!ac)return;const z=when;
  if(kind==='snare'){let b=ac.createBuffer(1,Math.ceil(ac.sampleRate*.16),ac.sampleRate),data=b.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;let n=ac.createBufferSource(),f=ac.createBiquadFilter(),v=ac.createGain();n.buffer=b;f.type='highpass';f.frequency.value=1500;v.gain.setValueAtTime(.11,z);v.gain.exponentialRampToValueAtTime(.0001,z+.16);n.connect(f).connect(v).connect(master);track(n);n.start(z);n.stop(z+.17)}
 }
 
-function reset(){soloAge=-1;soloNext=1;wheelPhase=0;returnStage=0;nextMechanismCue=0;drumStruck=0;audioDrumStruck=0;cameraY=0;stopVoices();audioStruck=0;audioBassStruck=0;clockLast=null;bassStruck=0;splashAge=-1;stringSplashAge=-1;time=0;struck=0;finished=false;running=false;lanes.forEach(course=>course.forEach(p=>p.hit=-100));play.textContent='Release marbles';status.textContent=song.title+' · tap Release marbles'}
-function frame(ms){let dt=last===null?0:Math.min(.04,(ms-last)/1000);last=ms;if(splashAge>=0)splashAge+=dt;if(stringSplashAge>=0)stringSplashAge+=dt;if(soloAge>=0&&soloAge<returnPhases.reservoir)advanceSolo(dt);if(soloAge>=0)wheelPhase=returnWheelAngle(soloAge);else if(splashAge>=0&&splashAge<2.8)wheelPhase-=dt*wheelSpeed;if(running){let rate=Number(document.querySelector('#speed').value),now=ac?ac.currentTime:ms/1000,elapsed=clockLast===null?0:Math.max(0,now-clockLast);clockLast=now;time=Math.min(stringEnd,time+elapsed*rate);scheduleAudio(rate);while(struck<pads.length&&time>=arrivals[struck]){pads[struck].hit=arrivals[struck];harmony[struck].hit=arrivals[struck];status.textContent=pads[struck].name+' + '+harmony[struck].name+' · note '+(struck+1)+' of '+pads.length;struck++}while(bassStruck<bass.length&&time>=bassArrivals[bassStruck]){let p=bass[bassStruck],until=bassArrivals[bassStruck+1]||total;p.hit=bassArrivals[bassStruck];bassStruck++}while(drumStruck<drums.length&&time>=drumArrivals[drumStruck]){drums[drumStruck].hit=drumArrivals[drumStruck];drumStruck++}if(time>=total&&splashAge<0){splashAge=0;splashSound();fountainChime();status.textContent='Amber marble approaching the splash'}if(time>=stringEnd){running=false;finished=true;stringSplashAge=0;splashSound();play.textContent='Play again';soloAge=0;status.textContent='Gold marble solo · '+song.title}}draw(dt);requestAnimationFrame(frame)}
+function reset(){soloAge=-1;soloNext=1;soloHoopNext=0;wheelPhase=0;returnStage=0;nextMechanismCue=0;drumStruck=0;audioDrumStruck=0;cameraY=0;stopVoices();audioStruck=0;audioBassStruck=0;clockLast=null;bassStruck=0;splashAge=-1;stringSplashAge=-1;time=0;struck=0;finished=false;running=false;lanes.forEach(course=>course.forEach(p=>p.hit=-100));play.textContent='Release marbles';status.textContent=song.title+' · tap Release marbles'}
+function frame(ms){let dt=last===null?0:Math.min(.04,(ms-last)/1000);last=ms;if(splashAge>=0)splashAge+=dt;if(stringSplashAge>=0)stringSplashAge+=dt;if(soloAge>=0&&soloAge<returnPhases.reservoir)advanceSolo(dt);if(soloAge>=0)wheelPhase=returnWheelAngle(soloAge);else if(splashAge>=0&&splashAge<2.8)wheelPhase-=dt*wheelSpeed;if(running){let rate=Number(document.querySelector('#speed').value),now=ac?ac.currentTime:ms/1000,elapsed=clockLast===null?0:Math.max(0,now-clockLast);clockLast=now;time=Math.min(stringEnd,time+elapsed*rate);scheduleAudio(rate);while(struck<pads.length&&time>=arrivals[struck]){pads[struck].hit=arrivals[struck];harmony[struck].hit=arrivals[struck];status.textContent=pads[struck].name+' + '+harmony[struck].name+' · note '+(struck+1)+' of '+pads.length;struck++}while(bassStruck<bass.length&&time>=bassArrivals[bassStruck]){let p=bass[bassStruck],until=bassArrivals[bassStruck+1]||total;p.hit=bassArrivals[bassStruck];bassStruck++}while(drumStruck<drums.length&&time>=drumArrivals[drumStruck]){drums[drumStruck].hit=drumArrivals[drumStruck];drumStruck++}if(time>=total&&splashAge<0){splashAge=0;splashSound();fountainChime();status.textContent='Amber marble approaching the splash'}if(time>=stringEnd){running=false;finished=true;stringSplashAge=0;splashSound();play.textContent='Play again';soloAge=0;status.textContent='Golden marble Wild Ride · '+song.title}}draw(dt);requestAnimationFrame(frame)}
 play.onclick=async()=>{
  if(running){running=false;resyncAudio();play.textContent='Continue';status.textContent='Paused';return}
  if(finished)reset();
