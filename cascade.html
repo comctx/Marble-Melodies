@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Note Cascade · Marble Melodies</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#171e22;color:#e8e5dc;font:15px system-ui}main{max-width:850px;margin:auto}header{padding:14px 18px 10px}a{color:#bfcacb;font-size:13px}h1{font:29px Georgia;margin:12px 0 6px}p{margin:4px 0;color:#aebbbc;line-height:1.5}canvas{display:block;width:100%;aspect-ratio:900/1000;background:#333f43}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 16px max(18px,env(safe-area-inset-bottom));background:#20292d}button{border:1px solid #627378;border-radius:24px;background:#37484b;color:white;font:15px system-ui;padding:11px 18px}#play{background:#d8b16d;color:#20292d;border-color:#d8b16d}label{font-size:13px;color:#c1ccca;display:flex;align-items:center;gap:7px}select{max-width:240px;padding:10px;border-radius:8px;background:#30464b;color:#fff;border:1px solid #8da79a;font:14px system-ui}input{width:100px;accent-color:#d8b16d}#status{font-size:12px;color:#c2ceca;padding:0 18px 12px}@media(min-width:700px){canvas{max-height:76vh;width:auto;max-width:100%;margin:auto}}</style></head>
-<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash, fiery marble trails, and cooling water sprays, with a water-powered wheel, moving bucket elevator, and a single marble returning to the upper reservoir"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="sousa">The Stars and Stripes Forever</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="effects" aria-pressed="true" title="Toggle fiery trails and cooling water sprays">Fire + water on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
+<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash, fiery marble trails, and cooling water sprays, with a synchronized waterwheel, meshed gears, moving bucket elevator, and the same amber marble returning to a glowing upper reservoir"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="sousa">The Stars and Stripes Forever</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="effects" aria-pressed="true" title="Toggle fiery trails and cooling water sprays">Fire + water on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
 <script>
 (()=>{'use strict';
 const c=document.querySelector('canvas'),g=c.getContext('2d'),play=document.querySelector('#play'),status=document.querySelector('#status');
@@ -823,6 +823,19 @@ const returnPhases={
 returnPhases.top=returnPhases.lift+(returnLift.bottom-returnLift.top)/980;
 returnPhases.reservoir=returnPhases.top+1.35;
 let wheelPhase=0,returnStage=0;
+// The waterwheel scoop carries the SAME marble shown on the wheel.
+const wheelSpeed=2.70/(returnPhases.wheel-returnPhases.intake);
+function returnWheelAngle(age){return 2.25-(age-returnPhases.intake)*wheelSpeed}
+function returnClick(pitch=520){
+ if(!sound||!ac||!master)return;
+ const now=ac.currentTime,o=ac.createOscillator(),v=ac.createGain();
+ o.type='triangle';o.frequency.setValueAtTime(pitch,now);
+ o.frequency.exponentialRampToValueAtTime(pitch*.48,now+.09);
+ v.gain.setValueAtTime(.0001,now);
+ v.gain.exponentialRampToValueAtTime(.065,now+.006);
+ v.gain.exponentialRampToValueAtTime(.0001,now+.12);
+ o.connect(v).connect(master);track(o);o.start(now);o.stop(now+.13);
+}
 function returnPosition(age=soloAge){
  const mix=(a,b,u)=>({x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u});
  const fraction=(a,b)=>Math.max(0,Math.min(1,(age-a)/(b-a)));
@@ -831,7 +844,7 @@ function returnPosition(age=soloAge){
  if(age<=returnStart)return soloPosition(age);
  if(age<=returnPhases.intake)return mix(basin,returnEntry,smooth(fraction(returnStart,returnPhases.intake)));
  if(age<=returnPhases.wheel){
-  const angle=2.25-2.70*smooth(fraction(returnPhases.intake,returnPhases.wheel));
+  const angle=returnWheelAngle(age);
   return{x:returnWheel.x+returnWheel.r*Math.cos(angle),y:returnWheel.y+returnWheel.r*Math.sin(angle)};
  }
  const rampEnd={x:787,y:endY-30};
@@ -863,16 +876,16 @@ function advanceSolo(dt){
   if(stop.kind==='String')pluckString(chord.notes[i===3?0:2]+12,ac.currentTime);
  }
  if(soloAge>=returnStart&&returnStage<1){
-  returnStage=1;status.textContent='Amber marble entering the water-powered return wheel';
+  returnStage=1;returnClick(460);status.textContent='Amber marble entering the water-powered return wheel';
  }
  if(soloAge>=returnPhases.lift&&returnStage<2){
-  returnStage=2;status.textContent='Waterwheel driving bucket elevator · one marble ascending';
+  returnStage=2;returnClick(360);status.textContent='Waterwheel driving bucket elevator · one marble ascending';
  }
  if(soloAge>=returnPhases.top&&returnStage<3){
-  returnStage=3;status.textContent='Marble leaving the elevator for the upper reservoir';
+  returnStage=3;returnClick(600);status.textContent='Marble leaving the elevator for the upper reservoir';
  }
  if(soloAge>=returnPhases.reservoir&&returnStage<4){
-  returnStage=4;status.textContent=song.title+' · amber marble returned to the top reservoir';
+  returnStage=4;returnClick(780);status.textContent=song.title+' · amber marble returned to the top reservoir';
  }
 }
 function drawSoloTargets(){
@@ -904,7 +917,7 @@ function drawSoloRail(){
 function drawWaterwheelReturn(camera){
  const sx=returnLift.x,wy=returnWheel.y,wx=returnWheel.x;
  const top=Math.max(returnLift.top,camera-85),bottom=Math.min(returnLift.bottom,camera+1080);
- const powered=(splashAge>=0&&splashAge<2.8)||(soloAge>=returnStart&&soloAge<returnPhases.reservoir);
+ const powered=(splashAge>=0&&splashAge<2.8)||(soloAge>=0&&soloAge<returnPhases.reservoir);
  if(bottom>=top){
   // Glass inspection shaft with a continuous pair of moving roller chains.
   g.save();
@@ -915,7 +928,8 @@ function drawWaterwheelReturn(camera){
   }
   line(sx-23,top,sx-23,bottom,'#b1e7e45e',3);
   line(sx+24,top,sx+24,bottom,'#b1e7e45e',3);
-  const offset=((wheelPhase*450)%74+74)%74;
+  // A high-ratio pinion carries the upward chain at the bucket's real speed.
+  const offset=((-wheelPhase*(980/wheelSpeed))%74+74)%74;
   for(let y=Math.floor((top-74)/74)*74+offset;y<bottom+74;y+=74){
    if(y<top||y>bottom)continue;
    for(const dx of [-25,25]){
@@ -988,7 +1002,7 @@ function drawWaterwheelReturn(camera){
  line(wx+16,wy+22,px-11,py+29,'#423b31',7);
  line(wx+16,wy-22,px-11,py-29,'#d4b47f',2);
  line(wx+16,wy+22,px-11,py+29,'#d4b47f',2);
- g.save();g.translate(px,py);g.rotate(-wheelPhase*2.2);
+ g.save();g.translate(px,py);g.rotate(-wheelPhase*7.9);
  disk(0,0,29,'#4a3d2a');
  for(let j=0;j<10;j++){const a=j*Math.PI/5;disk(Math.cos(a)*29,Math.sin(a)*29,5,'#eac782')}
  for(let j=0;j<5;j++){const a=j*Math.PI*2/5;line(0,0,Math.cos(a)*20,Math.sin(a)*20,'#f3cf91',4)}
@@ -1003,7 +1017,7 @@ function drawWaterwheelReturn(camera){
   g.strokeStyle='#2c9ac4';g.lineWidth=12;g.stroke();
   g.strokeStyle='#d9ffff';g.lineWidth=4;g.stroke();
   for(let i=0;i<18;i++){
-   const u=(i/18+wheelPhase*.15)%1,v=1-u;
+   const u=((i/18+Math.abs(wheelPhase)*.13)%1+1)%1,v=1-u;
    const x=v*v*fx+2*v*u*(wx-48)+u*u*tx;
    const y=v*v*fy+2*v*u*(fy-58)+u*u*ty;
    disk(x,y,2+i%3,'#d8faff');
@@ -1016,6 +1030,31 @@ function drawWaterwheelReturn(camera){
  g.restore();
 }
 
+// A completed cycle is plainly visible at the upper reservoir.
+function drawReturnArrival(camera){
+ const y=118;if(y<camera-160||y>camera+1130)return;
+ const done=soloAge>=returnPhases.reservoir;
+ const approach=soloAge>=returnPhases.top&&soloAge<returnPhases.reservoir;
+ const x=laneX(465,2);
+ if(!done&&!approach)return;
+ g.save();
+ if(approach){
+  const v=(soloAge-returnPhases.top)/(returnPhases.reservoir-returnPhases.top);
+  g.strokeStyle='#ffe6aa';g.lineWidth=4;
+  g.beginPath();g.arc(x,105,43+20*v,Math.PI*.1,Math.PI*.9);g.stroke();
+ }
+ if(done){
+  const glow=.65+.25*Math.sin((soloAge-returnPhases.reservoir)*3.4);
+  g.globalAlpha=glow;
+  g.shadowColor='#c8fff0';g.shadowBlur=20;
+  ellipse(x,129,69,13,'#9ffbe6');
+  g.shadowBlur=0;
+  g.fillStyle='#f6e3ad';g.textAlign='center';g.font='bold 17px Georgia';
+  g.fillText('MARBLE RETURNED',x,188);
+  g.globalAlpha=1;
+ }
+ g.restore();
+}
 function drawLowerMirror(camera){
  const top=endY-510,bottom=endY+118;
  if(top>camera+1000||bottom<camera)return;
@@ -1074,7 +1113,7 @@ function draw(dt=1/60){
 }
 
 function drawMachine(camera){
- drawWaterwheelReturn(camera);drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);drawSoloTargets();drawFireTrails(camera);
+ drawWaterwheelReturn(camera);drawReturnArrival(camera);drawRouteDevices(camera);drawFinale(camera);drawStringRail(camera);drawSoloTargets();drawFireTrails(camera);
 for(let lane=0;lane<4;lane++){let course=lanes[lane];for(let i=0;i<course.length;i++){let p=course[i];if(p.y<camera-100||p.y>camera+1100)continue;let px=laneX(p.x,lane),motion=padMotion(p,time);let age=time-p.hit,compression=age>=0&&age<.7?12*Math.exp(-age*7)*Math.abs(Math.sin(age*22)):0;g.save();g.translate(px,p.y+8);g.rotate(p.angle+motion.tilt);g.scale(.78,.85);ellipse(12,29,60,15,'#0b1c2555');
 // Visible fulcrum and balanced beam distinguish the occasional seesaw.
 if(p.mechanism==='seesaw'){g.beginPath();g.moveTo(-14,43);g.lineTo(0,11);g.lineTo(14,43);g.closePath();g.fillStyle='#83989b';g.fill();line(-76,7,76,7,'#e4bc77',10);disk(-72,7,7,'#a87343');disk(72,7,7,'#a87343');disk(0,16,6,'#f3d79d')}
@@ -1179,7 +1218,7 @@ function percussion(kind,when){if(!ac)return;const z=when;
 }
 
 function reset(){soloAge=-1;soloNext=1;wheelPhase=0;returnStage=0;nextMechanismCue=0;drumStruck=0;audioDrumStruck=0;cameraY=0;stopVoices();audioStruck=0;audioBassStruck=0;clockLast=null;bassStruck=0;splashAge=-1;stringSplashAge=-1;time=0;struck=0;finished=false;running=false;lanes.forEach(course=>course.forEach(p=>p.hit=-100));play.textContent='Release marbles';status.textContent=song.title+' · tap Release marbles'}
-function frame(ms){let dt=last===null?0:Math.min(.04,(ms-last)/1000);last=ms;if(splashAge>=0)splashAge+=dt;if(stringSplashAge>=0)stringSplashAge+=dt;if(soloAge>=0&&soloAge<returnPhases.reservoir)advanceSolo(dt);if((splashAge>=0&&splashAge<2.8)||(soloAge>=returnStart&&soloAge<returnPhases.reservoir))wheelPhase-=dt*(soloAge>=returnPhases.intake&&soloAge<=returnPhases.wheel?2.7/(returnPhases.wheel-returnPhases.intake):2.15);if(running){let rate=Number(document.querySelector('#speed').value),now=ac?ac.currentTime:ms/1000,elapsed=clockLast===null?0:Math.max(0,now-clockLast);clockLast=now;time=Math.min(stringEnd,time+elapsed*rate);scheduleAudio(rate);while(struck<pads.length&&time>=arrivals[struck]){pads[struck].hit=arrivals[struck];harmony[struck].hit=arrivals[struck];status.textContent=pads[struck].name+' + '+harmony[struck].name+' · note '+(struck+1)+' of '+pads.length;struck++}while(bassStruck<bass.length&&time>=bassArrivals[bassStruck]){let p=bass[bassStruck],until=bassArrivals[bassStruck+1]||total;p.hit=bassArrivals[bassStruck];bassStruck++}while(drumStruck<drums.length&&time>=drumArrivals[drumStruck]){drums[drumStruck].hit=drumArrivals[drumStruck];drumStruck++}if(time>=total&&splashAge<0){splashAge=0;splashSound();fountainChime();status.textContent='Amber marble approaching the splash'}if(time>=stringEnd){running=false;finished=true;stringSplashAge=0;splashSound();play.textContent='Play again';soloAge=0;status.textContent='Gold marble solo · '+song.title}}draw(dt);requestAnimationFrame(frame)}
+function frame(ms){let dt=last===null?0:Math.min(.04,(ms-last)/1000);last=ms;if(splashAge>=0)splashAge+=dt;if(stringSplashAge>=0)stringSplashAge+=dt;if(soloAge>=0&&soloAge<returnPhases.reservoir)advanceSolo(dt);if(soloAge>=0)wheelPhase=returnWheelAngle(soloAge);else if(splashAge>=0&&splashAge<2.8)wheelPhase-=dt*wheelSpeed;if(running){let rate=Number(document.querySelector('#speed').value),now=ac?ac.currentTime:ms/1000,elapsed=clockLast===null?0:Math.max(0,now-clockLast);clockLast=now;time=Math.min(stringEnd,time+elapsed*rate);scheduleAudio(rate);while(struck<pads.length&&time>=arrivals[struck]){pads[struck].hit=arrivals[struck];harmony[struck].hit=arrivals[struck];status.textContent=pads[struck].name+' + '+harmony[struck].name+' · note '+(struck+1)+' of '+pads.length;struck++}while(bassStruck<bass.length&&time>=bassArrivals[bassStruck]){let p=bass[bassStruck],until=bassArrivals[bassStruck+1]||total;p.hit=bassArrivals[bassStruck];bassStruck++}while(drumStruck<drums.length&&time>=drumArrivals[drumStruck]){drums[drumStruck].hit=drumArrivals[drumStruck];drumStruck++}if(time>=total&&splashAge<0){splashAge=0;splashSound();fountainChime();status.textContent='Amber marble approaching the splash'}if(time>=stringEnd){running=false;finished=true;stringSplashAge=0;splashSound();play.textContent='Play again';soloAge=0;status.textContent='Gold marble solo · '+song.title}}draw(dt);requestAnimationFrame(frame)}
 play.onclick=async()=>{
  if(running){running=false;resyncAudio();play.textContent='Continue';status.textContent='Paused';return}
  if(finished)reset();
