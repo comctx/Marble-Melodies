@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Note Cascade · Marble Melodies</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#171e22;color:#e8e5dc;font:15px system-ui}main{max-width:850px;margin:auto}header{padding:14px 18px 10px}a{color:#bfcacb;font-size:13px}h1{font:29px Georgia;margin:12px 0 6px}p{margin:4px 0;color:#aebbbc;line-height:1.5}canvas{display:block;width:100%;aspect-ratio:900/1000;background:#333f43}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 16px max(18px,env(safe-area-inset-bottom));background:#20292d}button{border:1px solid #627378;border-radius:24px;background:#37484b;color:white;font:15px system-ui;padding:11px 18px}#play{background:#d8b16d;color:#20292d;border-color:#d8b16d}label{font-size:13px;color:#c1ccca;display:flex;align-items:center;gap:7px}select{max-width:240px;padding:10px;border-radius:8px;background:#30464b;color:#fff;border:1px solid #8da79a;font:14px system-ui}input{width:100px;accent-color:#d8b16d}#status{font-size:12px;color:#c2ceca;padding:0 18px 12px}@media(min-width:700px){canvas{max-height:76vh;width:auto;max-width:100%;margin:auto}}</style></head>
-<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash, colorful fireworks, fiery marble trails, and cooling water sprays, with a synchronized waterwheel, original copper clockwork guardian, meshed gears, moving bucket elevator, and the same amber marble returning to a glowing upper reservoir"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="sousa">The Stars and Stripes Forever</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="chopsticks">Chopsticks</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="effects" aria-pressed="true" title="Toggle fiery trails and cooling water sprays">Fire + water on</button><button id="lights" aria-pressed="true" title="Toggle the synchronized glass-prism light organ">Prism lights on</button><button id="fireworks" aria-pressed="true" title="Toggle fireworks at the splash finale">Fireworks on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
+<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash, colorful fireworks, fiery marble trails, and cooling water sprays, with a synchronized waterwheel, original copper clockwork guardian, meshed gears, moving bucket elevator, and the same amber marble returning to a glowing upper reservoir"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="sousa">The Stars and Stripes Forever</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="gladiators">Entry of the Gladiators</option><option value="chopsticks">Chopsticks</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="effects" aria-pressed="true" title="Toggle fiery trails and cooling water sprays">Fire + water on</button><button id="lights" aria-pressed="true" title="Toggle the synchronized glass-prism light organ">Prism lights on</button><button id="fireworks" aria-pressed="true" title="Toggle fireworks at the splash finale">Fireworks on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
 <script>
 (()=>{'use strict';
 const c=document.querySelector('canvas'),g=c.getContext('2d'),play=document.querySelector('#play'),status=document.querySelector('#status');
@@ -112,6 +112,39 @@ songs.chopsticks={title:'Chopsticks',bpm:104,tightArticulation:true,
   return notes;
  })()
 };
+
+// Familiar opening strain, transcribed from the 1903 Carl Fischer piano score:
+// https://levysheetmusic.mse.jhu.edu/collection/173/016
+// Original Cascade accompaniment and short C-major ending; not the full march.
+// Notes use quarter-note beats in cut time (100 half-note beats per minute).
+songs.gladiators={title:'Entry of the Gladiators',bpm:200,tightArticulation:true,clearHarmony:true,
+ credit:'Julius Fučík, 1897 · familiar circus strain twice · original Cascade accompaniment and ending',
+ melody:(()=>{
+  const bars=[
+   [[84,1],[83,1],[82,.5],[85,.5],[84,.5],[81,.5]],
+   [[80,1],[79,1],[78,1],[79,1]],
+   [[81,1],[80,1],[79,.5],[82,.5],[79,.5],[78,.5]],
+   [[77,1],[76,1],[75,1],[76,1]],
+   // First G is an eighth note followed by an eighth rest.
+   [[79,1,.5],[77,.5],[77,.5],[76,1],[76,1]],
+   [[71,.5],[72,.5],[73,.5],[74,.5],[75,.5],[76,.5],[77,.5],[78,.5]],
+   [[79,.5],[80,.5],[81,.5],[82,.5],[81,1],[79,1]],
+   [[84,1],[83,1],[82,.5],[85,.5],[84,.5],[81,.5]],
+   [[80,1],[79,1],[78,1],[79,1]],
+   [[81,1],[80,1],[79,.5],[82,.5],[79,.5],[78,.5]],
+   [[77,1],[76,1],[75,1],[76,1]],
+   [[79,1],[77,1],[76,1],[72,1]]
+  ];
+  const chords=['C','C','C','C','G','G','G','C','C','C','C','G'];
+  const notes=[];
+  for(let pass=0;pass<2;pass++)bars.forEach((bar,i)=>bar.forEach(([pitch,beats,sounding])=>{
+   notes.push([pitch,beats,i===11&&pitch===72?'C':chords[i],sounding??beats*.75]);
+  }));
+  notes[notes.length-1]=[72,3,'C',2.5];
+  return notes;
+ })()
+};
+
 const requested=new URLSearchParams(location.search).get('tune');
 const song=songs[requested]||songs.anthem;
 const tune=document.querySelector('#tune');tune.value=songs[requested]?requested:'anthem';
