@@ -678,7 +678,11 @@ function drawPrismLightOrgan(camera){
  g.save();
  const centers=[120,340,560,780],sectionCount=Math.ceil(pads.length/8);
  for(let section=0;section<sectionCount;section++){
-  const begin=section*8,fromY=pads[begin].y,toY=pads[Math.min(begin+8,pads.length-1)].y+70;
+  const begin=section*8,fromY=pads[begin].y;
+  // Half-open bands give each impact exactly one fixture, including sparse
+  // bass/percussion courses. The mirror uses this same ownership rule.
+  const firstY=fromY-24;
+  const nextY=begin+8<pads.length?pads[begin+8].y-24:Infinity;
   const mountingY=fromY-76;
   if(mountingY<camera-930||mountingY>camera+1120)continue;
   for(let lane=0;lane<4;lane++){
@@ -686,7 +690,7 @@ function drawPrismLightOrgan(camera){
    const color=prismLightColors[lane],course=lanes[lane];
    let lastImpact=null;
    for(const p of course){
-    if(p.y<fromY-24||p.y>=toY||p.hit<0||p.hit>time)continue;
+    if(p.y<firstY||p.y>=nextY||p.hit<0||p.hit>time)continue;
     if(!lastImpact||p.hit>lastImpact.hit)lastImpact=p;
    }
    const age=lastImpact?time-lastImpact.hit:10;
