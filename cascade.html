@@ -95,19 +95,23 @@ const songs={
  ]}
 };
 songs.anthem={title:'The Star-Spangled Banner',bpm:84,credit:'Traditional melody · original synthesized arrangement',melody:[[69,0.75],[66,0.25],[62,1],[66,1],[69,1],[74,2],[78,0.75],[76,0.25],[74,1],[66,1],[68,1],[69,2],[69,1],[78,1.5],[76,0.5],[74,1],[73,2],[71,0.5],[73,0.5],[74,1],[74,1],[69,1],[66,1],[62,2],[69,0.75],[66,0.25],[62,1],[66,1],[69,1],[74,2],[78,0.75],[76,0.25],[74,1],[66,1],[68,1],[69,2],[69,1],[78,1.5],[76,0.5],[74,1],[73,2],[71,0.5],[73,0.5],[74,1],[74,1],[69,1],[66,1],[62,2],[78,0.75],[78,0.25],[78,1],[79,1],[81,1],[81,2],[79,0.75],[78,0.25],[76,1],[78,1],[79,1],[79,2],[79,1],[78,1.5],[76,0.5],[74,1],[73,2],[71,0.75],[73,0.25],[74,1],[66,1],[68,1],[69,2],[69,1],[74,1],[74,1],[74,0.5],[73,0.5],[71,1],[71,1],[71,1],[76,1],[79,0.5],[78,0.5],[76,0.5],[74,0.5],[74,1],[73,1],[69,0.75],[69,0.25],[74,1.5],[76,0.5],[78,0.5],[79,0.5],[81,2],[74,0.75],[76,0.25],[78,1.5],[79,0.5],[76,1],[74,3]]};
-// Chopsticks: the familiar paired-note theme of Euphemia Allen's 1877
-// Celebrated Chop Waltz, in an original two-pass Cascade arrangement.
-// Keep both pitches explicit: F/G and D/B must not be replaced by chord harmony.
-songs.chopsticks={title:'Chopsticks',bpm:104,tightArticulation:true,
- credit:'Euphemia Allen, 1877 · familiar paired-note theme twice · original Cascade arrangement · 3/4',
+// Chopsticks: Euphemia Allan's 1877 Celebrated Chop Waltz, opening 16 bars,
+// with both simultaneous piano pitches explicit (F5/G5, E5/G5, D5/B5).
+// The first turnaround and the descending C-G-E-C close preserve the familiar
+// tune; a lighter background keeps its two notes clear over the machine sounds.
+songs.chopsticks={title:'Chopsticks',bpm:104,tightArticulation:true,pairedMelody:true,
+ credit:'Euphemia Allan, 1877 · familiar paired-note opening and descending close · 3/4',
  melody:(()=>{
   const notes=[];
   const pair=(low,high,count,chord)=>{for(let i=0;i<count;i++)notes.push([high,1,chord,.65,low])};
   for(let pass=0;pass<2;pass++){
-   pair(65,67,6,'G');pair(64,67,6,'C');pair(62,71,6,'G');
-   pair(60,72,3,'C');
-   if(pass===0){pair(60,72,1,'C');pair(62,71,1,'G');pair(64,69,1,'C')}
-   else notes.push([72,3,'C',2.5,60]);
+   pair(77,79,6,'G');pair(76,79,6,'C');pair(74,83,6,'G');
+   if(pass===0){
+    pair(72,84,3,'C');pair(72,84,1,'C');pair(74,83,1,'G');pair(76,81,1,'C');
+   }else{
+    notes.push([84,1,'C',.65,72],[79,1,'C',.65,67],
+               [76,1,'C',.65,64],[72,3,'C',2.4,60]);
+   }
   }
   return notes;
  })()
@@ -317,7 +321,7 @@ function scheduleMechanisms(horizon,rate){
   oscillator.stop(when+duration);
  }
 }
-function scheduleAudio(rate){if(!ac)return;const horizon=time+.12*rate;scheduleMechanisms(horizon,rate);while(audioStruck<pads.length&&arrivals[audioStruck]<=horizon){let i=audioStruck++,when=ac.currentTime+Math.max(0,(arrivals[i]-time)/rate);const gate=melody[i][3]??pads[i].beats;chime(pads[i].note,gate/rate,.82,when);chime(harmony[i].note,gate/rate,song.clearHarmony?.23:.34,when);if(accentIndices.has(i))cymbalAccent(when,i===pads.length-1);if(i===pads.length-1)finaleGong(when)}while(audioBassStruck<bass.length&&bassArrivals[audioBassStruck]<=horizon){let i=audioBassStruck++,until=bassArrivals[i+1]||total; if(chordsEnabled)chordTone(bass[i].chord,(until-bassArrivals[i])/rate,ac.currentTime+Math.max(0,(bassArrivals[i]-time)/rate)); bassTone(bass[i].note,(until-bassArrivals[i])/beatSeconds/rate,i===bass.length-1,ac.currentTime+Math.max(0,(bassArrivals[i]-time)/rate))}while(audioDrumStruck<drums.length&&drumArrivals[audioDrumStruck]<=horizon){const i=audioDrumStruck++;percussion(drums[i].kind,ac.currentTime+Math.max(0,(drumArrivals[i]-time)/rate))}}
+function scheduleAudio(rate){if(!ac)return;const horizon=time+.12*rate;scheduleMechanisms(horizon,rate);while(audioStruck<pads.length&&arrivals[audioStruck]<=horizon){let i=audioStruck++,when=ac.currentTime+Math.max(0,(arrivals[i]-time)/rate);const gate=melody[i][3]??pads[i].beats;chime(pads[i].note,gate/rate,song.pairedMelody?.76:.82,when);chime(harmony[i].note,gate/rate,song.pairedMelody?.76:(song.clearHarmony?.23:.34),when);if(accentIndices.has(i))cymbalAccent(when,i===pads.length-1);if(i===pads.length-1)finaleGong(when)}while(audioBassStruck<bass.length&&bassArrivals[audioBassStruck]<=horizon){let i=audioBassStruck++,until=bassArrivals[i+1]||total; if(chordsEnabled)chordTone(bass[i].chord,(until-bassArrivals[i])/rate,ac.currentTime+Math.max(0,(bassArrivals[i]-time)/rate),song.pairedMelody?.22:1); bassTone(bass[i].note,(until-bassArrivals[i])/beatSeconds/rate,i===bass.length-1,ac.currentTime+Math.max(0,(bassArrivals[i]-time)/rate),song.pairedMelody?.32:1)}while(audioDrumStruck<drums.length&&drumArrivals[audioDrumStruck]<=horizon){const i=audioDrumStruck++;percussion(drums[i].kind,ac.currentTime+Math.max(0,(drumArrivals[i]-time)/rate),song.pairedMelody?.20:1)}}
 function resyncAudio(){stopVoices();nextMechanismCue=mechanismCues.findIndex(cue=>cue.at>=time);if(nextMechanismCue<0)nextMechanismCue=mechanismCues.length;audioDrumStruck=drumStruck;audioStruck=struck;audioBassStruck=bassStruck;clockLast=ac?ac.currentTime:null}
 let cameraY=0,closeupEnabled=false;
 // Swing into the original contact angle before the scheduled note strike.
@@ -1762,12 +1766,12 @@ function fountainChime(){
 function splashSound(){if(!sound||!ac)return;let duration=.7,buffer=ac.createBuffer(1,Math.ceil(ac.sampleRate*duration),ac.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,2);let source=ac.createBufferSource(),filter=ac.createBiquadFilter(),gain=ac.createGain();source.buffer=buffer;filter.type='lowpass';filter.frequency.setValueAtTime(2800,ac.currentTime);filter.frequency.exponentialRampToValueAtTime(400,ac.currentTime+duration);gain.gain.setValueAtTime(.22,ac.currentTime);gain.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+duration);source.connect(filter).connect(gain).connect(ac.destination);source.start();source.stop(ac.currentTime+duration)}
 function chime(n,beats=1,level=1,when=ac.currentTime){if(!ac)return;let z=when,f=440*2**((n-69)/12);for(const [m,a,d] of [[1,.28,song.tightArticulation?Math.max(.16,beats*beatSeconds*.86):Math.max(1.2,beats*beatSeconds*.95)],[2,.07,song.tightArticulation?Math.max(.1,Math.min(.4,beats*beatSeconds*.7)):.5],[3,.02,song.tightArticulation?Math.max(.08,Math.min(.2,beats*beatSeconds*.5)):.25]]){let o=ac.createOscillator(),v=ac.createGain();o.frequency.value=f*m;v.gain.setValueAtTime(.0001,z);v.gain.exponentialRampToValueAtTime(a*level,z+.005);v.gain.exponentialRampToValueAtTime(.0001,z+d);o.connect(v).connect(master);track(o);o.start(z);o.stop(z+d+.01)}}
 // A soft organ-like chord shares the bass impact timestamp and releases before the next chord.
-function chordTone(chord,seconds,when){if(!ac)return;const duration=Math.max(.12,seconds*.88);for(const n of chord.notes){const o=ac.createOscillator(),v=ac.createGain();o.type='sine';o.frequency.value=440*2**((n-69)/12);v.gain.setValueAtTime(.0001,when);v.gain.exponentialRampToValueAtTime(.055,when+Math.min(.035,duration/4));v.gain.setValueAtTime(.042,when+duration*.65);v.gain.exponentialRampToValueAtTime(.0001,when+duration);o.connect(v).connect(master);track(o);o.start(when);o.stop(when+duration+.02)}}
-function bassTone(n,beats,final=false,when=ac.currentTime){if(!ac)return;if(final)chime(n+36,beats,.16,when);let z=when,d=Math.max(1,beats*beatSeconds),f=440*2**((n-69)/12);for(let [multiple,level,type] of [[1,.20,'sine'],[2,.055,'triangle']]){let o=ac.createOscillator(),v=ac.createGain();o.type=type;o.frequency.value=f*multiple;v.gain.setValueAtTime(.0001,z);v.gain.exponentialRampToValueAtTime(level,z+.018);v.gain.exponentialRampToValueAtTime(.0001,z+d);o.connect(v).connect(master);track(o);o.start(z);o.stop(z+d+.02)}}
-function percussion(kind,when){if(!ac)return;const z=when;
- if(kind==='bell'){for(const f of [3200,4700,6100]){let o=ac.createOscillator(),v=ac.createGain();o.frequency.value=f;v.gain.setValueAtTime(.018,z);v.gain.exponentialRampToValueAtTime(.0001,z+.16);o.connect(v).connect(master);track(o);o.start(z);o.stop(z+.17)}return}
- let o=ac.createOscillator(),v=ac.createGain();o.frequency.setValueAtTime(kind==='tom'?150:190,z);o.frequency.exponentialRampToValueAtTime(kind==='tom'?48:100,z+.22);v.gain.setValueAtTime(kind==='tom'?.3:.10,z);v.gain.exponentialRampToValueAtTime(.0001,z+.32);o.connect(v).connect(master);track(o);o.start(z);o.stop(z+.34);
- if(kind==='snare'){let b=ac.createBuffer(1,Math.ceil(ac.sampleRate*.16),ac.sampleRate),data=b.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;let n=ac.createBufferSource(),f=ac.createBiquadFilter(),v=ac.createGain();n.buffer=b;f.type='highpass';f.frequency.value=1500;v.gain.setValueAtTime(.11,z);v.gain.exponentialRampToValueAtTime(.0001,z+.16);n.connect(f).connect(v).connect(master);track(n);n.start(z);n.stop(z+.17)}
+function chordTone(chord,seconds,when,level=1){if(!ac)return;const duration=Math.max(.12,seconds*.88);for(const n of chord.notes){const o=ac.createOscillator(),v=ac.createGain();o.type='sine';o.frequency.value=440*2**((n-69)/12);v.gain.setValueAtTime(.0001,when);v.gain.exponentialRampToValueAtTime(.055*level,when+Math.min(.035,duration/4));v.gain.setValueAtTime(.042*level,when+duration*.65);v.gain.exponentialRampToValueAtTime(.0001,when+duration);o.connect(v).connect(master);track(o);o.start(when);o.stop(when+duration+.02)}}
+function bassTone(n,beats,final=false,when=ac.currentTime,backingLevel=1){if(!ac)return;if(final)chime(n+36,beats,.16*backingLevel,when);let z=when,d=Math.max(1,beats*beatSeconds),f=440*2**((n-69)/12);for(let [multiple,level,type] of [[1,.20,'sine'],[2,.055,'triangle']]){let o=ac.createOscillator(),v=ac.createGain();o.type=type;o.frequency.value=f*multiple;v.gain.setValueAtTime(.0001,z);v.gain.exponentialRampToValueAtTime(level*backingLevel,z+.018);v.gain.exponentialRampToValueAtTime(.0001,z+d);o.connect(v).connect(master);track(o);o.start(z);o.stop(z+d+.02)}}
+function percussion(kind,when,level=1){if(!ac)return;const z=when;
+ if(kind==='bell'){for(const f of [3200,4700,6100]){let o=ac.createOscillator(),v=ac.createGain();o.frequency.value=f;v.gain.setValueAtTime(.018*level,z);v.gain.exponentialRampToValueAtTime(.0001,z+.16);o.connect(v).connect(master);track(o);o.start(z);o.stop(z+.17)}return}
+ let o=ac.createOscillator(),v=ac.createGain();o.frequency.setValueAtTime(kind==='tom'?150:190,z);o.frequency.exponentialRampToValueAtTime(kind==='tom'?48:100,z+.22);v.gain.setValueAtTime((kind==='tom'?.3:.10)*level,z);v.gain.exponentialRampToValueAtTime(.0001,z+.32);o.connect(v).connect(master);track(o);o.start(z);o.stop(z+.34);
+ if(kind==='snare'){let b=ac.createBuffer(1,Math.ceil(ac.sampleRate*.16),ac.sampleRate),data=b.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;let n=ac.createBufferSource(),f=ac.createBiquadFilter(),v=ac.createGain();n.buffer=b;f.type='highpass';f.frequency.value=1500;v.gain.setValueAtTime(.11*level,z);v.gain.exponentialRampToValueAtTime(.0001,z+.16);n.connect(f).connect(v).connect(master);track(n);n.start(z);n.stop(z+.17)}
 }
 
 function reset(){soloAge=-1;soloNext=1;soloHoopNext=0;wheelPhase=0;returnStage=0;nextMechanismCue=0;drumStruck=0;audioDrumStruck=0;cameraY=0;stopVoices();audioStruck=0;audioBassStruck=0;clockLast=null;bassStruck=0;splashAge=-1;stringSplashAge=-1;time=0;struck=0;finished=false;running=false;lanes.forEach(course=>course.forEach(p=>p.hit=-100));play.textContent='Release marbles';status.textContent=song.title+' · tap Release marbles'}
