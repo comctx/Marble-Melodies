@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Note Cascade · Marble Melodies</title>
 <style>*{box-sizing:border-box}body{margin:0;background:#171e22;color:#e8e5dc;font:15px system-ui}main{max-width:850px;margin:auto}header{padding:14px 18px 10px}a{color:#bfcacb;font-size:13px}h1{font:29px Georgia;margin:12px 0 6px}p{margin:4px 0;color:#aebbbc;line-height:1.5}canvas{display:block;width:100%;aspect-ratio:900/1000;background:#333f43}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 16px max(18px,env(safe-area-inset-bottom));background:#20292d}button{border:1px solid #627378;border-radius:24px;background:#37484b;color:white;font:15px system-ui;padding:11px 18px}#play{background:#d8b16d;color:#20292d;border-color:#d8b16d}label{font-size:13px;color:#c1ccca;display:flex;align-items:center;gap:7px}select{max-width:240px;padding:10px;border-radius:8px;background:#30464b;color:#fff;border:1px solid #8da79a;font:14px system-ui}input{width:100px;accent-color:#d8b16d}#status{font-size:12px;color:#c2ceca;padding:0 18px 12px}@media(min-width:700px){canvas{max-height:76vh;width:auto;max-width:100%;margin:auto}}</style></head>
-<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, spinning pads, seesaws, and a sparkling splash, colorful fireworks, fiery marble trails, and cooling water sprays, with a synchronized waterwheel, original copper clockwork guardian, meshed gears, moving bucket elevator, and the same amber marble returning to a glowing upper reservoir"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="sousa">The Stars and Stripes Forever</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="gladiators">Entry of the Gladiators</option><option value="chopsticks">Chopsticks</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="effects" aria-pressed="true" title="Toggle fiery trails and cooling water sprays">Fire + water on</button><button id="lights" aria-pressed="true" title="Toggle the synchronized glass-prism light organ">Prism lights on</button><button id="fireworks" aria-pressed="true" title="Toggle fireworks at the splash finale">Fireworks on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
+<body><main><header><a href="./index.html">← All Marble Melodies machines</a><h1>Note Cascade</h1><p id="song-heading"></p><p id="song-details"></p></header><canvas width="900" height="1000" aria-label="One shared Cascade: five marbles play melody, harmony, chords with bass, percussion, and plucked strings, with pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, glass loop-the-loops, brass see-saw launchers, crossing bridges, spinning pads, seesaws, and a sparkling splash, colorful fireworks, fiery marble trails, and cooling water sprays, with a synchronized waterwheel, original copper clockwork guardian, meshed gears, moving bucket elevator, and the same amber marble returning to a glowing upper reservoir"></canvas><div class="controls"><label>Tune <select id="tune"><option value="anthem">The Star-Spangled Banner</option><option value="jingle">Jingle Bells</option><option value="deck">Deck the Halls</option><option value="joy">Joy to the World</option><option value="sousa">The Stars and Stripes Forever</option><option value="maple">Maple Leaf Rag</option><option value="turkey">Turkey in the Straw</option><option value="gladiators">Entry of the Gladiators</option><option value="chopsticks">Chopsticks</option><option value="saints">When the Saints Go Marching In</option></select></label><button id="play">Release marbles</button><button id="reset">Back to top</button><label>Tempo <input id="speed" aria-label="Anthem tempo" type="range" min="0.5" max="1.5" step="0.1" value="1"></label><button id="chords" aria-pressed="true">Chords on</button><button id="effects" aria-pressed="true" title="Toggle fiery trails and cooling water sprays">Fire + water on</button><button id="lights" aria-pressed="true" title="Toggle the synchronized glass-prism light organ">Prism lights on</button><button id="fireworks" aria-pressed="true" title="Toggle fireworks at the splash finale">Fireworks on</button><button id="mute" aria-pressed="false">Mute</button></div><div id="status" role="status">The Star-Spangled Banner · ready</div></main>
 <script>
 (()=>{'use strict';
 const c=document.querySelector('canvas'),g=c.getContext('2d'),play=document.querySelector('#play'),status=document.querySelector('#status');
@@ -149,7 +149,7 @@ const requested=new URLSearchParams(location.search).get('tune');
 const song=songs[requested]||songs.anthem;
 const tune=document.querySelector('#tune');tune.value=songs[requested]?requested:'anthem';
 tune.onchange=()=>{const url=new URL(location.href);url.searchParams.set('tune',tune.value);stopVoices();location.assign(url.href)};
-document.querySelector('#song-heading').textContent=song.title+' · one Cascade · plucked strings, pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, crossing bridges, and a gong-and-trapdoor finale, followed by the golden marble Wild Ride with swinging hoops and corkscrew turns.';
+document.querySelector('#song-heading').textContent=song.title+' · one Cascade · plucked strings, pendulum catchers, star wheels, moving hoops, resetting dominoes, balancing scales, paddle wheels, swinging gates, tipping cups, spiral funnels, glass loop-the-loops, brass see-saw launchers, crossing bridges, and a gong-and-trapdoor finale, followed by the golden marble Wild Ride with swinging hoops and corkscrew turns.';
 document.querySelector('#song-details').textContent=song.credit+' · '+song.bpm+' BPM · original synthesized arrangement.';
 document.title=song.title+' · Marble Melodies';
 const bars=song.bars,chords=song.chords;
@@ -189,6 +189,8 @@ const r=17,endY=pads[pads.length-1].y+120;
 const anchors=[{x:425,y:28},...pads.map(p=>({x:p.x,y:p.y+2-r})),{x:465,y:endY}];
 const beatSeconds=60/song.bpm;
 const durations=[.8,...melody.slice(0,-1).map(n=>n[1]*beatSeconds),melody[melody.length-1][1]*beatSeconds+.6];
+const stuntCandidates=durations.map((duration,i)=>({duration,i})).filter(p=>p.i>=2&&p.i<pads.length).sort((a,b)=>b.duration-a.duration||a.i-b.i);
+const fallbackLoop=stuntCandidates[0]?.i,fallbackLauncher=stuntCandidates[1]?.i;
 const heights=durations.map((d,i)=>i===0?0:Math.min(125,12+110*d*d));
 const arrivals=[];let total=0;durations.forEach((d,i)=>{total+=d;if(i<pads.length)arrivals.push(total)});
 // Sparse wheel placements: reserve one in every six suitable longer gaps.
@@ -324,6 +326,8 @@ let time=0,last=null,running=false,finished=false,struck=0,sound=true,effectsEna
 function routeKind(i,lane){return baseRouteKind(i,lane)||surpriseSlots[lane]?.get(i)||''}
 function baseRouteKind(i,lane){
  if(lane>1||i<2||i>=pads.length)return '';
+ if(i===fallbackLoop||(durations[i]>=.65&&i%12===4))return 'glassloop';
+ if(i===fallbackLauncher||(durations[i]>=.50&&i%12===8))return 'launcher';
  if(i%13===6)return 'crossing';
  if(durations[i]>=.32&&(i+lane*5)%11===7)return 'zigzag';
  if(durations[i]>=.40&&(i+lane*4)%7===3)return 'cup';
@@ -386,8 +390,29 @@ function pendulumSeat(q,u){
  return{x:q.cx+49*Math.sin(angle),y:q.cy-57+49*Math.cos(angle)};
 }
 function stringContact(q){return{x:q.cx+25,y:q.cy-12}}
+// Shared geometry keeps the marble seated on the launcher and inside the glass.
+function launcherAngle(u){
+ if(u<.24)return -.18;
+ if(u<.48)return -.18+.42*((u-.24)/.24);
+ if(u<.60)return .24-.88*((u-.48)/.12);
+ return -.64+.46*Math.min(1,(u-.60)/.40);
+}
+function launcherSeat(q,u){const a=launcherAngle(u);return{x:q.cx+42*Math.cos(a)+18*Math.sin(a),y:q.cy+42*Math.sin(a)-18*Math.cos(a)}}
+function glassLoopPoint(q,v){const a=Math.PI/2+2*Math.PI*v;return{x:q.cx+42*Math.cos(a),y:q.cy-7+42*Math.sin(a)}}
 function detourPoint(i,lane,u){
  const q=routeGeometry(i,lane),kind=routeKind(i,lane),mix=(a,b,v)=>({x:a.x+(b.x-a.x)*v,y:a.y+(b.y-a.y)*v}),ease=v=>v*v*(3-2*v);
+ if(kind==='glassloop'){
+  const seat=glassLoopPoint(q,0);
+  if(u<.16)return mix(q.a,seat,ease(u/.16));
+  if(u<=.84)return glassLoopPoint(q,(u-.16)/.68);
+  return mix(seat,q.b,ease((u-.84)/.16));
+ }
+ if(kind==='launcher'){
+  if(u<.24)return mix(q.a,launcherSeat(q,.24),ease(u/.24));
+  if(u<=.60)return launcherSeat(q,u);
+  const v=(u-.60)/.40,p=mix(launcherSeat(q,.60),q.b,v);
+  p.y-=65*Math.sin(Math.PI*v);return p;
+ }
  if(kind==='pendulum'){
   if(u<pendulumCatch)return mix(q.a,pendulumSeat(q,pendulumCatch),ease(u/pendulumCatch));
   if(u<=pendulumRelease)return pendulumSeat(q,u);
@@ -603,7 +628,25 @@ function drawRouteDevices(camera){
   for(let lane=0;lane<2;lane++){
    const kind=routeKind(i,lane);if(!kind)continue;
    const q=routeGeometry(i,lane),u=segmentProgress(i,time);
-   if(kind==='scale'){
+   if(kind==='glassloop'){
+    line(q.cx,q.cy+37,q.cx,q.cy+64,'#78989d',5);
+    ellipse(q.cx,q.cy+65,27,5,'#20383f');
+    // Outer glass walls straddle the exact centerline used by detourPoint.
+    for(const [radius,width,color] of [[63,3,'#9ce7f0aa'],[42,38,'#8fd9e51c'],[21,3,'#b7f4ffbb'],[42,2,'#e4fcff55']]){
+     g.beginPath();g.arc(q.cx,q.cy-7,radius,0,Math.PI*2);g.strokeStyle=color;g.lineWidth=width;g.stroke();
+    }
+    g.beginPath();g.arc(q.cx,q.cy-7,57,Math.PI,Math.PI*1.7);g.strokeStyle='#efffff';g.lineWidth=3;g.stroke();
+    for(const v of [.0,.25,.5,.75]){const p=glassLoopPoint(q,v);disk(p.x,p.y,3,'#c49b62')}
+   }else if(kind==='launcher'){
+    ellipse(q.cx,q.cy+46,40,7,'#1d343d');
+    g.beginPath();g.moveTo(q.cx-21,q.cy+42);g.lineTo(q.cx,q.cy+1);g.lineTo(q.cx+21,q.cy+42);g.closePath();g.fillStyle='#829a9d';g.fill();
+    const a=launcherAngle(u);g.save();g.translate(q.cx,q.cy);g.rotate(a);
+    line(-57,0,62,0,'#795331',12);line(-57,-4,62,-4,'#f5cf83',4);
+    g.beginPath();g.moveTo(22,-8);g.quadraticCurveTo(42,2,62,-8);g.strokeStyle='#ffe0a0';g.lineWidth=4;g.stroke();
+    g.fillStyle='#b18449';g.fillRect(-57,-15,20,15);g.restore();
+    disk(q.cx,q.cy,9,'#e6bd79');disk(q.cx,q.cy,4,'#526e77');
+    g.beginPath();for(let k=0;k<=14;k++){const x=q.cx-42+k*2,y=q.cy+18+k*.9+(k%2?4:-4);if(k)g.lineTo(x,y);else g.moveTo(x,y)}g.strokeStyle='#d5dfd8';g.lineWidth=2;g.stroke();
+   }else if(kind==='scale'){
     // Rigid beam, pivot, loaded pan, and a solid counterweight.
     ellipse(q.cx,q.cy+44,31,6,'#213d46');
     g.beginPath();g.moveTo(q.cx-17,q.cy+41);g.lineTo(q.cx,q.cy-2);g.lineTo(q.cx+17,q.cy+41);g.closePath();g.fillStyle='#8a9f9d';g.fill();
