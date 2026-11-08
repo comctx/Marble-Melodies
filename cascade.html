@@ -711,28 +711,38 @@ function drawPrismLightOrgan(camera){
     if(!lastImpact||p.hit>lastImpact.hit)lastImpact=p;
    }
    const age=lastImpact?time-lastImpact.hit:10;
-   const strength=age<1.15?Math.pow(Math.max(0,1-age/1.15),1.4):0;
+   const strength=age<1.6?Math.pow(Math.max(0,1-age/1.6),.85):0;
    const tx=lastImpact?laneX(lastImpact.x,lane):cx;
    const ty=lastImpact?lastImpact.y-7:fixtureY+150;
    const aiming=Math.max(-.55,Math.min(.55,Math.atan2(tx-fixtureX,Math.max(70,ty-fixtureY))));
    if(strength>.01&&ty>fixtureY+36){
     g.save();
     g.globalCompositeOperation='screen';
-    g.globalAlpha=.60*strength;
+    g.globalAlpha=.95*strength;
     const beam=g.createLinearGradient(fixtureX,fixtureY+12,tx,ty+14);
     beam.addColorStop(0,color.glass);
-    beam.addColorStop(1,'rgba(255,255,255,0)');
+    beam.addColorStop(.55,color.glass);
+    beam.addColorStop(1,color.lens);
     const width=20+Math.min(48,(ty-fixtureY)*.055);
     g.fillStyle=beam;
     g.beginPath();g.moveTo(fixtureX-9,fixtureY+12);
     g.lineTo(fixtureX+9,fixtureY+12);
     g.lineTo(tx+width,ty+22);
     g.lineTo(tx-width,ty+22);g.closePath();g.fill();
-    const pool=g.createRadialGradient(tx,ty,1,tx,ty,54);
-    pool.addColorStop(0,color.glass);
+    // Bright narrow core stays visible across the full throw of the prism.
+    g.globalAlpha=.90*strength;
+    g.shadowColor=color.lens;g.shadowBlur=24;
+    line(fixtureX,fixtureY+12,tx,ty,color.lens,7);
+    g.globalAlpha=.75*strength;
+    line(fixtureX,fixtureY+12,tx,ty,'#fffbea',2);
+    g.shadowBlur=0;
+    const pool=g.createRadialGradient(tx,ty,1,tx,ty,82);
+    pool.addColorStop(0,'#fffef4');
+    pool.addColorStop(.18,color.lens);
+    pool.addColorStop(.48,color.glass);
     pool.addColorStop(1,'rgba(255,255,255,0)');
-    g.globalAlpha=.85*strength;
-    disk(tx,ty,54,pool);
+    g.globalAlpha=strength;
+    disk(tx,ty,82,pool);
     for(let ray=0;ray<5;ray++){
      const a=(ray*2.399+time*.24+lane)*Math.PI;
      const length=15+strength*22;
@@ -754,8 +764,9 @@ function drawPrismLightOrgan(camera){
    line(-10,-10,-3,-13,'#ffffffb0',1.5);
    disk(-20,0,3,'#f1d49b');disk(20,0,3,'#f1d49b');
    if(strength>.01){
-    g.globalAlpha=.45+.55*strength;g.shadowBlur=19*strength;
-    g.shadowColor=color.lens;disk(0,-6,7,color.lens);
+    g.globalAlpha=.45+.55*strength;g.shadowBlur=38*strength;
+    g.shadowColor=color.lens;disk(0,-6,11,color.lens);
+    disk(0,-6,5,'#fffef4');
    }
    g.restore();
   }
